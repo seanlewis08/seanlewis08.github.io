@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+/.quarto/
+/_site/
+/.idea/
 # C extensions
 *.so
 
@@ -169,3 +172,5 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+/.quarto/
