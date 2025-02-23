@@ -7,8 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sean Lewis">
+<meta name="dcterms.date" content="2025-02-23">
+<meta name="description" content="This is the second notebook in the fast.ai lecture for #5">
 
-<title>Introduction and set up – Sean Lewis</title>
+<title>06-Why you should use a Framework (follow Along) – Sean Lewis</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -153,7 +155,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#prep-the-data" id="toc-prep-the-data" class="nav-link active" data-scroll-target="#prep-the-data">Prep the data</a></li>
+  <li><a href="#introduction-and-set-up" id="toc-introduction-and-set-up" class="nav-link active" data-scroll-target="#introduction-and-set-up">Introduction and set up</a></li>
+  <li><a href="#prep-the-data" id="toc-prep-the-data" class="nav-link" data-scroll-target="#prep-the-data">Prep the data</a></li>
   <li><a href="#train-the-model" id="toc-train-the-model" class="nav-link" data-scroll-target="#train-the-model">Train the model</a></li>
   <li><a href="#submit-to-kaggle" id="toc-submit-to-kaggle" class="nav-link" data-scroll-target="#submit-to-kaggle">Submit to Kaggle</a></li>
   <li><a href="#ensembling" id="toc-ensembling" class="nav-link" data-scroll-target="#ensembling">Ensembling</a></li>
@@ -166,9 +169,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Introduction and set up</h1>
-</div>
+<h1 class="title">06-Why you should use a Framework (follow Along)</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">nueral net</div>
+    <div class="quarto-category">from scratch</div>
+  </div>
+  </div>
 
+<div>
+  <div class="description">
+    This is the second notebook in the fast.ai lecture for #5
+  </div>
+</div>
 
 
 <div class="quarto-title-meta">
@@ -180,6 +192,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           </div>
   </div>
     
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">February 23, 2025</p>
+    </div>
+  </div>
   
     
   </div>
@@ -189,6 +207,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
+<section id="introduction-and-set-up" class="level2">
+<h2 class="anchored" data-anchor-id="introduction-and-set-up">Introduction and set up</h2>
 <p>If you’ve finished going through my <a href="https://www.kaggle.com/code/jhoward/linear-model-and-neural-net-from-scratch">Linear model and neural net from scratch</a> notebook, then now is a good time to look at how to do the same thing using a library, instead of doing it from scratch. We’ll use fastai and PyTorch. The benefits of using these libraries is:- Best practices are handled for you automatically – fast.ai has done thousands of hours of experiments to figure out what the best settings are for you- Less time getting set up, which means more time to try out your new ideas- Each idea you try will be less work, because fastai and PyTorch will do the many of the menial bits for you- You can always drop down from fastai to PyTorch if you need to customise any part (or drop down from the fastai Application API to the fastai mid or low tier APIs), or even drop down from PyTorch to plain python for deep customisation.Let’s see how that looks in practice. We’ll start by doing the same library setup as in the “from scratch” notebook:</p>
 <p>::: {#cell-3 .cell _kg_hide-output=‘true’ execution=‘{“iopub.status.busy”:“2022-05-16T21:26:52.397584Z”,“iopub.execute_input”:“2022-05-16T21:26:52.398131Z”,“iopub.status.idle”:“2022-05-16T21:27:20.193935Z”,“shell.execute_reply.started”:“2022-05-16T21:26:52.398019Z”,“shell.execute_reply”:“2022-05-16T21:27:20.193065Z”}’ trusted=‘true’}</p>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Pathimport osiskaggle <span class="op">=</span> os.environ.get(<span class="st">'KAGGLE_KERNEL_RUN_TYPE'</span>, <span class="st">''</span>)<span class="cf">if</span> iskaggle:    path <span class="op">=</span> Path(<span class="st">'../input/titanic'</span>)    <span class="op">!</span>pip install <span class="op">-</span>Uqq fastaielse:    <span class="im">import</span> zipfile,kaggle    path <span class="op">=</span> Path(<span class="st">'titanic'</span>)    kaggle.api.competition_download_cli(<span class="bu">str</span>(path))    zipfile.ZipFile(<span class="ss">f'</span><span class="sc">{</span>path<span class="sc">}</span><span class="ss">.zip'</span>).extractall(path)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -197,6 +217,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="cell-5" class="cell" data-execution="{&quot;iopub.status.busy&quot;:&quot;2022-05-16T21:27:20.196442Z&quot;,&quot;iopub.execute_input&quot;:&quot;2022-05-16T21:27:20.196812Z&quot;,&quot;iopub.status.idle&quot;:&quot;2022-05-16T21:27:23.389486Z&quot;,&quot;shell.execute_reply.started&quot;:&quot;2022-05-16T21:27:20.196763Z&quot;,&quot;shell.execute_reply&quot;:&quot;2022-05-16T21:27:23.388493Z&quot;}" data-trusted="true">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> fastai.tabular.<span class="bu">all</span> <span class="im">import</span> <span class="op">*</span>pd.options.display.float_format <span class="op">=</span> <span class="st">'</span><span class="sc">{:.2f}</span><span class="st">'</span>.formatset_seed(<span class="dv">42</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</section>
 <section id="prep-the-data" class="level2">
 <h2 class="anchored" data-anchor-id="prep-the-data">Prep the data</h2>
 <p>We’ll read the CSV file just like we did before:</p>

@@ -2,12 +2,10 @@
   {
     "listing": "/blog.html",
     "items": [
-      "/posts/Jupyter_example/main.html",
+      "/posts/from_scratch_model/05-linear-model-and-neural-net-from-scratch.html",
       "/posts/from_scratch_model/06-why-you-should-use-a-framework.html",
       "/posts/from_scratch_model/07-how-random-forests-really-work.html",
-      "/posts/from_scratch_model/05-linear-model-and-neural-net-from-scratch.html",
-      "/posts/welcome/index.html",
-      "/posts/first_blog_post/main.html"
+      "/posts/welcome/index.html"
     ]
   }
 ]

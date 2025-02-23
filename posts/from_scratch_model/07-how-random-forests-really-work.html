@@ -7,8 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sean Lewis">
+<meta name="dcterms.date" content="2025-02-23">
+<meta name="description" content="This is the third notebook in the fast.ai lecture for #5">
 
-<title>Introduction – Sean Lewis</title>
+<title>07-How Random Forests Really Work – Sean Lewis</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -157,7 +159,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#data-preprocessing" id="toc-data-preprocessing" class="nav-link active" data-scroll-target="#data-preprocessing">Data preprocessing</a></li>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#data-preprocessing" id="toc-data-preprocessing" class="nav-link" data-scroll-target="#data-preprocessing">Data preprocessing</a></li>
   <li><a href="#binary-splits" id="toc-binary-splits" class="nav-link" data-scroll-target="#binary-splits">Binary splits</a></li>
   <li><a href="#creating-a-decision-tree" id="toc-creating-a-decision-tree" class="nav-link" data-scroll-target="#creating-a-decision-tree">Creating a decision tree</a></li>
   <li><a href="#the-random-forest" id="toc-the-random-forest" class="nav-link" data-scroll-target="#the-random-forest">The random forest</a></li>
@@ -170,9 +173,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Introduction</h1>
-</div>
+<h1 class="title">07-How Random Forests Really Work</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">nueral net</div>
+    <div class="quarto-category">from scratch</div>
+  </div>
+  </div>
 
+<div>
+  <div class="description">
+    This is the third notebook in the fast.ai lecture for #5
+  </div>
+</div>
 
 
 <div class="quarto-title-meta">
@@ -184,6 +196,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           </div>
   </div>
     
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">February 23, 2025</p>
+    </div>
+  </div>
   
     
   </div>
@@ -193,6 +211,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
 <p>Previously I’ve shown how to create a <a href="https://www.kaggle.com/code/jhoward/linear-model-and-neural-net-from-scratch">linear model and neural net from scratch</a>, and used it to create a solid submission to Kaggle’s <a href="https://www.kaggle.com/competitions/titanic/">Titanic</a> competition. However, for <em>tabular</em> data (i.e data that looks like spreadsheet or database tables, such as the data for the Titanic competition) it’s more common to see good results by using ensembles of decision trees, such as Random Forests and Gradient Boosting Machines.</p>
 <p>In this notebook, we’re going to learn all about Random Forests, by building one from scratch, and using it to submit to the Titanic competition! That might sound like a pretty big stretch, but I think you’ll be surprised to discover how straightforward it actually is.</p>
 <p>We’ll start by importing the basic set of libraries we normally need for data science work, and setting numpy to use our display space more efficiently:</p>
@@ -200,6 +220,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> fastai.imports <span class="im">import</span> <span class="op">*</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>np.set_printoptions(linewidth<span class="op">=</span><span class="dv">130</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>:::</p>
+</section>
 <section id="data-preprocessing" class="level2">
 <h2 class="anchored" data-anchor-id="data-preprocessing">Data preprocessing</h2>
 <p>We’ll create <code>DataFrame</code>s from the CSV files just like we did in the “<em>linear model and neural net from scratch</em>” notebook, and do much the same preprocessing (so go back and check that out if you’re not already familiar with the dataset):</p>
