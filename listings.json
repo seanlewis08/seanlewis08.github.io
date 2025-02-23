@@ -2,6 +2,7 @@
   {
     "listing": "/blog.html",
     "items": [
+      "/posts/Jupyter_example/main.html",
       "/posts/welcome/index.html",
       "/posts/first_blog_post/main.html"
     ]
