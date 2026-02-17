@@ -287,23 +287,25 @@ html { scroll-behavior: smooth; }
   box-shadow: 0 4px 20px var(--accent-glow);
 }
 
-/* === Straw Hat (top-right corner) === */
-.quarto-about-jolla .about-entity::after {
-  content: '';
+/* === Straw Hat (injected via JS into .quarto-about-jolla) === */
+.straw-hat {
   position: absolute;
-  top: 25px;
-  right: 35px;
-  width: 70px;
-  height: 50px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 85'%3E%3C!-- brim --%3E%3Cellipse cx='60' cy='68' rx='58' ry='15' fill='%23d4a347' opacity='0.85'/%3E%3Cellipse cx='60' cy='68' rx='58' ry='15' fill='none' stroke='%23b8882e' stroke-width='1.5' opacity='0.6'/%3E%3C!-- dome --%3E%3Cpath d='M28,68 Q28,22 60,18 Q92,22 92,68' fill='%23e8b84a' opacity='0.85'/%3E%3Cpath d='M28,68 Q28,22 60,18 Q92,22 92,68' fill='none' stroke='%23c99530' stroke-width='1.5' opacity='0.5'/%3E%3C!-- red band --%3E%3Cpath d='M30,55 Q60,48 90,55 Q60,62 30,55 Z' fill='%23cc3333' opacity='0.8'/%3E%3C/svg%3E") no-repeat center/contain;
+  bottom: 30px;
+  right: 30px;
+  z-index: 2;
   pointer-events: none;
-  opacity: 0.5;
-  animation: float 5s ease-in-out infinite;
-  transition: opacity 0.3s;
+  opacity: 0.6;
+  transform: rotate(12deg) perspective(300px) rotateX(8deg);
+  transition: opacity 0.4s, transform 0.4s;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4))
+          drop-shadow(0 1px 4px rgba(212, 163, 71, 0.2));
 }
 
-.quarto-about-jolla .about-entity:hover::after {
-  opacity: 0.8;
+.quarto-about-jolla:hover .straw-hat {
+  opacity: 0.9;
+  transform: rotate(8deg) perspective(300px) rotateX(5deg) translateY(-4px);
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.5))
+          drop-shadow(0 2px 8px rgba(212, 163, 71, 0.3));
 }
 
 /* === Bio text styling === */
@@ -675,7 +677,7 @@ nav#TOC a.active {
     padding: 1.5rem;
   }
 
-  .quarto-about-jolla .about-entity::after {
+  .straw-hat {
     display: none;
   }
 
