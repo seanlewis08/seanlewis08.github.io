@@ -1,5 +1,6 @@
 project:
   type: website
+  output-dir: docs
 
 website:
   title: "Sean Lewis"
@@ -18,8 +19,11 @@ website:
 format:
   html:
     theme:
-      - minty
+      - darkly
     css: styles.css
+    include-after-body:
+      text: |
+        <script src="animations.js"></script>
 
 
 

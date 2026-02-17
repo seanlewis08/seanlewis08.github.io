@@ -13,6 +13,10 @@ about:
 
 ---
 
+::: {.typing-subtitle}
+Data Scientist | ML Engineer | Analytics
+:::
+
 Welcome to my blog! This is a space where data science meets strategy, where numbers tell stories, and where analytics drive action.
 
 Here, I break down machine learning, actuarial modeling, and business intelligence into practical, engaging discussions. Whether it's model deployment, MLOps, or pricing analytics, this blog is about turning raw data into insights that matter.
