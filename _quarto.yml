@@ -3,20 +3,22 @@ project:
 
 website:
   title: "Sean Lewis"
-  description: "This is Sean Lewis personal Blog."
+  description: "Data Scientist | Personal site & blog"
   navbar:
     right:
+      - text: Projects
+        href: projects.qmd
       - text: Blog
         href: blog.qmd
       - icon: github
         href: https://github.com/seanlewis08
       - icon: linkedin
         href: https://www.linkedin.com/in/selew/
+
 format:
   html:
     theme:
       - minty
-      - brand
     css: styles.css
 
 

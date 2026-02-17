@@ -1,0 +1,36 @@
+---
+title: "Projects"
+page-layout: full
+title-block-banner: true
+---
+
+::: {.projects-header}
+
+## Things I've Built
+
+::: {.accent-line}
+:::
+
+A collection of projects spanning data science, analytics, and web development.
+
+:::
+
+::: {.project-card}
+
+### Budget App
+
+A personal budgeting application to help track spending, set savings goals, and visualize where your money goes.
+
+[GitHub Pages]{.tech-tag}
+[Web App]{.tech-tag}
+[Data Visualization]{.tech-tag}
+
+[View Project](https://seanlewis08.github.io/budget_app/){.btn-project}
+&nbsp;&nbsp;
+[Source Code](https://github.com/seanlewis08/budget_app){.btn-project}
+
+:::
+
+<br>
+
+*More projects coming soon — check back or follow along on [GitHub](https://github.com/seanlewis08).*

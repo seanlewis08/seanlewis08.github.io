@@ -13,4 +13,15 @@ about:
 
 ---
 
-About this blog
+Welcome to my blog! This is a space where data science meets strategy, where numbers tell stories, and where analytics drive action.
+
+Here, I break down machine learning, actuarial modeling, and business intelligence into practical, engaging discussions. Whether it's model deployment, MLOps, or pricing analytics, this blog is about turning raw data into insights that matter.
+
+As Kevin Durant once said:
+
+> "Everything in life has a rhythm, and everything in life has a pace."
+> — Kevin Durant, The Boardroom Interview, New York, March 2019
+
+Data science is no different—whether optimizing machine learning models or refining pricing strategies, timing, iteration, and adaptation are key. Success isn't just about raw processing power; it's about finding the right rhythm between exploration and execution.
+
+Stay tuned for deep dives into data science, visualization, and AI-driven decision-making. Let's explore the numbers that shape our world!
