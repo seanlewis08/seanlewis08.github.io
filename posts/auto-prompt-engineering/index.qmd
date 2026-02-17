@@ -1,0 +1,303 @@
+---
+title: "No Tuning, No Task Cues, No Problem — IBM's Dead-Simple Approach to Automatic Prompt Engineering"
+date: "2026-02-17"
+categories: [Prompt Engineering, LLMs, Automation, Paper Review]
+description: "A deep dive into a paper from IBM Research that generates effective prompts with just 8 examples, zero tuning, and zero extra LLM calls for scoring — and still matches DSPy on benchmarks."
+image: "auto-prompt-thumbnail.svg"
+---
+
+## The Hook
+
+There's a growing arms race in automatic prompt engineering. DSPy compiles prompts through multi-stage optimization. TextGrad treats prompt tokens like differentiable parameters and backpropagates through LLM calls. APE uses LLMs to score candidate prompts with additional inference rounds. These systems work — but they're complex, expensive, and require things like labeled validation sets, task-specific seed prompts, or multiple rounds of LLM scoring.
+
+What if you could skip all of that?
+
+A new paper from IBM Research, **"Automatic Prompt Engineering with No Task Cues and No Tuning"** by Faisal Chowdhury et al., proposes a system that's almost aggressively simple. Give it 8-10 input-output examples. No seed prompt. No task description. No tuning loop. No LLM calls for candidate scoring. It generates candidate prompts, ranks them using *string similarity alone*, and picks the best one. Total cost: about 10 LLM calls.
+
+And it matches or beats DSPy on 2 out of 3 benchmarks.
+
+## The Argument
+
+The paper's core claim is that the automatic prompt engineering field has been over-engineering the problem. Existing approaches assume you need at least one of the following: explicit task descriptions to guide generation, optimization loops that iteratively refine prompts, LLM-based evaluation to score candidates, or large labeled datasets for training/validation splits.
+
+The authors argue **none of these are strictly necessary** — at least for a meaningful class of real-world tasks. Their system works in two dead-simple steps:
+
+**Step 1 — Generate candidates.** Take your 8-10 examples and split them into 3 randomized subsets (samples A, B, C). Feed each subset to an LLM with a completely generic meta-prompt — one that says nothing about the task at hand, just "look at these input-output pairs and write an instruction that would produce these outputs from these inputs." Use multinomial sampling (temperature and top-p) to generate ~10 candidate instructions per subset. Total: ~30 candidates from ~3 LLM calls.
+
+**Step 2 — Rank without an LLM.** Here's the clever bit. Instead of calling the LLM again to evaluate each candidate (expensive), they compute **Jaro-Winkler string similarity** between all candidate prompts. The intuition: if many independently generated prompts converge on similar wording, that wording probably captures something real about the task. Sum up each candidate's similarity to all others, rank by score, pick the top one. Zero LLM calls for ranking.
+
+That's it. No gradient descent. No compiler. No reward model. No validation set.
+
+### Why Jaro-Winkler?
+
+This is worth pausing on. Jaro-Winkler is a string distance metric originally designed for record linkage — matching names like "Sean" and "Shawn" in messy databases. It gives higher weight to characters at the *beginning* of strings, which turns out to be useful for prompts too: the most important semantic content in an instruction tends to appear early.
+
+The authors tried other similarity metrics but found Jaro-Winkler struck the best balance of sensitivity and robustness for prompt-length text. It's also blazing fast — no embedding model, no tokenization, just character-level comparison.
+
+## The Lineage
+
+This paper enters a rapidly maturing lineage of automatic prompt optimization:
+
+**APE (Zhou et al., 2023)** — the original "let the LLM write its own prompts" paper. Generate candidate instructions, then score them by running each through the LLM on a validation set. Effective but expensive — each candidate requires a full evaluation pass. The IBM paper directly compares against APE's zero-shot variant.
+
+**DSPy (Khattab et al., 2023)** — the current heavyweight. Treats prompting as a programming abstraction, "compiles" prompt pipelines through optimization. Requires a training/validation split and task-aware modules. Powerful but complex — you need to learn the DSPy programming model.
+
+**TextGrad (Yuksekgonul et al., 2024)** — treats LLM calls as differentiable operations and applies gradient-based optimization to prompts. Creative, but requires multiple rounds of LLM calls for the "backward pass."
+
+**Instruction Induction (Honovich et al., 2023)** — generates task instructions from examples. The IBM paper includes this as a baseline and significantly outperforms it.
+
+The gap the IBM paper identifies: all of these systems assume you have enough task context to bootstrap the optimization. APE needs a scoring function. DSPy needs a training split. TextGrad needs a loss function. But what if you're staring at 8 rows of a database table with cryptic column names and literally nothing else? No task description, no validation set, no domain context. That's the scenario this paper targets — and it's more common in enterprise settings than the research community might assume.
+
+### The Tension
+
+There's a real ideological tension here. One camp says prompt engineering should be *automated away entirely* — let the system figure it out (DSPy, TextGrad). Another camp says human-designed prompts are more interpretable and controllable. This IBM paper sits in an interesting middle ground: it automates the generation, but the mechanism is so simple and transparent that you can inspect every step. There's no opaque optimization loop — just "here are 30 candidate prompts ranked by how much they agree with each other."
+
+## The Deep Dive
+
+### The Task: Cryptic Column Name Expansion
+
+The paper's evaluation domain is **Column Name Expansion (CNE)** — expanding abbreviated database column names into their full human-readable forms. Think:
+
+| Abbreviated | Expanded |
+|---|---|
+| `DISCOUNT_PCT_APPLIC` | Discount Percentage Applicable |
+| `CUST_ACCT_GRP` | Customer Account Group |
+| `NET_WGT_UOM` | Net Weight Unit of Measure |
+
+This sounds niche, but it's a real pain point in enterprise data management. Database schemas are full of cryptic abbreviations that make data discovery, search, and governance harder. The authors note that SAP systems alone can have tables with hundreds of abbreviated column names across multiple languages.
+
+CNE is also a great test case for automatic prompt engineering because it has clear right/wrong answers, requires understanding domain-specific abbreviations, exists in multiple languages (the paper tests English and German), and has no obvious "task description" you could hand-write — the mapping from abbreviations to expansions is irregular and context-dependent.
+
+### The Architecture
+
+Here's the process flow:
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    INPUT: 8-10 Examples              │
+│         (abbreviated_name → expanded_name)           │
+└───────────────────────┬─────────────────────────────┘
+                        │
+                        ▼
+┌─────────────────────────────────────────────────────┐
+│           STEP 1: Controlled Randomization           │
+│                                                      │
+│   Sample A ──┐                                       │
+│   Sample B ──┼── 3 randomized subsets of examples    │
+│   Sample C ──┘                                       │
+└───────────────────────┬─────────────────────────────┘
+                        │
+                        ▼
+┌─────────────────────────────────────────────────────┐
+│         STEP 2: Candidate Generation (~10 LLM calls) │
+│                                                      │
+│   Each sample + task-agnostic meta-prompt            │
+│       → LLM (multinomial sampling)                   │
+│       → ~10 candidate instructions per sample        │
+│                                                      │
+│   Total: ~30 candidates                              │
+└───────────────────────┬─────────────────────────────┘
+                        │
+                        ▼
+┌─────────────────────────────────────────────────────┐
+│       STEP 3: Rank via Jaro-Winkler Similarity       │
+│                                                      │
+│   For each candidate:                                │
+│     score = Σ jaro_winkler(candidate, all_others)    │
+│                                                      │
+│   Rank by score → Top prompt wins                    │
+│   (ZERO additional LLM calls)                        │
+└───────────────────────┬─────────────────────────────┘
+                        │
+                        ▼
+┌─────────────────────────────────────────────────────┐
+│              OUTPUT: Best Prompt Instruction          │
+└─────────────────────────────────────────────────────┘
+```
+
+The meta-prompt itself is intentionally generic. It doesn't mention column names, databases, abbreviations, or any domain-specific terminology. It simply presents the input-output pairs and asks the LLM to infer an instruction. This is what the authors mean by "no task cues" — the system doesn't know what task it's solving.
+
+### The Results
+
+The paper evaluates on three datasets across two languages:
+
+| Dataset | Language | Records | This System | DSPy | APE (Zero-Shot) | TextGrad | Inst. Induction |
+|---|---|---|---|---|---|---|---|
+| **German SAP** | German | 529 | **51.89%** | **51.89%** | 41.13% | 48.11% | 21.08% |
+| **CDO_435** | English | 435 | **82.61%** | 69.34% | 79.95% | 72.17% | 48.11% |
+| **TELE_1186** | English | 1,186 | 70.73% | **75.00%** | 68.92% | 59.04% | 46.77% |
+
+The headlines: they **tie DSPy on German SAP**, **beat it by 13 points on CDO_435**, and **lose by ~4 points on TELE_1186**. They beat TextGrad and APE on all three datasets. Instruction Induction gets crushed everywhere.
+
+The CDO_435 result is particularly striking — a 13-point gap over DSPy with a system that's orders of magnitude simpler. The German SAP result is notable as a first demonstration of automatic prompt engineering in a non-English language.
+
+On TELE_1186, DSPy's optimization loop pays off with a ~4-point edge. The authors are transparent about this — their system trades some ceiling performance for dramatic simplicity. Whether that tradeoff is worth it depends on your use case.
+
+### What's the Catch?
+
+The paper is honest about its scope. CNE is a relatively constrained task — inputs and outputs are short, evaluation is string-match based, and the task structure is consistent. Whether this approach generalizes to more complex generation tasks (summarization, code generation, multi-turn dialogue) is an open question.
+
+The 8-10 example requirement, while small, still assumes you have *some* labeled data. True zero-shot automatic prompt engineering remains unsolved.
+
+And Jaro-Winkler, while clever for this use case, is a character-level metric. For tasks where semantically different wordings are functionally equivalent, an embedding-based similarity might be necessary — but then you're back to needing a model for ranking.
+
+## So What?
+
+This paper matters because it proves a point that the field needs to hear: **simpler can be better.** Not always, not everywhere, but more often than the complexity arms race would suggest.
+
+If you're in an enterprise setting with messy tabular data and minimal labeled examples, this is a plug-and-play approach that gets you 80-90% of the way to SOTA with a fraction of the engineering effort. No DSPy compiler to learn. No TextGrad optimization loop to debug. No validation set to curate.
+
+It also raises a deeper question: how much of the sophistication in current automatic prompt engineering systems is actually necessary, and how much is complexity for complexity's sake? The IBM team shows that for at least one real-world task, the answer is "most of it."
+
+Sometimes the best prompt is the one 30 candidates agree on.
+
+---
+
+*Paper: ["Automatic Prompt Engineering with No Task Cues and No Tuning"](https://arxiv.org/abs/2601.03130) by Faisal Chowdhury, Nandana Mihindukulasooriya, Niharika S. D'Souza, Horst Samulowitz, Neeru Gupta, Tomasz Hanusiak, and Michal Kapitonow. IBM Research, arXiv:2601.03130, January 2026.*
+
+---
+
+## Reproduction & Implementation
+
+### Environment Setup
+
+```python
+# Core dependencies
+pip install jellyfish>=1.0.0    # Jaro-Winkler implementation
+pip install openai>=1.0.0       # Or your preferred LLM API client
+pip install pandas>=2.0.0       # Data handling
+
+# Optional: for running DSPy/TextGrad baselines
+pip install dspy-ai>=2.0.0
+pip install textgrad>=0.1.0
+```
+
+### Pseudo-Code: Core Algorithm
+
+```python
+import jellyfish
+import random
+from itertools import combinations
+
+def generate_candidates(examples: list[dict], llm_client, n_samples=3, n_candidates=10):
+    """
+    Step 1: Generate candidate prompts from randomized example subsets.
+
+    Args:
+        examples: List of {"input": str, "output": str} dicts (8-10 items)
+        llm_client: Any LLM API client
+        n_samples: Number of randomized subsets (default 3)
+        n_candidates: Candidates per subset (default 10)
+    """
+    META_PROMPT = """Below are some input-output pairs. Your task is to write
+    a clear, concise instruction that would transform each input into its
+    corresponding output. Do not reference the examples directly — write a
+    general instruction.
+
+    Examples:
+    {examples_text}
+
+    Write the instruction:"""
+
+    all_candidates = []
+
+    for _ in range(n_samples):
+        # Controlled randomization: shuffle and subsample
+        subset = random.sample(examples, min(len(examples), 8))
+        random.shuffle(subset)
+
+        examples_text = "\n".join(
+            f"Input: {ex['input']} → Output: {ex['output']}"
+            for ex in subset
+        )
+
+        prompt = META_PROMPT.format(examples_text=examples_text)
+
+        # Multinomial sampling: temperature + top_p for diversity
+        for _ in range(n_candidates):
+            response = llm_client.generate(
+                prompt=prompt,
+                temperature=0.7,
+                top_p=0.95,
+                max_tokens=256
+            )
+            all_candidates.append(response.strip())
+
+    return all_candidates
+
+
+def rank_candidates(candidates: list[str]) -> list[tuple[str, float]]:
+    """
+    Step 2: Rank candidates by Jaro-Winkler consensus.
+    No LLM calls — pure string similarity.
+
+    Returns candidates sorted by descending consensus score.
+    """
+    scores = []
+    for i, candidate in enumerate(candidates):
+        total_sim = sum(
+            jellyfish.jaro_winkler_similarity(candidate, other)
+            for j, other in enumerate(candidates) if i != j
+        )
+        scores.append((candidate, total_sim))
+
+    # Sort by consensus score (highest = most agreement)
+    scores.sort(key=lambda x: x[1], reverse=True)
+    return scores
+
+
+def auto_prompt_engineer(examples, llm_client):
+    """Full pipeline: generate → rank → return best prompt."""
+    candidates = generate_candidates(examples, llm_client)
+    ranked = rank_candidates(candidates)
+
+    best_prompt = ranked[0][0]
+    best_score = ranked[0][1]
+
+    print(f"Best prompt (score={best_score:.3f}):\n{best_prompt}")
+    return best_prompt
+```
+
+### Jaro-Winkler Similarity — How It Works
+
+```python
+# Jaro-Winkler gives higher weight to strings sharing a common prefix.
+# Score range: 0.0 (no similarity) to 1.0 (identical)
+
+import jellyfish
+
+# High similarity — convergent prompt wording
+jellyfish.jaro_winkler_similarity(
+    "Expand the abbreviated column name to its full readable form",
+    "Expand the abbreviated column name into a human-readable version"
+)
+# → ~0.88
+
+# Low similarity — divergent wording
+jellyfish.jaro_winkler_similarity(
+    "Expand the abbreviated column name to its full readable form",
+    "Convert database schema identifiers to natural language labels"
+)
+# → ~0.52
+```
+
+### Resource Links
+
+#### Official Repository
+
+No official repository has been released as of February 2026. The paper is from IBM Research and may release code through IBM's GitHub organization in the future.
+
+#### Related Implementations & Baselines
+
+- **DSPy** (baseline used in paper): [github.com/stanfordnlp/dspy](https://github.com/stanfordnlp/dspy)
+- **TextGrad** (baseline used in paper): [github.com/zou-group/textgrad](https://github.com/zou-group/textgrad)
+- **APE — Automatic Prompt Engineer** (Zhou et al.): [github.com/keirp/automatic_prompt_engineer](https://github.com/keirp/automatic_prompt_engineer)
+- **Instruction Induction** (Honovich et al.): [github.com/orhonovich/instruction-induction](https://github.com/orhonovich/instruction-induction)
+
+#### Further Reading
+
+- [The Prompt Report](https://arxiv.org/abs/2406.06608) — Comprehensive taxonomy of 58+ prompting techniques (Schulhoff et al., 2024)
+- [DSPy: Compiling Declarative Language Model Calls](https://arxiv.org/abs/2310.03714) — The DSPy framework paper (Khattab et al., 2023)
+- [TextGrad: Automatic Differentiation via Text](https://arxiv.org/abs/2406.07496) — Gradient-based prompt optimization (Yuksekgonul et al., 2024)
+- [Large Language Models Are Human-Level Prompt Engineers](https://arxiv.org/abs/2211.01910) — The original APE paper (Zhou et al., 2023)
+- [Jellyfish Python Library](https://github.com/jamesturk/jellyfish) — Jaro-Winkler and other string distance implementations

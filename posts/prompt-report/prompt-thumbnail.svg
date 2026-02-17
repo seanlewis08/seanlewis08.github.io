@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" width="800" height="420">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#161b22"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2dd4a8"/>
+      <stop offset="100%" stop-color="#7eb8e0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="420" fill="url(#bg)"/>
+
+  <!-- Subtle grid -->
+  <g opacity="0.03" stroke="#2dd4a8" stroke-width="0.5">
+    <line x1="0" y1="70" x2="800" y2="70"/>
+    <line x1="0" y1="140" x2="800" y2="140"/>
+    <line x1="0" y1="210" x2="800" y2="210"/>
+    <line x1="0" y1="280" x2="800" y2="280"/>
+    <line x1="0" y1="350" x2="800" y2="350"/>
+  </g>
+
+  <!-- Title -->
+  <text x="400" y="50" text-anchor="middle" fill="url(#accent)" font-family="sans-serif" font-size="24" font-weight="bold">The Prompt Report</text>
+  <text x="400" y="78" text-anchor="middle" fill="#8b949e" font-family="sans-serif" font-size="13">A Systematic Survey of 58 Prompting Techniques</text>
+
+  <!-- Tree structure representing the taxonomy -->
+  <!-- Root -->
+  <rect x="340" y="100" width="120" height="32" rx="6" fill="#161b22" stroke="#2dd4a8" stroke-width="1.5"/>
+  <text x="400" y="121" text-anchor="middle" fill="#2dd4a8" font-family="monospace" font-size="11" font-weight="bold">PROMPTING</text>
+
+  <!-- Level 1 branches -->
+  <line x1="370" y1="132" x2="145" y2="170" stroke="#2dd4a8" stroke-width="1" opacity="0.5"/>
+  <line x1="390" y1="132" x2="305" y2="170" stroke="#2dd4a8" stroke-width="1" opacity="0.5"/>
+  <line x1="410" y1="132" x2="495" y2="170" stroke="#7eb8e0" stroke-width="1" opacity="0.5"/>
+  <line x1="430" y1="132" x2="655" y2="170" stroke="#7eb8e0" stroke-width="1" opacity="0.5"/>
+
+  <!-- Zero-Shot -->
+  <rect x="70" y="170" width="150" height="28" rx="5" fill="#161b22" stroke="#2dd4a8" stroke-width="1" opacity="0.8"/>
+  <text x="145" y="189" text-anchor="middle" fill="#2dd4a8" font-family="monospace" font-size="10">Zero-Shot</text>
+
+  <!-- Few-Shot -->
+  <rect x="240" y="170" width="130" height="28" rx="5" fill="#161b22" stroke="#2dd4a8" stroke-width="1" opacity="0.8"/>
+  <text x="305" y="189" text-anchor="middle" fill="#2dd4a8" font-family="monospace" font-size="10">Few-Shot</text>
+
+  <!-- Thought Gen -->
+  <rect x="415" y="170" width="160" height="28" rx="5" fill="#161b22" stroke="#7eb8e0" stroke-width="1" opacity="0.8"/>
+  <text x="495" y="189" text-anchor="middle" fill="#7eb8e0" font-family="monospace" font-size="10">Thought Generation</text>
+
+  <!-- Ensembling -->
+  <rect x="600" y="170" width="130" height="28" rx="5" fill="#161b22" stroke="#7eb8e0" stroke-width="1" opacity="0.8"/>
+  <text x="665" y="189" text-anchor="middle" fill="#7eb8e0" font-family="monospace" font-size="10">Ensembling</text>
+
+  <!-- Sub-branches: Zero-Shot -->
+  <line x1="105" y1="198" x2="80" y2="228" stroke="#2dd4a8" stroke-width="0.7" opacity="0.35"/>
+  <line x1="130" y1="198" x2="130" y2="228" stroke="#2dd4a8" stroke-width="0.7" opacity="0.35"/>
+  <line x1="170" y1="198" x2="195" y2="228" stroke="#2dd4a8" stroke-width="0.7" opacity="0.35"/>
+
+  <rect x="30" y="228" width="100" height="24" rx="4" fill="#161b22" stroke="#2dd4a8" stroke-width="0.7" opacity="0.5"/>
+  <text x="80" y="244" text-anchor="middle" fill="#8b949e" font-family="monospace" font-size="8">Emotion</text>
+  <rect x="80" y="228" width="100" height="24" rx="4" fill="#161b22" stroke="#2dd4a8" stroke-width="0.7" opacity="0.5"/>
+  <text x="130" y="244" text-anchor="middle" fill="#8b949e" font-family="monospace" font-size="8">SimToM</text>
+  <rect x="148" y="228" width="100" height="24" rx="4" fill="#161b22" stroke="#2dd4a8" stroke-width="0.7" opacity="0.5"/>
+  <text x="198" y="244" text-anchor="middle" fill="#8b949e" font-family="monospace" font-size="8">RaR</text>
+
+  <!-- Sub-branches: Thought Gen -->
+  <line x1="465" y1="198" x2="430" y2="228" stroke="#7eb8e0" stroke-width="0.7" opacity="0.35"/>
+  <line x1="495" y1="198" x2="510" y2="228" stroke="#7eb8e0" stroke-width="0.7" opacity="0.35"/>
+  <line x1="530" y1="198" x2="590" y2="228" stroke="#7eb8e0" stroke-width="0.7" opacity="0.35"/>
+
+  <rect x="380" y="228" width="100" height="24" rx="4" fill="#161b22" stroke="#7eb8e0" stroke-width="0.7" opacity="0.5"/>
+  <text x="430" y="244" text-anchor="middle" fill="#8b949e" font-family="monospace" font-size="8">CoT</text>
+  <rect x="462" y="228" width="100" height="24" rx="4" fill="#161b22" stroke="#7eb8e0" stroke-width="0.7" opacity="0.5"/>
+  <text x="512" y="244" text-anchor="middle" fill="#8b949e" font-family="monospace" font-size="8">Tree of Thoughts</text>
+  <rect x="544" y="228" width="100" height="24" rx="4" fill="#161b22" stroke="#7eb8e0" stroke-width="0.7" opacity="0.5"/>
+  <text x="594" y="244" text-anchor="middle" fill="#8b949e" font-family="monospace" font-size="8">Graph of Thoughts</text>
+
+  <!-- Stats bar at bottom -->
+  <rect x="80" y="300" width="640" height="80" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1" opacity="0.6"/>
+
+  <text x="200" y="330" text-anchor="middle" fill="#2dd4a8" font-family="monospace" font-size="28" font-weight="bold">58</text>
+  <text x="200" y="355" text-anchor="middle" fill="#8b949e" font-family="sans-serif" font-size="10">Text Techniques</text>
+
+  <line x1="310" y1="310" x2="310" y2="370" stroke="#30363d" stroke-width="1"/>
+
+  <text x="400" y="330" text-anchor="middle" fill="#7eb8e0" font-family="monospace" font-size="28" font-weight="bold">40</text>
+  <text x="400" y="355" text-anchor="middle" fill="#8b949e" font-family="sans-serif" font-size="10">Multimodal Techniques</text>
+
+  <line x1="490" y1="310" x2="490" y2="370" stroke="#30363d" stroke-width="1"/>
+
+  <text x="600" y="330" text-anchor="middle" fill="#5ce0b8" font-family="monospace" font-size="28" font-weight="bold">1,500+</text>
+  <text x="600" y="355" text-anchor="middle" fill="#8b949e" font-family="sans-serif" font-size="10">Papers Surveyed</text>
+
+  <!-- Bottom accent -->
+  <rect x="100" y="400" width="600" height="2" rx="1" fill="url(#accent)" opacity="0.3"/>
+</svg>

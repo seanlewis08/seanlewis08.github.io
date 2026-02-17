@@ -7,10 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sean Lewis">
-<meta name="dcterms.date" content="2022-06-01">
-<meta name="description" content="This is a test post. In this post, I try out different functionalities">
+<meta name="dcterms.date" content="2026-02-17">
+<meta name="description" content="A deep dive into ‘The Prompt Report’ — the most comprehensive taxonomy of prompt engineering techniques to date. 58 text-based techniques, 40 multimodal methods, and a reality check on what actually works.">
 
-<title>This is a dummy blog posts – Sean Lewis</title>
+<title>58 Ways to Talk to an LLM — A Field Guide to Prompt Engineering – Sean Lewis</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -22,41 +22,6 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
-}
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -107,35 +72,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
 
 <link rel="stylesheet" href="../../styles.css">
 </head>
@@ -191,16 +127,16 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#heading-1" id="toc-heading-1" class="nav-link active" data-scroll-target="#heading-1">Heading 1</a>
+  <li><a href="#the-hook" id="toc-the-hook" class="nav-link active" data-scroll-target="#the-hook">The Hook</a></li>
+  <li><a href="#the-argument" id="toc-the-argument" class="nav-link" data-scroll-target="#the-argument">The Argument</a></li>
+  <li><a href="#the-lineage" id="toc-the-lineage" class="nav-link" data-scroll-target="#the-lineage">The Lineage</a></li>
+  <li><a href="#the-deep-dive" id="toc-the-deep-dive" class="nav-link" data-scroll-target="#the-deep-dive">The Deep Dive</a>
   <ul class="collapse">
-  <li><a href="#merriweather" id="toc-merriweather" class="nav-link" data-scroll-target="#merriweather">Merriweather</a>
-  <ul class="collapse">
-  <li><a href="#code" id="toc-code" class="nav-link" data-scroll-target="#code">3 - Code</a></li>
-  <li><a href="#tabsets" id="toc-tabsets" class="nav-link" data-scroll-target="#tabsets">3 - Tabsets</a></li>
+  <li><a href="#the-taxonomy-that-matters-most" id="toc-the-taxonomy-that-matters-most" class="nav-link" data-scroll-target="#the-taxonomy-that-matters-most">The Taxonomy That Matters Most</a></li>
+  <li><a href="#the-benchmark-reality-check" id="toc-the-benchmark-reality-check" class="nav-link" data-scroll-target="#the-benchmark-reality-check">The Benchmark Reality Check</a></li>
+  <li><a href="#the-security-angle" id="toc-the-security-angle" class="nav-link" data-scroll-target="#the-security-angle">The Security Angle</a></li>
   </ul></li>
-  <li><a href="#columns" id="toc-columns" class="nav-link" data-scroll-target="#columns">2 - Columns</a></li>
-  <li><a href="#margin-captions" id="toc-margin-captions" class="nav-link" data-scroll-target="#margin-captions">2 - Margin captions</a></li>
-  </ul></li>
+  <li><a href="#so-what" id="toc-so-what" class="nav-link" data-scroll-target="#so-what">So What?</a></li>
   </ul>
 </nav>
     </div>
@@ -209,16 +145,18 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">This is a dummy blog posts</h1>
+<h1 class="title">58 Ways to Talk to an LLM — A Field Guide to Prompt Engineering</h1>
   <div class="quarto-categories">
-    <div class="quarto-category">123</div>
-    <div class="quarto-category">Second Tag</div>
+    <div class="quarto-category">Prompt Engineering</div>
+    <div class="quarto-category">LLMs</div>
+    <div class="quarto-category">NLP</div>
+    <div class="quarto-category">Paper Review</div>
   </div>
   </div>
 
 <div>
   <div class="description">
-    This is a test post. In this post, I try out different functionalities
+    A deep dive into ‘The Prompt Report’ — the most comprehensive taxonomy of prompt engineering techniques to date. 58 text-based techniques, 40 multimodal methods, and a reality check on what actually works.
   </div>
 </div>
 
@@ -235,7 +173,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">June 1, 2022</p>
+      <p class="date">February 17, 2026</p>
     </div>
   </div>
   
@@ -247,156 +185,74 @@ window.Quarto = {
 </header>
 
 
-<section id="heading-1" class="level1">
-<h1>Heading 1</h1>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam suscipit est nec dui eleifend, at dictum elit ullamcorper. Aliquam feugiat dictum bibendum. Praesent fermentum laoreet quam, cursus volutpat odio dapibus in. Fusce luctus porttitor vehicula. Donec ac tortor nisi. Donec at lectus tortor. Morbi tempor, nibh non euismod viverra, metus arcu aliquet elit, sed fringilla urna leo vel purus.</p>
-<section id="merriweather" class="level2">
-<h2 class="anchored" data-anchor-id="merriweather">Merriweather</h2>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam suscipit est nec dui eleifend, at dictum elit ullamcorper. <strong>Aliquam feugiat dictum bibendum.</strong> Praesent fermentum laoreet quam, cursus volutpat odio dapibus in. <a href="https://github.com/twbs/bootstrap-sass/blob/master/assets/stylesheets/bootstrap/_variables.scss">Fusce luctus</a> porttitor vehicula. Donec ac tortor nisi. Donec at lectus tortor. Morbi tempor, nibh non euismod viverra, metus arcu aliquet elit, sed fringilla urna leo vel purus.</p>
-<section id="code" class="level3">
-<h3 class="anchored" data-anchor-id="code">3 - Code</h3>
-<p>This is <code>inline</code> code plus a small code chunk.</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(mpg) <span class="sc">+</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="fu">aes</span>(cty, hwy), <span class="at">size =</span> <span class="dv">4</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="main_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
+<section id="the-hook" class="level2">
+<h2 class="anchored" data-anchor-id="the-hook">The Hook</h2>
+<p>Prompt engineering has a reputation problem. Half the internet treats it like a mystical art — “just add ‘think step by step’ and watch the magic happen.” The other half dismisses it as a temporary hack that better models will render obsolete. Both camps are wrong, and a massive survey paper finally brings the receipts.</p>
+<p><strong>“The Prompt Report: A Systematic Survey of Prompting Techniques”</strong> by Sander Schulhoff and 28 co-authors is the most ambitious attempt yet to catalog, categorize, and evaluate the full landscape of prompt engineering. We’re talking <strong>58 text-based prompting techniques</strong>, <strong>40 techniques for other modalities</strong> (image, audio, video, 3D, etc.), and a <strong>vocabulary of 33 standardized terms</strong> — assembled from over 1,500 papers across the field.</p>
+<p>The core contribution? A taxonomy. Not a tutorial, not a “top 10 prompts” listicle — a systematic framework for understanding <em>why</em> different prompting strategies work, <em>when</em> they apply, and <em>how</em> they relate to each other. Think of it as the periodic table for talking to AI.</p>
 </section>
-<section id="tabsets" class="level3">
-<h3 class="anchored" data-anchor-id="tabsets">3 - Tabsets</h3>
-<div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="">Transforming OLS estimates</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">Maximizing likelihood</a></li></ul>
-<div class="tab-content">
-<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
-<div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>preds_lm <span class="sc">%&gt;%</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(body_mass_g, bill_length_mm, <span class="at">col =</span> correct)) <span class="sc">+</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">size =</span> <span class="dv">4</span>, <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="fu">vars</span>(species)) <span class="sc">+</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">'grey60'</span>, thematic<span class="sc">::</span><span class="fu">okabe_ito</span>(<span class="dv">3</span>)[<span class="dv">3</span>])) <span class="sc">+</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">3000</span>, <span class="dv">6000</span>, <span class="dv">1000</span>)) <span class="sc">+</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">'top'</span>,</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.background =</span> <span class="fu">element_rect</span>(<span class="at">color =</span> <span class="st">'black'</span>),</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>()</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">'Body mass (in g)'</span>,</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">'Bill length (in mm)'</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="main_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
-<div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>glm.mod <span class="ot">&lt;-</span> <span class="fu">glm</span>(sex <span class="sc">~</span> body_mass_g <span class="sc">+</span> bill_length_mm <span class="sc">+</span> species, <span class="at">family =</span> binomial, <span class="at">data =</span> dat)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>preds <span class="ot">&lt;-</span> dat <span class="sc">%&gt;%</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">prob.fit =</span> glm.mod<span class="sc">$</span>fitted.values,</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">prediction =</span> <span class="fu">if_else</span>(prob.fit <span class="sc">&gt;</span> <span class="fl">0.5</span>, <span class="st">'male'</span>, <span class="st">'female'</span>),</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">correct =</span> <span class="fu">if_else</span>(sex <span class="sc">==</span> prediction, <span class="st">'correct'</span>, <span class="st">'incorrect'</span>)</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>preds <span class="sc">%&gt;%</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(body_mass_g, bill_length_mm, <span class="at">col =</span> correct)) <span class="sc">+</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">size =</span> <span class="dv">4</span>, <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="fu">vars</span>(species)) <span class="sc">+</span></span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">3000</span>, <span class="dv">6000</span>, <span class="dv">1000</span>)) <span class="sc">+</span></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">'grey60'</span>, thematic<span class="sc">::</span><span class="fu">okabe_ito</span>(<span class="dv">3</span>)[<span class="dv">3</span>])) <span class="sc">+</span></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">10</span>) <span class="sc">+</span></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">'top'</span>,</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.background =</span> <span class="fu">element_rect</span>(<span class="at">color =</span> <span class="st">'black'</span>),</span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>()</span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">'Body mass (in g)'</span>,</span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">'Bill length (in mm)'</span></span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="main_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<section id="some-math-stuff" class="level4">
-<h4 class="anchored" data-anchor-id="some-math-stuff">4 - Some math stuff</h4>
-<p><span class="math display">\[
-\int_0^1 f(x) \ dx
-\]</span></p>
+<section id="the-argument" class="level2">
+<h2 class="anchored" data-anchor-id="the-argument">The Argument</h2>
+<p>The authors start from a simple observation: despite being one of the most widely practiced skills in modern AI, prompt engineering has no shared language. The same technique gets called different names across papers. Terms like “prompt,” “context,” and “exemplar” are used inconsistently. Researchers in one subfield don’t cite researchers in another. The result is a fragmented landscape where practitioners reinvent the wheel constantly.</p>
+<p>The paper’s thesis is that this fragmentation isn’t just annoying — it actively holds the field back. Without a shared taxonomy, you can’t systematically compare techniques. Without systematic comparison, you can’t build a real science of prompting. You just have a collection of tricks.</p>
+<p>So they built the taxonomy from the ground up.</p>
+<p><strong>The vocabulary alone is valuable.</strong> The paper defines a prompt as consisting of a <em>directive</em> (the core instruction), optional <em>exemplars</em> (examples), optional <em>output formatting</em> instructions, <em>style instructions</em>, <em>role assignment</em>, and <em>additional information</em> (context documents, etc.). This decomposition sounds obvious, but having it codified means we can finally talk precisely about which <em>component</em> of a prompt is doing the heavy lifting in any given technique.</p>
+<p><strong>The technique taxonomy</strong> organizes 58 text-based methods into clean categories. Here’s the landscape at a high level:</p>
+<p><strong>Zero-Shot techniques</strong> — prompting strategies that don’t require examples. This includes the now-famous Chain-of-Thought (CoT) prompting (“let’s think step by step”), but also less well-known methods like Emotion Prompting (appending motivational statements actually improves performance — LLMs respond to “this is very important to my career”), SimToM (perspective-taking for theory-of-mind tasks), and Rephrase and Respond (having the model rephrase the question before answering).</p>
+<p><strong>Few-Shot techniques</strong> — providing examples to guide the model. The paper maps out the surprisingly complex design space here: how to <em>select</em> examples (similarity-based, diversity-based, reinforcement-learning-based), how to <em>order</em> them (recency bias is real — models weight later examples more heavily), and even how to <em>format</em> them.</p>
+<p><strong>Thought Generation</strong> — the Chain-of-Thought family. The paper traces the full lineage from the original CoT paper through Tree of Thoughts (branching reasoning paths), Graph of Thoughts (allowing cycles and merging), and Algorithm of Thoughts (using algorithmic exploration patterns like DFS). Each adds structure to the reasoning process, trading simplicity for performance on complex tasks.</p>
+<p><strong>Decomposition</strong> — breaking complex problems into subproblems. Least-to-Most prompting, Decomposed Prompting, Plan-and-Solve, and DECOMP each take different approaches to the same insight: LLMs are better at simple steps than giant leaps.</p>
+<p><strong>Ensembling</strong> — running multiple prompts and aggregating. DENSE, DiVeRSe, Max Mutual Information, Universal Self-Consistency, and Meta-Prompting all find different ways to extract signal from multiple model outputs. The key insight: model responses are stochastic, so sampling multiple times and aggregating is almost always better than a single shot.</p>
+<p><strong>Self-Criticism</strong> — having the model check its own work. Self-Refine, Self-Verification, Chain-of-Verification, Cumulative Reasoning. These techniques exploit the asymmetry that verifying an answer is often easier than generating it, even for LLMs.</p>
+</section>
+<section id="the-lineage" class="level2">
+<h2 class="anchored" data-anchor-id="the-lineage">The Lineage</h2>
+<p>This paper sits at a very specific moment in the field’s history. Prompt engineering emerged from two converging threads:</p>
+<p><strong>The scaling laws revolution (2020-2022)</strong> — GPT-3 demonstrated that sufficiently large language models could perform tasks they weren’t explicitly trained on, purely through in-context learning. This created the entire field of prompt engineering overnight. Suddenly, <em>how you talked to the model</em> mattered as much as how you trained it.</p>
+<p><strong>The Chain-of-Thought breakthrough (Wei et al., 2022)</strong> — the discovery that adding “let’s think step by step” could dramatically improve reasoning performance was a paradigm shift. It proved that prompts weren’t just input formatting — they could fundamentally alter the model’s reasoning process. This spawned an entire subfield of “thought generation” techniques.</p>
+<p>The Prompt Report synthesizes what happened <em>after</em> these two moments, as researchers went deep on extending, combining, and stress-testing prompting strategies across domains. The paper’s related work section reveals a key tension: the <strong>automation vs.&nbsp;manual design</strong> debate. One camp (DSPy, OPRO, APE) argues we should let models optimize their own prompts. The other camp argues that human-designed prompts remain more interpretable and controllable. The Prompt Report doesn’t pick a side — it documents both, which is arguably more useful.</p>
+<p>The authors also connect prompting to the agent paradigm — dedicating a full section to how prompting techniques compose into agentic systems with tool use, planning, and memory. This bridges the gap between “prompt engineering” as a solo skill and “prompt engineering” as a component of larger AI architectures.</p>
+</section>
+<section id="the-deep-dive" class="level2">
+<h2 class="anchored" data-anchor-id="the-deep-dive">The Deep Dive</h2>
+<section id="the-taxonomy-that-matters-most" class="level3">
+<h3 class="anchored" data-anchor-id="the-taxonomy-that-matters-most">The Taxonomy That Matters Most</h3>
+<p>The paper’s Figure 1 is worth the read alone — a sprawling tree diagram organizing all 58 techniques by category. But the real value is in the relationships it reveals.</p>
+<p>Take <strong>Chain-of-Thought</strong> as the trunk. From it branch:</p>
+<ul>
+<li><strong>Tree of Thoughts</strong> — instead of a single reasoning chain, explore multiple branches and backtrack when paths fail. Best for problems with clear success/failure states (like puzzles or planning).</li>
+<li><strong>Graph of Thoughts</strong> — extends trees by allowing reasoning paths to merge. If two branches reach the same intermediate conclusion, combine them. Better for problems where partial solutions can be synthesized.</li>
+<li><strong>Algorithm of Thoughts</strong> — constrains exploration to follow algorithmic patterns (BFS, DFS). Trades flexibility for efficiency by pruning the search space.</li>
+</ul>
+<p>Each is strictly more powerful than the last, but also strictly more complex to implement and more expensive in token usage. The paper makes this tradeoff explicit, which is rare and helpful.</p>
+</section>
+<section id="the-benchmark-reality-check" class="level3">
+<h3 class="anchored" data-anchor-id="the-benchmark-reality-check">The Benchmark Reality Check</h3>
+<p>The authors didn’t just catalog — they tested. They ran a benchmark study across multiple prompting techniques on the MMLU dataset with GPT-4, and the results are sobering:</p>
+<p><strong>Zero-shot Chain-of-Thought</strong> (the “think step by step” trick everyone uses) showed mixed results. On some categories it helped. On others it actually <em>hurt</em> performance compared to plain zero-shot prompting. The effect was inconsistent across domains — strong gains on logical reasoning, but sometimes negative on knowledge-heavy questions where overthinking led the model astray.</p>
+<p><strong>Few-shot prompting</strong> generally helped, but the gains were smaller than many practitioners assume — and highly sensitive to example selection and ordering.</p>
+<p><strong>Emotion Prompting</strong> (adding “this is important to my career” to the prompt) showed surprisingly consistent small gains across categories. The mechanism isn’t well understood, but the empirical result is robust.</p>
+<p>The takeaway: there is no universal “best prompt.” The optimal technique depends on the task, the model, and often the specific inputs. The paper gives you the map — you still have to navigate.</p>
+</section>
+<section id="the-security-angle" class="level3">
+<h3 class="anchored" data-anchor-id="the-security-angle">The Security Angle</h3>
+<p>The paper dedicates serious space to prompt injection and adversarial attacks — something most prompting tutorials skip entirely. The taxonomy of attacks is organized into two categories:</p>
+<p><strong>Operator-level threats</strong> — where the developer building the system is the target. This includes training data poisoning, backdoor attacks in fine-tuned models, and prompt leaking (extracting the system prompt).</p>
+<p><strong>User-level threats</strong> — where end users try to break the system. Direct injection (“ignore previous instructions”), indirect injection (hiding instructions in retrieved documents), and jailbreaking (using creative framing to bypass safety filters).</p>
+<p>The paper catalogs defensive techniques too: XML tagging to separate instructions from data, sandwich defense (repeating the instruction after user input), instruction hierarchy (prioritizing system prompts over user prompts), and more. None are bulletproof, but having the full attack surface mapped is valuable for anyone building production systems.</p>
 </section>
 </section>
-</section>
-<section id="columns" class="level2">
-<h2 class="anchored" data-anchor-id="columns">2 - Columns</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">geom_density</span>(</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">mapping =</span> <span class="cn">NULL</span>,</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> <span class="cn">NULL</span>,</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">stat =</span> <span class="st">"density"</span>,</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">position =</span> <span class="st">"identity"</span>,</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  ...,</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">na.rm =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">orientation =</span> <span class="cn">NA</span>,</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">show.legend =</span> <span class="cn">NA</span>,</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">inherit.aes =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">outline.type =</span> <span class="st">"upper"</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="fu">stat_density</span>(</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">mapping =</span> <span class="cn">NULL</span>,</span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> <span class="cn">NULL</span>,</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">geom =</span> <span class="st">"area"</span>,</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">position =</span> <span class="st">"stack"</span>,</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  ...,</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">bw =</span> <span class="st">"nrd0"</span>,</span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">adjust =</span> <span class="dv">1</span>,</span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">kernel =</span> <span class="st">"gaussian"</span>,</span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">n =</span> <span class="dv">512</span>,</span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">trim =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>  <span class="at">na.rm =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">orientation =</span> <span class="cn">NA</span>,</span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>  <span class="at">show.legend =</span> <span class="cn">NA</span>,</span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>  <span class="at">inherit.aes =</span> <span class="cn">TRUE</span></span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="quarto-layout-panel" data-layout="[[1,1]]">
-<div class="quarto-layout-row">
-
-</div>
-</div>
-</section>
-<section id="margin-captions" class="level2">
-<h2 class="anchored" data-anchor-id="margin-captions">2 - Margin captions</h2>
-<p>#| fig-cap: “Bla bla bla. This is a caption in the margin. Super cool isn’t it?” #| fig-cap-location: margin ggplot(data = gapminder::gapminder, mapping = aes(x = lifeExp, fill = continent)) + stat_density(position = “identity”, alpha = 0.5)</p>
+<section id="so-what" class="level2">
+<h2 class="anchored" data-anchor-id="so-what">So What?</h2>
+<p>The Prompt Report matters for three reasons:</p>
+<p>First, <strong>it’s a reference.</strong> Next time you’re stuck on a prompting problem, you don’t need to Google and hope — you can look up the taxonomy, find techniques designed for your problem class, and try them systematically.</p>
+<p>Second, <strong>it reveals the field’s maturity.</strong> With 58 cataloged techniques and counting, prompt engineering is no longer a set of ad hoc tricks. It’s an emerging engineering discipline with its own design patterns, tradeoffs, and failure modes.</p>
+<p>Third, <strong>it’s honest about limitations.</strong> The benchmark results show that many popular techniques don’t generalize as well as their original papers suggest. That’s not a failure — that’s science. And it’s information most “prompt engineering guides” won’t give you.</p>
+<p>If you work with LLMs in any capacity — building products, doing research, or just trying to get better outputs — this is the paper to bookmark. It won’t tell you the one magic prompt. It’ll do something better: give you a framework for finding the right one.</p>
+<hr>
+<p><em>Paper: <a href="https://arxiv.org/abs/2406.06608">“The Prompt Report: A Systematic Survey of Prompting Techniques”</a> by Sander Schulhoff et al., arXiv:2406.06608, 2024.</em></p>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->

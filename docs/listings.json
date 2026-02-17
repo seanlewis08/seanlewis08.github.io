@@ -2,8 +2,9 @@
   {
     "listing": "/blog.html",
     "items": [
-      "/posts/welcome/index.html",
-      "/posts/first_blog_post/main.html"
+      "/posts/mlat-framework/index.html",
+      "/posts/auto-prompt-engineering/index.html",
+      "/posts/prompt-report/index.html"
     ]
   }
 ]

@@ -1,0 +1,107 @@
+---
+title: "Your LLM Is Smart — But Can It Price a Deal? The Case for ML-as-a-Tool"
+date: "2026-02-17"
+categories: [Machine Learning, LLMs, AI Architecture, Paper Review]
+description: "A deep dive into the MLAT framework — where traditional ML models become callable tools inside LLM agent workflows. Featuring PitchCraft, a system that turned 3-hour sales proposals into 10-minute automated pipelines."
+image: "mlat-thumbnail.svg"
+---
+
+## The Hook
+
+Here's a question that's been quietly nagging the AI engineering community: if large language models can write poetry, summarize legal briefs, and pass the bar exam — why do they still fumble when you ask them to predict a price?
+
+The answer isn't that LLMs are bad. It's that they're bad *at certain things*. Specifically, the kind of structured, numerical, pattern-recognition-heavy predictions that traditional ML models have been nailing for years. And yet, the industry conversation keeps framing it as an either/or — either you're building with LLMs, or you're stuck in "legacy" ML land.
+
+A new paper from Legacy AI LLC, **"Machine Learning as a Tool (MLAT) Framework"** by Edwin Chen and Zulekha Bibi, argues that's a false binary. Their thesis is elegant: **don't replace ML with LLMs — let LLMs *call* ML models as tools**. The same way a ChatGPT plugin calls a calculator or a web browser, your LLM agent can call an XGBoost model to get a real prediction when it needs one.
+
+And they don't just theorize about it. They built the thing.
+
+## The Argument
+
+The core claim of the MLAT framework is that LLMs and traditional ML models have complementary strengths, and the smartest architecture leverages both:
+
+**LLMs excel at:** contextual reasoning, natural language understanding, multi-step orchestration, generating human-readable outputs.
+
+**Traditional ML excels at:** structured numerical prediction, learning from tabular data, consistent and reproducible outputs, quantifying uncertainty.
+
+The authors argue that the current landscape has a gap. On one side, you've got LLM agent frameworks (LangChain, CrewAI, AutoGen) that are great at chaining prompts and tool calls but treat ML models as an afterthought. On the other side, MLOps platforms (MLflow, SageMaker) serve models beautifully but have no concept of an "agent" orchestrating multi-step reasoning.
+
+MLAT bridges that gap. It's not a new library — it's a **design pattern**. Wrap your trained ML model in a tool-callable interface, register it with your LLM agent framework, and let the agent decide when to invoke it. The ML model becomes just another tool in the agent's toolkit, alongside web search, database queries, and API calls.
+
+## The Lineage
+
+This paper doesn't exist in a vacuum. It sits at the intersection of several converging threads in AI research:
+
+**Function calling and tool use** — OpenAI's function calling API (2023) and Anthropic's tool use established the pattern of LLMs invoking external tools. MLAT extends this from simple APIs to trained ML models.
+
+**Agentic AI** — The explosion of agent frameworks (LangChain, CrewAI, AutoGen, LangGraph) created the infrastructure for multi-step autonomous workflows. MLAT gives these agents access to a new class of tools — predictive models.
+
+**The "LLMs can't do math" problem** — Well-documented limitations of LLMs on numerical reasoning tasks (despite impressive benchmarks) make the case for offloading quantitative predictions to purpose-built models.
+
+**MLOps maturity** — The tooling for training, versioning, and serving ML models (MLflow, SageMaker, Vertex AI) is mature enough that wrapping a model as a callable tool is genuinely practical.
+
+The authors position MLAT as the natural evolution: we've solved model serving, we've solved agent orchestration — now we need to connect them.
+
+## The Deep Dive
+
+### PitchCraft: Where Theory Meets Revenue
+
+The paper's secret weapon is its case study. **PitchCraft** is a real system deployed at Legacy AI LLC (an AI consulting agency) that automates sales proposal generation. And it's not a toy demo — it replaced a process that took 3+ hours of manual work per proposal with a pipeline that runs in under 10 minutes.
+
+Here's the architecture:
+
+**Four specialized agents** work in sequence, each with a distinct role:
+
+1. **Intake Agent** — Parses the client's initial request and structures it into a standardized brief (company context, pain points, goals, constraints).
+
+2. **Research Agent** — Gathers external context: company background, industry trends, competitor landscape. Enriches the brief with real-world data.
+
+3. **Draft Agent** — This is where the magic happens. The Draft Agent writes the proposal, but when it hits the pricing section, it *calls the ML pricing tool*. The XGBoost model takes structured inputs (client revenue, project duration, integration complexity, pain severity, tech stack) and returns a predicted price. The agent then contextualizes that number — wrapping it in justification, payment terms, and ROI projections.
+
+4. **Review Agent** — Quality control. Checks the full proposal for consistency, completeness, tone, and strategic alignment. Flags issues for revision.
+
+### The XGBoost Pricing Model
+
+The ML component is an XGBoost regressor trained on 70 historical projects (40 real engagements, 30 synthetic augmentations). The features tell an interesting story about what actually drives AI project pricing:
+
+- **Client revenue** — bigger companies pay more (not surprising, but the model quantifies the relationship)
+- **Project duration** — longer engagements scale non-linearly
+- **Integration complexity** — scored 1-5, capturing how gnarly the existing tech stack is
+- **Pain severity** — how urgently the client needs the solution (scored 1-5)
+- **Project phase** — discovery, MVP, pilot, or full deployment
+- **Tech stack** — categorical encoding of the required technology
+
+The model achieved an **R² of 0.807** on test data, meaning it explains about 81% of the variance in project pricing. The authors note this is strong for a small dataset with significant project-to-project variation.
+
+One clever detail: the model is wrapped in a Python function that the LLM agent can call with natural parameters. The agent doesn't need to know it's talking to XGBoost — it just calls `estimate_price(client_revenue=5000000, duration=6, complexity=3, ...)` and gets back a number.
+
+### Why Not Just Let the LLM Price It?
+
+This is the question the paper anticipates, and the answer is worth sitting with. The authors ran an informal comparison: when asked to price AI consulting projects, GPT-4 produced estimates that were **plausible but inconsistent**. The same project described with slightly different wording could yield prices varying by 40-60%.
+
+The XGBoost model, by contrast, produces the same price for the same inputs every time. It's learned the actual pricing patterns from real deal data. The LLM's job isn't to predict the number — it's to *contextualize* it, explaining why a $127,000 engagement makes sense given the client's pain points and ROI potential.
+
+This division of labor — **ML for prediction, LLM for reasoning** — is the heart of the MLAT pattern.
+
+### The Results
+
+The deployed system showed meaningful impact:
+
+- **Proposal creation time**: from 3+ hours to under 10 minutes
+- **Pricing consistency**: eliminated the wide variance of manual estimates
+- **Quality**: review agents caught issues that human reviewers sometimes missed in long documents
+- **Scalability**: the agency could respond to more RFPs without proportionally scaling headcount
+
+## So What?
+
+The MLAT framework matters because it resolves a tension that a lot of teams are feeling right now. You've invested in ML models. You're also building with LLMs. And the two worlds feel weirdly disconnected.
+
+MLAT says: **they don't have to be**. Your churn prediction model, your demand forecaster, your credit scorer — these can all become tools that your LLM agents call when they need a real prediction. The LLM handles the conversation, the reasoning, the orchestration. The ML model handles the math.
+
+There are limitations the authors acknowledge — the small training dataset (70 projects), the specificity to one company's pricing patterns, the need for more formal evaluation against LLM-only baselines. But the architectural insight transcends the specific case study.
+
+If you're building agentic AI systems and you've got trained ML models gathering dust, this paper is a blueprint for bringing them back into the conversation — literally.
+
+---
+
+*Paper: ["Machine Learning as a Tool (MLAT): A Framework for Integrating Statistical ML Models as Callable Tools within LLM Agent Workflows"](https://www.researchgate.net/publication/400676879_Machine_Learning_as_a_Tool_MLAT_A_Framework_for_Integrating_Statistical_ML_Models_as_Callable_Tools_within_LLM_Agent_Workows) by Edwin Chen and Zulekha Bibi, Legacy AI LLC, 2026.*

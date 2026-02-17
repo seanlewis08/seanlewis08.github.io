@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" width="800" height="420">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#161b22"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2dd4a8"/>
+      <stop offset="100%" stop-color="#7eb8e0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="420" fill="url(#bg)"/>
+
+  <!-- Title -->
+  <text x="400" y="45" text-anchor="middle" fill="url(#accent)" font-family="sans-serif" font-size="22" font-weight="bold">Auto Prompt Engineering</text>
+  <text x="400" y="72" text-anchor="middle" fill="#8b949e" font-family="sans-serif" font-size="13">No Task Cues · No Tuning · No Extra LLM Calls</text>
+
+  <!-- Flow: Examples → Generate → Rank → Best Prompt -->
+
+  <!-- Examples box -->
+  <rect x="40" y="110" width="150" height="110" rx="8" fill="#161b22" stroke="#2dd4a8" stroke-width="1.2"/>
+  <text x="115" y="135" text-anchor="middle" fill="#2dd4a8" font-family="monospace" font-size="11" font-weight="bold">8-10 Examples</text>
+  <text x="115" y="158" text-anchor="middle" fill="#6e7681" font-family="monospace" font-size="8">DISCOUNT_PCT →</text>
+  <text x="115" y="172" text-anchor="middle" fill="#8b949e" font-family="monospace" font-size="8">Discount Percentage</text>
+  <text x="115" y="192" text-anchor="middle" fill="#6e7681" font-family="monospace" font-size="8">CUST_ACCT_GRP →</text>
+  <text x="115" y="206" text-anchor="middle" fill="#8b949e" font-family="monospace" font-size="8">Customer Account Grp</text>
+
+  <!-- Arrow 1 -->
+  <line x1="195" y1="165" x2="240" y2="165" stroke="#2dd4a8" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <polygon points="240,160 252,165 240,170" fill="#2dd4a8"/>
+
+  <!-- Generate box -->
+  <rect x="258" y="105" width="160" height="120" rx="8" fill="#161b22" stroke="#5ce0b8" stroke-width="1.2"/>
+  <text x="338" y="130" text-anchor="middle" fill="#5ce0b8" font-family="monospace" font-size="11" font-weight="bold">GENERATE</text>
+  <text x="338" y="152" text-anchor="middle" fill="#8b949e" font-family="sans-serif" font-size="9">3 random subsets</text>
+  <text x="338" y="167" text-anchor="middle" fill="#8b949e" font-family="sans-serif" font-size="9">× generic meta-prompt</text>
+  <text x="338" y="182" text-anchor="middle" fill="#8b949e" font-family="sans-serif" font-size="9">× multinomial sampling</text>
+  <text x="338" y="202" text-anchor="middle" fill="#6e7681" font-family="monospace" font-size="9">→ ~30 candidates</text>
+  <text x="338" y="216" text-anchor="middle" fill="#6e7681" font-family="monospace" font-size="8">(~10 LLM calls)</text>
+
+  <!-- Arrow 2 -->
+  <line x1="423" y1="165" x2="468" y2="165" stroke="#7eb8e0" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <polygon points="468,160 480,165 468,170" fill="#7eb8e0"/>
+
+  <!-- Rank box -->
+  <rect x="486" y="105" width="150" height="120" rx="8" fill="#161b22" stroke="#7eb8e0" stroke-width="1.2"/>
+  <text x="561" y="130" text-anchor="middle" fill="#7eb8e0" font-family="monospace" font-size="11" font-weight="bold">RANK</text>
+  <text x="561" y="152" text-anchor="middle" fill="#8b949e" font-family="sans-serif" font-size="9">Jaro-Winkler</text>
+  <text x="561" y="167" text-anchor="middle" fill="#8b949e" font-family="sans-serif" font-size="9">pairwise similarity</text>
+  <text x="561" y="187" text-anchor="middle" fill="#e6db74" font-family="monospace" font-size="9">0 LLM calls</text>
+  <text x="561" y="207" text-anchor="middle" fill="#6e7681" font-family="sans-serif" font-size="9">consensus = quality</text>
+
+  <!-- Arrow 3 -->
+  <line x1="641" y1="165" x2="686" y2="165" stroke="#5ce0b8" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <polygon points="686,160 698,165 686,170" fill="#5ce0b8"/>
+
+  <!-- Output box -->
+  <rect x="703" y="130" width="80" height="70" rx="8" fill="#161b22" stroke="#5ce0b8" stroke-width="1.5"/>
+  <text x="743" y="158" text-anchor="middle" fill="#5ce0b8" font-family="monospace" font-size="10" font-weight="bold">BEST</text>
+  <text x="743" y="175" text-anchor="middle" fill="#5ce0b8" font-family="monospace" font-size="10" font-weight="bold">PROMPT</text>
+  <text x="743" y="192" text-anchor="middle" fill="#8b949e" font-family="monospace" font-size="8">✓</text>
+
+  <!-- Results comparison bar chart at bottom -->
+  <text x="400" y="270" text-anchor="middle" fill="#8b949e" font-family="sans-serif" font-size="11">Accuracy on CDO_435 (English)</text>
+
+  <!-- Bars -->
+  <rect x="130" y="285" width="290" height="22" rx="3" fill="#2dd4a8" opacity="0.85"/>
+  <text x="125" y="301" text-anchor="end" fill="#c9d1d9" font-family="monospace" font-size="10">This System</text>
+  <text x="425" y="301" text-anchor="start" fill="#0d1117" font-family="monospace" font-size="10" font-weight="bold"> 82.6%</text>
+
+  <rect x="130" y="313" width="280" height="22" rx="3" fill="#7eb8e0" opacity="0.5"/>
+  <text x="125" y="329" text-anchor="end" fill="#c9d1d9" font-family="monospace" font-size="10">APE Zero-Shot</text>
+  <text x="415" y="329" text-anchor="start" fill="#c9d1d9" font-family="monospace" font-size="10"> 80.0%</text>
+
+  <rect x="130" y="341" width="253" height="22" rx="3" fill="#7eb8e0" opacity="0.35"/>
+  <text x="125" y="357" text-anchor="end" fill="#c9d1d9" font-family="monospace" font-size="10">TextGrad</text>
+  <text x="388" y="357" text-anchor="start" fill="#c9d1d9" font-family="monospace" font-size="10"> 72.2%</text>
+
+  <rect x="130" y="369" width="243" height="22" rx="3" fill="#7eb8e0" opacity="0.25"/>
+  <text x="125" y="385" text-anchor="end" fill="#c9d1d9" font-family="monospace" font-size="10">DSPy</text>
+  <text x="378" y="385" text-anchor="start" fill="#c9d1d9" font-family="monospace" font-size="10"> 69.3%</text>
+
+  <!-- Bottom accent -->
+  <rect x="100" y="408" width="600" height="2" rx="1" fill="url(#accent)" opacity="0.3"/>
+</svg>

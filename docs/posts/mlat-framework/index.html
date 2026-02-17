@@ -6,10 +6,11 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Tristan O’Malley">
-<meta name="dcterms.date" content="2025-02-20">
+<meta name="author" content="Sean Lewis">
+<meta name="dcterms.date" content="2026-02-17">
+<meta name="description" content="A deep dive into the MLAT framework — where traditional ML models become callable tools inside LLM agent workflows. Featuring PitchCraft, a system that turned 3-hour sales proposals into 10-minute automated pipelines.">
 
-<title>Welcome To My Blog – Sean Lewis</title>
+<title>Your LLM Is Smart — But Can It Price a Deal? The Case for ML-as-a-Tool – Sean Lewis</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -121,20 +122,44 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-hook" id="toc-the-hook" class="nav-link active" data-scroll-target="#the-hook">The Hook</a></li>
+  <li><a href="#the-argument" id="toc-the-argument" class="nav-link" data-scroll-target="#the-argument">The Argument</a></li>
+  <li><a href="#the-lineage" id="toc-the-lineage" class="nav-link" data-scroll-target="#the-lineage">The Lineage</a></li>
+  <li><a href="#the-deep-dive" id="toc-the-deep-dive" class="nav-link" data-scroll-target="#the-deep-dive">The Deep Dive</a>
+  <ul class="collapse">
+  <li><a href="#pitchcraft-where-theory-meets-revenue" id="toc-pitchcraft-where-theory-meets-revenue" class="nav-link" data-scroll-target="#pitchcraft-where-theory-meets-revenue">PitchCraft: Where Theory Meets Revenue</a></li>
+  <li><a href="#the-xgboost-pricing-model" id="toc-the-xgboost-pricing-model" class="nav-link" data-scroll-target="#the-xgboost-pricing-model">The XGBoost Pricing Model</a></li>
+  <li><a href="#why-not-just-let-the-llm-price-it" id="toc-why-not-just-let-the-llm-price-it" class="nav-link" data-scroll-target="#why-not-just-let-the-llm-price-it">Why Not Just Let the LLM Price It?</a></li>
+  <li><a href="#the-results" id="toc-the-results" class="nav-link" data-scroll-target="#the-results">The Results</a></li>
+  </ul></li>
+  <li><a href="#so-what" id="toc-so-what" class="nav-link" data-scroll-target="#so-what">So What?</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Welcome To My Blog</h1>
+<h1 class="title">Your LLM Is Smart — But Can It Price a Deal? The Case for ML-as-a-Tool</h1>
   <div class="quarto-categories">
-    <div class="quarto-category">news</div>
+    <div class="quarto-category">Machine Learning</div>
+    <div class="quarto-category">LLMs</div>
+    <div class="quarto-category">AI Architecture</div>
+    <div class="quarto-category">Paper Review</div>
   </div>
   </div>
 
+<div>
+  <div class="description">
+    A deep dive into the MLAT framework — where traditional ML models become callable tools inside LLM agent workflows. Featuring PitchCraft, a system that turned 3-hour sales proposals into 10-minute automated pipelines.
+  </div>
+</div>
 
 
 <div class="quarto-title-meta">
@@ -142,14 +167,14 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Author</div>
     <div class="quarto-title-meta-contents">
-             <p>Tristan O’Malley </p>
+             <p>Sean Lewis </p>
           </div>
   </div>
     
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 20, 2025</p>
+      <p class="date">February 17, 2026</p>
     </div>
   </div>
   
@@ -161,11 +186,86 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>This is the first post in a Quarto blog. Welcome!</p>
-<p><img src="thumbnail.jpg" class="img-fluid"></p>
-<p>Since this post doesn’t specify an explicit <code>image</code>, the first image in the post will be used in the listing page of posts.</p>
+<section id="the-hook" class="level2">
+<h2 class="anchored" data-anchor-id="the-hook">The Hook</h2>
+<p>Here’s a question that’s been quietly nagging the AI engineering community: if large language models can write poetry, summarize legal briefs, and pass the bar exam — why do they still fumble when you ask them to predict a price?</p>
+<p>The answer isn’t that LLMs are bad. It’s that they’re bad <em>at certain things</em>. Specifically, the kind of structured, numerical, pattern-recognition-heavy predictions that traditional ML models have been nailing for years. And yet, the industry conversation keeps framing it as an either/or — either you’re building with LLMs, or you’re stuck in “legacy” ML land.</p>
+<p>A new paper from Legacy AI LLC, <strong>“Machine Learning as a Tool (MLAT) Framework”</strong> by Edwin Chen and Zulekha Bibi, argues that’s a false binary. Their thesis is elegant: <strong>don’t replace ML with LLMs — let LLMs <em>call</em> ML models as tools</strong>. The same way a ChatGPT plugin calls a calculator or a web browser, your LLM agent can call an XGBoost model to get a real prediction when it needs one.</p>
+<p>And they don’t just theorize about it. They built the thing.</p>
+</section>
+<section id="the-argument" class="level2">
+<h2 class="anchored" data-anchor-id="the-argument">The Argument</h2>
+<p>The core claim of the MLAT framework is that LLMs and traditional ML models have complementary strengths, and the smartest architecture leverages both:</p>
+<p><strong>LLMs excel at:</strong> contextual reasoning, natural language understanding, multi-step orchestration, generating human-readable outputs.</p>
+<p><strong>Traditional ML excels at:</strong> structured numerical prediction, learning from tabular data, consistent and reproducible outputs, quantifying uncertainty.</p>
+<p>The authors argue that the current landscape has a gap. On one side, you’ve got LLM agent frameworks (LangChain, CrewAI, AutoGen) that are great at chaining prompts and tool calls but treat ML models as an afterthought. On the other side, MLOps platforms (MLflow, SageMaker) serve models beautifully but have no concept of an “agent” orchestrating multi-step reasoning.</p>
+<p>MLAT bridges that gap. It’s not a new library — it’s a <strong>design pattern</strong>. Wrap your trained ML model in a tool-callable interface, register it with your LLM agent framework, and let the agent decide when to invoke it. The ML model becomes just another tool in the agent’s toolkit, alongside web search, database queries, and API calls.</p>
+</section>
+<section id="the-lineage" class="level2">
+<h2 class="anchored" data-anchor-id="the-lineage">The Lineage</h2>
+<p>This paper doesn’t exist in a vacuum. It sits at the intersection of several converging threads in AI research:</p>
+<p><strong>Function calling and tool use</strong> — OpenAI’s function calling API (2023) and Anthropic’s tool use established the pattern of LLMs invoking external tools. MLAT extends this from simple APIs to trained ML models.</p>
+<p><strong>Agentic AI</strong> — The explosion of agent frameworks (LangChain, CrewAI, AutoGen, LangGraph) created the infrastructure for multi-step autonomous workflows. MLAT gives these agents access to a new class of tools — predictive models.</p>
+<p><strong>The “LLMs can’t do math” problem</strong> — Well-documented limitations of LLMs on numerical reasoning tasks (despite impressive benchmarks) make the case for offloading quantitative predictions to purpose-built models.</p>
+<p><strong>MLOps maturity</strong> — The tooling for training, versioning, and serving ML models (MLflow, SageMaker, Vertex AI) is mature enough that wrapping a model as a callable tool is genuinely practical.</p>
+<p>The authors position MLAT as the natural evolution: we’ve solved model serving, we’ve solved agent orchestration — now we need to connect them.</p>
+</section>
+<section id="the-deep-dive" class="level2">
+<h2 class="anchored" data-anchor-id="the-deep-dive">The Deep Dive</h2>
+<section id="pitchcraft-where-theory-meets-revenue" class="level3">
+<h3 class="anchored" data-anchor-id="pitchcraft-where-theory-meets-revenue">PitchCraft: Where Theory Meets Revenue</h3>
+<p>The paper’s secret weapon is its case study. <strong>PitchCraft</strong> is a real system deployed at Legacy AI LLC (an AI consulting agency) that automates sales proposal generation. And it’s not a toy demo — it replaced a process that took 3+ hours of manual work per proposal with a pipeline that runs in under 10 minutes.</p>
+<p>Here’s the architecture:</p>
+<p><strong>Four specialized agents</strong> work in sequence, each with a distinct role:</p>
+<ol type="1">
+<li><p><strong>Intake Agent</strong> — Parses the client’s initial request and structures it into a standardized brief (company context, pain points, goals, constraints).</p></li>
+<li><p><strong>Research Agent</strong> — Gathers external context: company background, industry trends, competitor landscape. Enriches the brief with real-world data.</p></li>
+<li><p><strong>Draft Agent</strong> — This is where the magic happens. The Draft Agent writes the proposal, but when it hits the pricing section, it <em>calls the ML pricing tool</em>. The XGBoost model takes structured inputs (client revenue, project duration, integration complexity, pain severity, tech stack) and returns a predicted price. The agent then contextualizes that number — wrapping it in justification, payment terms, and ROI projections.</p></li>
+<li><p><strong>Review Agent</strong> — Quality control. Checks the full proposal for consistency, completeness, tone, and strategic alignment. Flags issues for revision.</p></li>
+</ol>
+</section>
+<section id="the-xgboost-pricing-model" class="level3">
+<h3 class="anchored" data-anchor-id="the-xgboost-pricing-model">The XGBoost Pricing Model</h3>
+<p>The ML component is an XGBoost regressor trained on 70 historical projects (40 real engagements, 30 synthetic augmentations). The features tell an interesting story about what actually drives AI project pricing:</p>
+<ul>
+<li><strong>Client revenue</strong> — bigger companies pay more (not surprising, but the model quantifies the relationship)</li>
+<li><strong>Project duration</strong> — longer engagements scale non-linearly</li>
+<li><strong>Integration complexity</strong> — scored 1-5, capturing how gnarly the existing tech stack is</li>
+<li><strong>Pain severity</strong> — how urgently the client needs the solution (scored 1-5)</li>
+<li><strong>Project phase</strong> — discovery, MVP, pilot, or full deployment</li>
+<li><strong>Tech stack</strong> — categorical encoding of the required technology</li>
+</ul>
+<p>The model achieved an <strong>R² of 0.807</strong> on test data, meaning it explains about 81% of the variance in project pricing. The authors note this is strong for a small dataset with significant project-to-project variation.</p>
+<p>One clever detail: the model is wrapped in a Python function that the LLM agent can call with natural parameters. The agent doesn’t need to know it’s talking to XGBoost — it just calls <code>estimate_price(client_revenue=5000000, duration=6, complexity=3, ...)</code> and gets back a number.</p>
+</section>
+<section id="why-not-just-let-the-llm-price-it" class="level3">
+<h3 class="anchored" data-anchor-id="why-not-just-let-the-llm-price-it">Why Not Just Let the LLM Price It?</h3>
+<p>This is the question the paper anticipates, and the answer is worth sitting with. The authors ran an informal comparison: when asked to price AI consulting projects, GPT-4 produced estimates that were <strong>plausible but inconsistent</strong>. The same project described with slightly different wording could yield prices varying by 40-60%.</p>
+<p>The XGBoost model, by contrast, produces the same price for the same inputs every time. It’s learned the actual pricing patterns from real deal data. The LLM’s job isn’t to predict the number — it’s to <em>contextualize</em> it, explaining why a $127,000 engagement makes sense given the client’s pain points and ROI potential.</p>
+<p>This division of labor — <strong>ML for prediction, LLM for reasoning</strong> — is the heart of the MLAT pattern.</p>
+</section>
+<section id="the-results" class="level3">
+<h3 class="anchored" data-anchor-id="the-results">The Results</h3>
+<p>The deployed system showed meaningful impact:</p>
+<ul>
+<li><strong>Proposal creation time</strong>: from 3+ hours to under 10 minutes</li>
+<li><strong>Pricing consistency</strong>: eliminated the wide variance of manual estimates</li>
+<li><strong>Quality</strong>: review agents caught issues that human reviewers sometimes missed in long documents</li>
+<li><strong>Scalability</strong>: the agency could respond to more RFPs without proportionally scaling headcount</li>
+</ul>
+</section>
+</section>
+<section id="so-what" class="level2">
+<h2 class="anchored" data-anchor-id="so-what">So What?</h2>
+<p>The MLAT framework matters because it resolves a tension that a lot of teams are feeling right now. You’ve invested in ML models. You’re also building with LLMs. And the two worlds feel weirdly disconnected.</p>
+<p>MLAT says: <strong>they don’t have to be</strong>. Your churn prediction model, your demand forecaster, your credit scorer — these can all become tools that your LLM agents call when they need a real prediction. The LLM handles the conversation, the reasoning, the orchestration. The ML model handles the math.</p>
+<p>There are limitations the authors acknowledge — the small training dataset (70 projects), the specificity to one company’s pricing patterns, the need for more formal evaluation against LLM-only baselines. But the architectural insight transcends the specific case study.</p>
+<p>If you’re building agentic AI systems and you’ve got trained ML models gathering dust, this paper is a blueprint for bringing them back into the conversation — literally.</p>
+<hr>
+<p><em>Paper: <a href="https://www.researchgate.net/publication/400676879_Machine_Learning_as_a_Tool_MLAT_A_Framework_for_Integrating_Statistical_ML_Models_as_Callable_Tools_within_LLM_Agent_Workows">“Machine Learning as a Tool (MLAT): A Framework for Integrating Statistical ML Models as Callable Tools within LLM Agent Workflows”</a> by Edwin Chen and Zulekha Bibi, Legacy AI LLC, 2026.</em></p>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
