@@ -1,13 +1,29 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
-
-<meta charset="utf-8">
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light"><meta charset="utf-8">
 <meta name="generator" content="quarto-1.8.27">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sean Lewis">
-<meta name="dcterms.date" content="2026-02-17">
+<meta name="dcterms.date" content="2026-02-12">
 <meta name="description" content="A deep dive into ‘The Prompt Report’ — the most comprehensive taxonomy of prompt engineering techniques to date. 58 text-based techniques, 40 multimodal methods, and a reality check on what actually works.">
 
 <title>58 Ways to Talk to an LLM — A Field Guide to Prompt Engineering – Sean Lewis</title>
@@ -22,6 +38,41 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -40,10 +91,10 @@ ul.task-list li input[type="checkbox"] {
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-4d9afe2b8d18ee9fa5d0d57b5ed4214d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-2ec1ecde4794cf0ca2676fdbadd3167b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -137,6 +188,12 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#the-security-angle" id="toc-the-security-angle" class="nav-link" data-scroll-target="#the-security-angle">The Security Angle</a></li>
   </ul></li>
   <li><a href="#so-what" id="toc-so-what" class="nav-link" data-scroll-target="#so-what">So What?</a></li>
+  <li><a href="#reproduction-implementation" id="toc-reproduction-implementation" class="nav-link" data-scroll-target="#reproduction-implementation">Reproduction &amp; Implementation</a>
+  <ul class="collapse">
+  <li><a href="#environment-setup" id="toc-environment-setup" class="nav-link" data-scroll-target="#environment-setup">Environment Setup</a></li>
+  <li><a href="#pseudo-code-key-prompting-techniques" id="toc-pseudo-code-key-prompting-techniques" class="nav-link" data-scroll-target="#pseudo-code-key-prompting-techniques">Pseudo-Code: Key Prompting Techniques</a></li>
+  <li><a href="#resource-links" id="toc-resource-links" class="nav-link" data-scroll-target="#resource-links">Resource Links</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -173,7 +230,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 17, 2026</p>
+      <p class="date">February 12, 2026</p>
     </div>
   </div>
   
@@ -251,8 +308,129 @@ ul.task-list li input[type="checkbox"] {
 <p>If you work with LLMs in any capacity — building products, doing research, or just trying to get better outputs — this is the paper to bookmark. It won’t tell you the one magic prompt. It’ll do something better: give you a framework for finding the right one.</p>
 <hr>
 <p><em>Paper: <a href="https://arxiv.org/abs/2406.06608">“The Prompt Report: A Systematic Survey of Prompting Techniques”</a> by Sander Schulhoff et al., arXiv:2406.06608, 2024.</em></p>
+<hr>
+</section>
+<section id="reproduction-implementation" class="level2">
+<h2 class="anchored" data-anchor-id="reproduction-implementation">Reproduction &amp; Implementation</h2>
+<section id="environment-setup" class="level3">
+<h3 class="anchored" data-anchor-id="environment-setup">Environment Setup</h3>
+<div class="code-copy-outer-scaffold"><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Core dependencies for reproducing the prompting techniques</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>pip install openai<span class="op">&gt;=</span><span class="fl">1.0.0</span>          <span class="co"># GPT-4 API (used in benchmarks)</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>pip install anthropic<span class="op">&gt;=</span><span class="fl">0.30.0</span>      <span class="co"># Claude API</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>pip install langchain<span class="op">&gt;=</span><span class="fl">0.2.0</span>       <span class="co"># Prompt chaining / agent framework</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>pip install dspy<span class="op">-</span>ai<span class="op">&gt;=</span><span class="fl">2.0.0</span>         <span class="co"># Programmatic prompt optimization</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>pip install pandas<span class="op">&gt;=</span><span class="fl">2.0.0</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>pip install numpy<span class="op">&gt;=</span><span class="fl">1.24.0</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>pip install matplotlib<span class="op">&gt;=</span><span class="fl">3.7.0</span>      <span class="co"># Visualization</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>pip install datasets<span class="op">&gt;=</span><span class="fl">2.14.0</span>       <span class="co"># HuggingFace datasets (MMLU)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="pseudo-code-key-prompting-techniques" class="level3">
+<h3 class="anchored" data-anchor-id="pseudo-code-key-prompting-techniques">Pseudo-Code: Key Prompting Techniques</h3>
+<div class="code-copy-outer-scaffold"><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ---- CHAIN-OF-THOUGHT (Zero-Shot) ----</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> zero_shot_cot(question: <span class="bu">str</span>, llm) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""The simplest and most famous technique: append 'think step by step'."""</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    prompt <span class="op">=</span> <span class="ss">f"</span><span class="sc">{</span>question<span class="sc">}</span><span class="ch">\n\n</span><span class="ss">Let's think step by step."</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> llm.generate(prompt)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># ---- TREE OF THOUGHTS ----</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> tree_of_thoughts(problem: <span class="bu">str</span>, llm, n_branches<span class="op">=</span><span class="dv">3</span>, max_depth<span class="op">=</span><span class="dv">3</span>):</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">    Explore multiple reasoning paths, evaluate, prune.</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co">    More powerful than CoT but more expensive.</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> evaluate_thought(thought):</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>        eval_prompt <span class="op">=</span> <span class="ss">f"Rate this reasoning (1-10):</span><span class="ch">\n</span><span class="sc">{</span>thought<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">float</span>(llm.generate(eval_prompt))</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    frontier <span class="op">=</span> [(<span class="st">""</span>, problem)]  <span class="co"># (reasoning_so_far, remaining_problem)</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> depth <span class="kw">in</span> <span class="bu">range</span>(max_depth):</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>        candidates <span class="op">=</span> []</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> reasoning, remaining <span class="kw">in</span> frontier:</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Branch: generate n different next steps</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(n_branches):</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>                next_step <span class="op">=</span> llm.generate(</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>                    <span class="ss">f"</span><span class="sc">{</span>reasoning<span class="sc">}</span><span class="ch">\n</span><span class="ss">Next step for: </span><span class="sc">{</span>remaining<span class="sc">}</span><span class="ss">"</span>,</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>                    temperature<span class="op">=</span><span class="fl">0.7</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>                )</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>                candidates.append((reasoning <span class="op">+</span> <span class="st">"</span><span class="ch">\n</span><span class="st">"</span> <span class="op">+</span> next_step, remaining))</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Evaluate and prune to top-k</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>        scored <span class="op">=</span> [(c, evaluate_thought(c[<span class="dv">0</span>])) <span class="cf">for</span> c <span class="kw">in</span> candidates]</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>        scored.sort(key<span class="op">=</span><span class="kw">lambda</span> x: x[<span class="dv">1</span>], reverse<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>        frontier <span class="op">=</span> [c <span class="cf">for</span> c, s <span class="kw">in</span> scored[:n_branches]]</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> frontier[<span class="dv">0</span>][<span class="dv">0</span>]  <span class="co"># Best reasoning path</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a><span class="co"># ---- SELF-REFINE ----</span></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> self_refine(question: <span class="bu">str</span>, llm, max_rounds<span class="op">=</span><span class="dv">3</span>):</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Generate, critique, refine. Exploits verification asymmetry."""</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>    answer <span class="op">=</span> llm.generate(question)</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(max_rounds):</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>        critique <span class="op">=</span> llm.generate(</span>
+<span id="cb2-49"><a hr="" aria-hidden="true" tabindex="-1"></a>    prompt <span class="op">=</span> (</span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"</span><span class="sc">{</span>question<span class="sc">}</span><span class="ch">\n\n</span><span class="ss">"</span></span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"This is very important to my career. "</span></span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"Please provide the most accurate and thorough answer possible."</span></span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> llm.generate(prompt)</span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a><span class="co"># ---- ENSEMBLE: UNIVERSAL SELF-CONSISTENCY ----</span></span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> universal_self_consistency(question: <span class="bu">str</span>, llm, n_samples<span class="op">=</span><span class="dv">5</span>):</span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Sample multiple answers, pick the most consistent one."""</span></span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a>    answers <span class="op">=</span> [</span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a>        llm.generate(question, temperature<span class="op">=</span><span class="fl">0.7</span>)</span>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(n_samples)</span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Ask the LLM to pick the most consistent answer</span></span>
+<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>    selection_prompt <span class="op">=</span> (</span>
+<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"Question: </span><span class="sc">{</span>question<span class="sc">}</span><span class="ch">\n\n</span><span class="ss">"</span></span>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"Here are </span><span class="sc">{</span>n_samples<span class="sc">}</span><span class="ss"> candidate answers:</span><span class="ch">\n</span><span class="ss">"</span></span>
+<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> <span class="st">"</span><span class="ch">\n</span><span class="st">"</span>.join(<span class="ss">f"</span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">. </span><span class="sc">{</span>a<span class="sc">}</span><span class="ss">"</span> <span class="cf">for</span> i, a <span class="kw">in</span> <span class="bu">enumerate</span>(answers))</span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> <span class="st">"</span><span class="ch">\n\n</span><span class="st">Which answer is most consistent with the majority? "</span></span>
+<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"Return only the number."</span></span>
+<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a>    choice <span class="op">=</span> <span class="bu">int</span>(llm.generate(selection_prompt).strip()) <span class="op">-</span> <span class="dv">1</span></span>
+<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> answers[choice]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div></section>
+<section id="resource-links" class="level3">
+<h3 class="anchored" data-anchor-id="resource-links">Resource Links</h3>
+<section id="official-repository" class="level4">
+<h4 class="anchored" data-anchor-id="official-repository">Official Repository</h4>
+<ul>
+<li><strong>The Prompt Report resources</strong>: <a href="https://trigaten.github.io/Prompt_Survey_Site/">trigaten.github.io/Prompt_Survey_Site</a></li>
+</ul>
+</section>
+<section id="community-implementations" class="level4">
+<h4 class="anchored" data-anchor-id="community-implementations">Community Implementations</h4>
+<ul>
+<li><strong>DSPy</strong> (programmatic prompt optimization): <a href="https://github.com/stanfordnlp/dspy">github.com/stanfordnlp/dspy</a></li>
+<li><strong>LangChain Prompts</strong> (prompt templates): <a href="https://github.com/langchain-ai/langchain">github.com/langchain-ai/langchain</a></li>
+<li><strong>Tree of Thoughts</strong> (official implementation): <a href="https://github.com/princeton-nlp/tree-of-thought-llm">github.com/princeton-nlp/tree-of-thought-llm</a></li>
+<li><strong>Graph of Thoughts</strong>: <a href="https://github.com/spcl/graph-of-thoughts">github.com/spcl/graph-of-thoughts</a></li>
+<li><strong>Self-Refine</strong>: <a href="https://github.com/madaan/self-refine">github.com/madaan/self-refine</a></li>
+</ul>
+</section>
+<section id="further-reading" class="level4">
+<h4 class="anchored" data-anchor-id="further-reading">Further Reading</h4>
+<ul>
+<li><a href="https://arxiv.org/abs/2201.11903">Chain-of-Thought Prompting</a> — Wei et al., the original CoT paper</li>
+<li><a href="https://arxiv.org/abs/2305.10601">Tree of Thoughts</a> — Yao et al., deliberate reasoning with LLMs</li>
+<li><a href="https://arxiv.org/abs/2211.01910">Large Language Models Are Human-Level Prompt Engineers</a> — Zhou et al., automatic prompt generation (APE)</li>
+<li><a href="https://arxiv.org/abs/2310.03714">DSPy: Compiling Declarative Language Model Calls</a> — Khattab et al., programmatic prompting</li>
+</ul>
 
 
+</section>
+</section>
 </section>
 
 </main> <!-- /main -->
@@ -659,6 +837,20 @@ ul.task-list li input[type="checkbox"] {
 <script src="https://utteranc.es/client.js" repo="seanlewis08/blogComments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
 </script>
 </div> <!-- /content -->
+<script src="animations.js"></script>
+
+
+
+
+pup.innerHTML;
+        });
+      }
+    }
+  });
+  
+<script src="https://utteranc.es/client.js" repo="seanlewis08/blogComments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+ <!-- /content -->
 <script src="animations.js"></script>
 
 

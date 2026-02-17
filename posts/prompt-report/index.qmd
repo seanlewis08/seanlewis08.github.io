@@ -1,6 +1,6 @@
 ---
 title: "58 Ways to Talk to an LLM — A Field Guide to Prompt Engineering"
-date: "2026-02-17"
+date: "2026-02-12"
 categories: [Prompt Engineering, LLMs, NLP, Paper Review]
 description: "A deep dive into 'The Prompt Report' — the most comprehensive taxonomy of prompt engineering techniques to date. 58 text-based techniques, 40 multimodal methods, and a reality check on what actually works."
 image: "prompt-thumbnail.svg"
@@ -101,3 +101,137 @@ If you work with LLMs in any capacity — building products, doing research, or 
 ---
 
 *Paper: ["The Prompt Report: A Systematic Survey of Prompting Techniques"](https://arxiv.org/abs/2406.06608) by Sander Schulhoff et al., arXiv:2406.06608, 2024.*
+
+---
+
+## Reproduction & Implementation
+
+### Environment Setup
+
+```python
+# Core dependencies for reproducing the prompting techniques
+pip install openai>=1.0.0          # GPT-4 API (used in benchmarks)
+pip install anthropic>=0.30.0      # Claude API
+pip install langchain>=0.2.0       # Prompt chaining / agent framework
+pip install dspy-ai>=2.0.0         # Programmatic prompt optimization
+pip install pandas>=2.0.0
+pip install numpy>=1.24.0
+pip install matplotlib>=3.7.0      # Visualization
+pip install datasets>=2.14.0       # HuggingFace datasets (MMLU)
+```
+
+### Pseudo-Code: Key Prompting Techniques
+
+```python
+# ---- CHAIN-OF-THOUGHT (Zero-Shot) ----
+
+def zero_shot_cot(question: str, llm) -> str:
+    """The simplest and most famous technique: append 'think step by step'."""
+    prompt = f"{question}\n\nLet's think step by step."
+    return llm.generate(prompt)
+
+
+# ---- TREE OF THOUGHTS ----
+
+def tree_of_thoughts(problem: str, llm, n_branches=3, max_depth=3):
+    """
+    Explore multiple reasoning paths, evaluate, prune.
+    More powerful than CoT but more expensive.
+    """
+    def evaluate_thought(thought):
+        eval_prompt = f"Rate this reasoning (1-10):\n{thought}"
+        return float(llm.generate(eval_prompt))
+
+    frontier = [("", problem)]  # (reasoning_so_far, remaining_problem)
+
+    for depth in range(max_depth):
+        candidates = []
+        for reasoning, remaining in frontier:
+            # Branch: generate n different next steps
+            for _ in range(n_branches):
+                next_step = llm.generate(
+                    f"{reasoning}\nNext step for: {remaining}",
+                    temperature=0.7
+                )
+                candidates.append((reasoning + "\n" + next_step, remaining))
+
+        # Evaluate and prune to top-k
+        scored = [(c, evaluate_thought(c[0])) for c in candidates]
+        scored.sort(key=lambda x: x[1], reverse=True)
+        frontier = [c for c, s in scored[:n_branches]]
+
+    return frontier[0][0]  # Best reasoning path
+
+
+# ---- SELF-REFINE ----
+
+def self_refine(question: str, llm, max_rounds=3):
+    """Generate, critique, refine. Exploits verification asymmetry."""
+    answer = llm.generate(question)
+
+    for _ in range(max_rounds):
+        critique = llm.generate(
+            f"Question: {question}\nAnswer: {answer}\n\n"
+            f"Critique this answer. What's wrong or could be improved?"
+        )
+        if "looks correct" in critique.lower():
+            break
+        answer = llm.generate(
+            f"Question: {question}\nOriginal answer: {answer}\n"
+            f"Critique: {critique}\n\nProvide an improved answer."
+        )
+    return answer
+
+
+# ---- EMOTION PROMPTING ----
+
+def emotion_prompt(question: str, llm) -> str:
+    """Surprisingly effective: add motivational stakes."""
+    prompt = (
+        f"{question}\n\n"
+        f"This is very important to my career. "
+        f"Please provide the most accurate and thorough answer possible."
+    )
+    return llm.generate(prompt)
+
+
+# ---- ENSEMBLE: UNIVERSAL SELF-CONSISTENCY ----
+
+def universal_self_consistency(question: str, llm, n_samples=5):
+    """Sample multiple answers, pick the most consistent one."""
+    answers = [
+        llm.generate(question, temperature=0.7)
+        for _ in range(n_samples)
+    ]
+    # Ask the LLM to pick the most consistent answer
+    selection_prompt = (
+        f"Question: {question}\n\n"
+        f"Here are {n_samples} candidate answers:\n"
+        + "\n".join(f"{i+1}. {a}" for i, a in enumerate(answers))
+        + "\n\nWhich answer is most consistent with the majority? "
+        f"Return only the number."
+    )
+    choice = int(llm.generate(selection_prompt).strip()) - 1
+    return answers[choice]
+```
+
+### Resource Links
+
+#### Official Repository
+
+- **The Prompt Report resources**: [trigaten.github.io/Prompt_Survey_Site](https://trigaten.github.io/Prompt_Survey_Site/)
+
+#### Community Implementations
+
+- **DSPy** (programmatic prompt optimization): [github.com/stanfordnlp/dspy](https://github.com/stanfordnlp/dspy)
+- **LangChain Prompts** (prompt templates): [github.com/langchain-ai/langchain](https://github.com/langchain-ai/langchain)
+- **Tree of Thoughts** (official implementation): [github.com/princeton-nlp/tree-of-thought-llm](https://github.com/princeton-nlp/tree-of-thought-llm)
+- **Graph of Thoughts**: [github.com/spcl/graph-of-thoughts](https://github.com/spcl/graph-of-thoughts)
+- **Self-Refine**: [github.com/madaan/self-refine](https://github.com/madaan/self-refine)
+
+#### Further Reading
+
+- [Chain-of-Thought Prompting](https://arxiv.org/abs/2201.11903) — Wei et al., the original CoT paper
+- [Tree of Thoughts](https://arxiv.org/abs/2305.10601) — Yao et al., deliberate reasoning with LLMs
+- [Large Language Models Are Human-Level Prompt Engineers](https://arxiv.org/abs/2211.01910) — Zhou et al., automatic prompt generation (APE)
+- [DSPy: Compiling Declarative Language Model Calls](https://arxiv.org/abs/2310.03714) — Khattab et al., programmatic prompting

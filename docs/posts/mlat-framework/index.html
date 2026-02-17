@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sean Lewis">
-<meta name="dcterms.date" content="2026-02-17">
+<meta name="dcterms.date" content="2026-02-11">
 <meta name="description" content="A deep dive into the MLAT framework — where traditional ML models become callable tools inside LLM agent workflows. Featuring PitchCraft, a system that turned 3-hour sales proposals into 10-minute automated pipelines.">
 
 <title>Your LLM Is Smart — But Can It Price a Deal? The Case for ML-as-a-Tool – Sean Lewis</title>
@@ -22,6 +22,41 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -40,10 +75,10 @@ ul.task-list li input[type="checkbox"] {
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-4d9afe2b8d18ee9fa5d0d57b5ed4214d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-2ec1ecde4794cf0ca2676fdbadd3167b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -138,6 +173,12 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#the-results" id="toc-the-results" class="nav-link" data-scroll-target="#the-results">The Results</a></li>
   </ul></li>
   <li><a href="#so-what" id="toc-so-what" class="nav-link" data-scroll-target="#so-what">So What?</a></li>
+  <li><a href="#reproduction-implementation" id="toc-reproduction-implementation" class="nav-link" data-scroll-target="#reproduction-implementation">Reproduction &amp; Implementation</a>
+  <ul class="collapse">
+  <li><a href="#environment-setup" id="toc-environment-setup" class="nav-link" data-scroll-target="#environment-setup">Environment Setup</a></li>
+  <li><a href="#pseudo-code-mlat-tool-callable-ml-model" id="toc-pseudo-code-mlat-tool-callable-ml-model" class="nav-link" data-scroll-target="#pseudo-code-mlat-tool-callable-ml-model">Pseudo-Code: MLAT Tool-Callable ML Model</a></li>
+  <li><a href="#resource-links" id="toc-resource-links" class="nav-link" data-scroll-target="#resource-links">Resource Links</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -174,7 +215,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 17, 2026</p>
+      <p class="date">February 11, 2026</p>
     </div>
   </div>
   
@@ -263,8 +304,143 @@ ul.task-list li input[type="checkbox"] {
 <p>If you’re building agentic AI systems and you’ve got trained ML models gathering dust, this paper is a blueprint for bringing them back into the conversation — literally.</p>
 <hr>
 <p><em>Paper: <a href="https://www.researchgate.net/publication/400676879_Machine_Learning_as_a_Tool_MLAT_A_Framework_for_Integrating_Statistical_ML_Models_as_Callable_Tools_within_LLM_Agent_Workows">“Machine Learning as a Tool (MLAT): A Framework for Integrating Statistical ML Models as Callable Tools within LLM Agent Workflows”</a> by Edwin Chen and Zulekha Bibi, Legacy AI LLC, 2026.</em></p>
+<hr>
+</section>
+<section id="reproduction-implementation" class="level2">
+<h2 class="anchored" data-anchor-id="reproduction-implementation">Reproduction &amp; Implementation</h2>
+<section id="environment-setup" class="level3">
+<h3 class="anchored" data-anchor-id="environment-setup">Environment Setup</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Core dependencies for reproducing the MLAT / PitchCraft pipeline</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>pip install xgboost<span class="op">&gt;=</span><span class="fl">2.0.0</span>         <span class="co"># Pricing model</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>pip install scikit<span class="op">-</span>learn<span class="op">&gt;=</span><span class="fl">1.3.0</span>    <span class="co"># Preprocessing, evaluation</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>pip install fastapi<span class="op">&gt;=</span><span class="fl">0.100.0</span>       <span class="co"># Model serving as tool endpoint</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>pip install uvicorn<span class="op">&gt;=</span><span class="fl">0.23.0</span>        <span class="co"># ASGI server</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>pip install pandas<span class="op">&gt;=</span><span class="fl">2.0.0</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>pip install numpy<span class="op">&gt;=</span><span class="fl">1.24.0</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>pip install google<span class="op">-</span>generativeai    <span class="co"># Gemini API (used in PitchCraft)</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Alternative LLM backends</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>pip install openai<span class="op">&gt;=</span><span class="fl">1.0.0</span>          <span class="co"># For OpenAI-based agents</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>pip install langchain<span class="op">&gt;=</span><span class="fl">0.2.0</span>       <span class="co"># Agent orchestration framework</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>pip install crewai<span class="op">&gt;=</span><span class="fl">0.1.0</span>          <span class="co"># Multi-agent framework</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="pseudo-code-mlat-tool-callable-ml-model" class="level3">
+<h3 class="anchored" data-anchor-id="pseudo-code-mlat-tool-callable-ml-model">Pseudo-Code: MLAT Tool-Callable ML Model</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> xgboost <span class="im">as</span> xgb</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> fastapi <span class="im">import</span> FastAPI</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># ---- STEP 1: Train the ML model (offline) ----</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> train_pricing_model(historical_data):</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">    Train XGBoost on historical project deals.</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">    Features: client_revenue, duration, integration_complexity,</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">              pain_severity, phase, tech_stack</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co">    Target: project_price</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    features <span class="op">=</span> [</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>        <span class="st">'client_revenue'</span>, <span class="st">'duration_months'</span>,</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>        <span class="st">'integration_complexity'</span>,  <span class="co"># 1-5 scale</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>        <span class="st">'pain_severity'</span>,           <span class="co"># 1-5 scale</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>        <span class="st">'phase_encoded'</span>,           <span class="co"># discovery/mvp/pilot/full</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        <span class="st">'tech_stack_encoded'</span>       <span class="co"># categorical</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> historical_data[features]</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> historical_data[<span class="st">'project_price'</span>]</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    model <span class="op">=</span> xgb.XGBRegressor(</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>        n_estimators<span class="op">=</span><span class="dv">100</span>,</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>        max_depth<span class="op">=</span><span class="dv">4</span>,</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>        learning_rate<span class="op">=</span><span class="fl">0.1</span>,</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>        objective<span class="op">=</span><span class="st">'reg:squarederror'</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    model.fit(X, y)</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> model</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="co"># ---- STEP 2: Wrap as a callable tool (FastAPI) ----</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>app <span class="op">=</span> FastAPI()</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> train_pricing_model(load_data())</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a><span class="at">@app.post</span>(<span class="st">"/estimate_price"</span>)</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> estimate_price(</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>    client_revenue: <span class="bu">float</span>,</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>    duration_months: <span class="bu">int</span>,</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>    integration_complexity: <span class="bu">int</span>,</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>    pain_severity: <span class="bu">int</span>,</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>    phase: <span class="bu">str</span>,</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>    tech_stack: <span class="bu">str</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>):</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a><span class="co">    The LLM agent calls this endpoint as a 'tool'.</span></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns a structured price prediction.</span></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>    features <span class="op">=</span> preprocess(</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>        client_revenue, duration_months,</span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>        integration_complexity, pain_severity,</span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>        phase, tech_stack</span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>    prediction <span class="op">=</span> model.predict(features.reshape(<span class="dv">1</span>, <span class="op">-</span><span class="dv">1</span>))[<span class="dv">0</span>]</span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {</span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>        <span class="st">"predicted_price"</span>: <span class="bu">round</span>(<span class="bu">float</span>(prediction), <span class="dv">2</span>),</span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>        <span class="st">"confidence"</span>: <span class="st">"moderate"</span>,  <span class="co"># Could add prediction intervals</span></span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a>        <span class="st">"model_version"</span>: <span class="st">"xgb_v1_70projects"</span></span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a><span class="co"># ---- STEP 3: Register as LLM tool ----</span></span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a><span class="co"># In LangChain / CrewAI, the tool definition looks like:</span></span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>PRICING_TOOL_SCHEMA <span class="op">=</span> {</span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a>    <span class="st">"name"</span>: <span class="st">"estimate_price"</span>,</span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a>    <span class="st">"description"</span>: <span class="st">"Estimate project price based on client and project parameters"</span>,</span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a>    <span class="st">"parameters"</span>: {</span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a>        <span class="st">"type"</span>: <span class="st">"object"</span>,</span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a>        <span class="st">"properties"</span>: {</span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a>            <span class="st">"client_revenue"</span>: {<span class="st">"type"</span>: <span class="st">"number"</span>},</span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a>            <span class="st">"duration_months"</span>: {<span class="st">"type"</span>: <span class="st">"integer"</span>},</span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a>            <span class="st">"integration_complexity"</span>: {<span class="st">"type"</span>: <span class="st">"integer"</span>, <span class="st">"minimum"</span>: <span class="dv">1</span>, <span class="st">"maximum"</span>: <span class="dv">5</span>},</span>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a>            <span class="st">"pain_severity"</span>: {<span class="st">"type"</span>: <span class="st">"integer"</span>, <span class="st">"minimum"</span>: <span class="dv">1</span>, <span class="st">"maximum"</span>: <span class="dv">5</span>},</span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a>            <span class="st">"phase"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>, <span class="st">"enum"</span>: [<span class="st">"discovery"</span>, <span class="st">"mvp"</span>, <span class="st">"pilot"</span>, <span class="st">"full"</span>]},</span>
+<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>            <span class="st">"tech_stack"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>}</span>
+<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a>        <span class="st">"required"</span>: [<span class="st">"client_revenue"</span>, <span class="st">"duration_months"</span>,</span>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"integration_complexity"</span>, <span class="st">"pain_severity"</span>]</span>
+<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a><span class="co"># The LLM agent decides WHEN to call this tool during proposal drafting.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="resource-links" class="level3">
+<h3 class="anchored" data-anchor-id="resource-links">Resource Links</h3>
+<section id="official-repository" class="level4">
+<h4 class="anchored" data-anchor-id="official-repository">Official Repository</h4>
+<p>No official repository released as of February 2026.</p>
+</section>
+<section id="community-implementations" class="level4">
+<h4 class="anchored" data-anchor-id="community-implementations">Community Implementations</h4>
+<ul>
+<li><strong>LangChain Tools</strong> (tool-calling framework): <a href="https://github.com/langchain-ai/langchain">github.com/langchain-ai/langchain</a></li>
+<li><strong>CrewAI</strong> (multi-agent orchestration): <a href="https://github.com/joaomdmoura/crewAI">github.com/joaomdmoura/crewAI</a></li>
+<li><strong>XGBoost</strong> (ML model used): <a href="https://github.com/dmlc/xgboost">github.com/dmlc/xgboost</a></li>
+<li><strong>FastAPI</strong> (model serving): <a href="https://github.com/tiangolo/fastapi">github.com/tiangolo/fastapi</a></li>
+</ul>
+</section>
+<section id="further-reading" class="level4">
+<h4 class="anchored" data-anchor-id="further-reading">Further Reading</h4>
+<ul>
+<li><a href="https://docs.anthropic.com/en/docs/build-with-claude/tool-use">Tool Use with Claude</a> — Anthropic’s tool-calling documentation</li>
+<li><a href="https://platform.openai.com/docs/guides/function-calling">OpenAI Function Calling</a> — OpenAI’s tool use API</li>
+<li><a href="https://github.com/stanfordnlp/dspy">DSPy</a> — Programmatic LLM pipelines with tool integration</li>
+<li><a href="https://mlflow.org/docs/latest/models.html">MLflow Model Serving</a> — Production ML model deployment</li>
+</ul>
 
 
+</section>
+</section>
 </section>
 
 </main> <!-- /main -->

@@ -1,6 +1,6 @@
 ---
 title: "Your LLM Is Smart — But Can It Price a Deal? The Case for ML-as-a-Tool"
-date: "2026-02-17"
+date: "2026-02-11"
 categories: [Machine Learning, LLMs, AI Architecture, Paper Review]
 description: "A deep dive into the MLAT framework — where traditional ML models become callable tools inside LLM agent workflows. Featuring PitchCraft, a system that turned 3-hour sales proposals into 10-minute automated pipelines."
 image: "mlat-thumbnail.svg"
@@ -105,3 +105,137 @@ If you're building agentic AI systems and you've got trained ML models gathering
 ---
 
 *Paper: ["Machine Learning as a Tool (MLAT): A Framework for Integrating Statistical ML Models as Callable Tools within LLM Agent Workflows"](https://www.researchgate.net/publication/400676879_Machine_Learning_as_a_Tool_MLAT_A_Framework_for_Integrating_Statistical_ML_Models_as_Callable_Tools_within_LLM_Agent_Workows) by Edwin Chen and Zulekha Bibi, Legacy AI LLC, 2026.*
+
+---
+
+## Reproduction & Implementation
+
+### Environment Setup
+
+```python
+# Core dependencies for reproducing the MLAT / PitchCraft pipeline
+pip install xgboost>=2.0.0         # Pricing model
+pip install scikit-learn>=1.3.0    # Preprocessing, evaluation
+pip install fastapi>=0.100.0       # Model serving as tool endpoint
+pip install uvicorn>=0.23.0        # ASGI server
+pip install pandas>=2.0.0
+pip install numpy>=1.24.0
+pip install google-generativeai    # Gemini API (used in PitchCraft)
+
+# Alternative LLM backends
+pip install openai>=1.0.0          # For OpenAI-based agents
+pip install langchain>=0.2.0       # Agent orchestration framework
+pip install crewai>=0.1.0          # Multi-agent framework
+```
+
+### Pseudo-Code: MLAT Tool-Callable ML Model
+
+```python
+import xgboost as xgb
+from fastapi import FastAPI
+import numpy as np
+
+# ---- STEP 1: Train the ML model (offline) ----
+
+def train_pricing_model(historical_data):
+    """
+    Train XGBoost on historical project deals.
+    Features: client_revenue, duration, integration_complexity,
+              pain_severity, phase, tech_stack
+    Target: project_price
+    """
+    features = [
+        'client_revenue', 'duration_months',
+        'integration_complexity',  # 1-5 scale
+        'pain_severity',           # 1-5 scale
+        'phase_encoded',           # discovery/mvp/pilot/full
+        'tech_stack_encoded'       # categorical
+    ]
+
+    X = historical_data[features]
+    y = historical_data['project_price']
+
+    model = xgb.XGBRegressor(
+        n_estimators=100,
+        max_depth=4,
+        learning_rate=0.1,
+        objective='reg:squarederror'
+    )
+    model.fit(X, y)
+    return model
+
+
+# ---- STEP 2: Wrap as a callable tool (FastAPI) ----
+
+app = FastAPI()
+model = train_pricing_model(load_data())
+
+@app.post("/estimate_price")
+def estimate_price(
+    client_revenue: float,
+    duration_months: int,
+    integration_complexity: int,
+    pain_severity: int,
+    phase: str,
+    tech_stack: str
+):
+    """
+    The LLM agent calls this endpoint as a 'tool'.
+    Returns a structured price prediction.
+    """
+    features = preprocess(
+        client_revenue, duration_months,
+        integration_complexity, pain_severity,
+        phase, tech_stack
+    )
+    prediction = model.predict(features.reshape(1, -1))[0]
+
+    return {
+        "predicted_price": round(float(prediction), 2),
+        "confidence": "moderate",  # Could add prediction intervals
+        "model_version": "xgb_v1_70projects"
+    }
+
+
+# ---- STEP 3: Register as LLM tool ----
+
+# In LangChain / CrewAI, the tool definition looks like:
+PRICING_TOOL_SCHEMA = {
+    "name": "estimate_price",
+    "description": "Estimate project price based on client and project parameters",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "client_revenue": {"type": "number"},
+            "duration_months": {"type": "integer"},
+            "integration_complexity": {"type": "integer", "minimum": 1, "maximum": 5},
+            "pain_severity": {"type": "integer", "minimum": 1, "maximum": 5},
+            "phase": {"type": "string", "enum": ["discovery", "mvp", "pilot", "full"]},
+            "tech_stack": {"type": "string"}
+        },
+        "required": ["client_revenue", "duration_months",
+                      "integration_complexity", "pain_severity"]
+    }
+}
+# The LLM agent decides WHEN to call this tool during proposal drafting.
+```
+
+### Resource Links
+
+#### Official Repository
+
+No official repository released as of February 2026.
+
+#### Community Implementations
+
+- **LangChain Tools** (tool-calling framework): [github.com/langchain-ai/langchain](https://github.com/langchain-ai/langchain)
+- **CrewAI** (multi-agent orchestration): [github.com/joaomdmoura/crewAI](https://github.com/joaomdmoura/crewAI)
+- **XGBoost** (ML model used): [github.com/dmlc/xgboost](https://github.com/dmlc/xgboost)
+- **FastAPI** (model serving): [github.com/tiangolo/fastapi](https://github.com/tiangolo/fastapi)
+
+#### Further Reading
+
+- [Tool Use with Claude](https://docs.anthropic.com/en/docs/build-with-claude/tool-use) — Anthropic's tool-calling documentation
+- [OpenAI Function Calling](https://platform.openai.com/docs/guides/function-calling) — OpenAI's tool use API
+- [DSPy](https://github.com/stanfordnlp/dspy) — Programmatic LLM pipelines with tool integration
+- [MLflow Model Serving](https://mlflow.org/docs/latest/models.html) — Production ML model deployment

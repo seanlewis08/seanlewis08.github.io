@@ -2,9 +2,14 @@
   {
     "listing": "/blog.html",
     "items": [
-      "/posts/mlat-framework/index.html",
+      "/posts/unconfoundedness-ate/index.html",
+      "/posts/panel-data-experimental-design/index.html",
+      "/posts/more-t-in-experiments/index.html",
+      "/posts/sampling-vs-design-uncertainty/index.html",
+      "/posts/causal-demand-learning/index.html",
       "/posts/auto-prompt-engineering/index.html",
-      "/posts/prompt-report/index.html"
+      "/posts/prompt-report/index.html",
+      "/posts/mlat-framework/index.html"
     ]
   }
 ]

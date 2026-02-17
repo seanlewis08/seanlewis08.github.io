@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f0f1a"/>
+      <stop offset="100%" stop-color="#1a1a2e"/>
+    </linearGradient>
+    <linearGradient id="bar1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2dd4a8"/>
+      <stop offset="100%" stop-color="#1a9e7a"/>
+    </linearGradient>
+    <linearGradient id="bar2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff6b6b"/>
+      <stop offset="100%" stop-color="#cc4444"/>
+    </linearGradient>
+    <linearGradient id="bar3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#7c5cbf"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg)"/>
+
+  <!-- Title -->
+  <text x="400" y="50" text-anchor="middle" fill="#e0e0e0" font-family="system-ui, sans-serif" font-size="22" font-weight="700">Estimating Treatment Effects</text>
+  <text x="400" y="78" text-anchor="middle" fill="#2dd4a8" font-family="system-ui, sans-serif" font-size="14" font-weight="500">Under Unconfoundedness</text>
+
+  <!-- Y axis label -->
+  <text x="80" y="240" text-anchor="middle" fill="#888" font-family="system-ui, sans-serif" font-size="11" transform="rotate(-90 80 240)">Estimated ATE ($)</text>
+
+  <!-- Baseline -->
+  <line x1="120" y1="350" x2="700" y2="350" stroke="#333" stroke-width="1"/>
+
+  <!-- Experimental benchmark dashed line -->
+  <line x1="120" y1="170" x2="700" y2="170" stroke="#2dd4a8" stroke-width="1" stroke-dasharray="6,4" opacity="0.5"/>
+  <text x="710" y="174" fill="#2dd4a8" font-family="system-ui, sans-serif" font-size="10" opacity="0.7">Benchmark ~$1,800</text>
+
+  <!-- Bar: OLS (negative) -->
+  <rect x="160" y="350" width="70" height="60" rx="4" fill="url(#bar2)" opacity="0.8"/>
+  <text x="195" y="395" text-anchor="middle" fill="#ff6b6b" font-family="system-ui, sans-serif" font-size="10" font-weight="600">−$</text>
+  <text x="195" y="380" text-anchor="middle" fill="#e0e0e0" font-family="system-ui, sans-serif" font-size="10">OLS</text>
+
+  <!-- Bar: PSM -->
+  <rect x="280" y="180" width="70" height="170" rx="4" fill="url(#bar3)" opacity="0.8"/>
+  <text x="315" y="175" text-anchor="middle" fill="#a78bfa" font-family="system-ui, sans-serif" font-size="10" font-weight="600">~$1,700</text>
+  <text x="315" y="380" text-anchor="middle" fill="#e0e0e0" font-family="system-ui, sans-serif" font-size="10">PSM</text>
+
+  <!-- Bar: IPW -->
+  <rect x="400" y="190" width="70" height="160" rx="4" fill="url(#bar1)" opacity="0.8"/>
+  <text x="435" y="185" text-anchor="middle" fill="#2dd4a8" font-family="system-ui, sans-serif" font-size="10" font-weight="600">~$1,800</text>
+  <text x="435" y="380" text-anchor="middle" fill="#e0e0e0" font-family="system-ui, sans-serif" font-size="10">IPW</text>
+
+  <!-- Bar: Doubly Robust -->
+  <rect x="520" y="175" width="70" height="175" rx="4" fill="url(#bar1)" opacity="0.9"/>
+  <text x="555" y="170" text-anchor="middle" fill="#2dd4a8" font-family="system-ui, sans-serif" font-size="10" font-weight="600">~$1,800</text>
+  <text x="555" y="380" text-anchor="middle" fill="#e0e0e0" font-family="system-ui, sans-serif" font-size="10">DR</text>
+
+  <!-- Balance scale icon -->
+  <g transform="translate(650, 260)" opacity="0.3">
+    <line x1="0" y1="0" x2="0" y2="50" stroke="#2dd4a8" stroke-width="2"/>
+    <line x1="-30" y1="0" x2="30" y2="0" stroke="#2dd4a8" stroke-width="2"/>
+    <circle cx="-30" cy="10" r="8" fill="none" stroke="#2dd4a8" stroke-width="1.5"/>
+    <circle cx="30" cy="10" r="8" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="-30" y="14" text-anchor="middle" fill="#2dd4a8" font-size="8">T</text>
+    <text x="30" y="14" text-anchor="middle" fill="#a78bfa" font-size="8">C</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="400" y="435" text-anchor="middle" fill="#555" font-family="system-ui, sans-serif" font-size="11">Imbens &amp; Wooldridge (2008) · IRP Lecture Notes</text>
+</svg>

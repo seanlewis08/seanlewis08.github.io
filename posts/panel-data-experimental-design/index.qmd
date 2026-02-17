@@ -1,0 +1,303 @@
+---
+title: "McKenzie Told You to Add More Survey Rounds — But His Power Formula Was Wrong"
+date: "2026-02-17"
+categories: [Experimental Design, Causal Inference, Panel Data, Paper Review]
+description: "Burlig, Preonas & Woerman show that the constant-autocorrelation assumption behind standard panel power calculations leads to overpowered short panels and underpowered long panels. Their fix: Serial-Correlation-Robust power formulas."
+image: "panel-design-thumbnail.svg"
+---
+
+## The Hook
+
+McKenzie (2012) taught a generation of researchers that adding more survey rounds to experiments is a free lunch — each extra measurement buys you statistical power, especially when outcomes are noisy. That paper changed how experiments get designed. It's cited over 1,600 times.
+
+But there's a hidden assumption baked into every one of those power calculations: **constant autocorrelation**. The correlation between outcomes measured 1 month apart is assumed to be the same as the correlation between outcomes measured 12 months apart. A measurement today is assumed to be equally predictive of a measurement next week and next year.
+
+That assumption is almost never true. And when it fails, your power calculations are wrong — sometimes dangerously so.
+
+**"Panel Data and Experimental Design"** by Fiona Burlig, Louis Preonas, and Matt Woerman (2020) drops the constant-autocorrelation assumption and derives power formulas that allow for **arbitrary serial correlation**. The results flip some of McKenzie's conclusions: short panels (a few rounds) are *overpowered* (you think you're detecting smaller effects than you actually can), and long panels (many rounds) are *underpowered* (you're leaving precision on the table because your formula undervalues the extra measurements).
+
+The practical stakes are high. In the datasets they examine, the standard formulas overstate power by up to 50% in some configurations and understate it by 30% in others.
+
+## The Argument
+
+### Why Constant Autocorrelation Fails
+
+The standard power calculation for a panel experiment assumes an "equicorrelated" error structure: for any two time periods $s \neq t$, the correlation between $\epsilon_{is}$ and $\epsilon_{it}$ is the same constant $\rho$, regardless of how far apart $s$ and $t$ are.
+
+In practice, autocorrelation **decays with distance**. Your earnings this month are highly correlated with your earnings next month ($\rho_1 \approx 0.6$), moderately correlated with earnings 6 months from now ($\rho_6 \approx 0.3$), and weakly correlated with earnings 2 years out ($\rho_{24} \approx 0.1$). This is the standard behavior of any time series with a stationary autocovariance function.
+
+Burlig et al. show that this decay has two competing effects on experimental power:
+
+**Effect 1 — Within-period information.** When nearby measurements are highly correlated, additional nearby measurements add less new information (they're redundant). The constant-$\rho$ formula misses this: it assumes measurements separated by 1 period are as independent as measurements separated by 20 periods.
+
+**Effect 2 — Cross-period information.** When distant measurements are weakly correlated, they're nearly independent — each distant measurement is nearly as valuable as a completely new observation. The constant-$\rho$ formula also misses this: it assumes those distant measurements are as correlated as adjacent ones.
+
+For **short panels** (few time periods, closely spaced), Effect 1 dominates. The constant-$\rho$ formula uses an average $\rho$ that's too low — it underestimates how correlated the measurements are, and therefore **overstates power**. You think you can detect a 10% effect, but you actually need a 15% effect.
+
+For **long panels** (many periods), Effect 2 dominates. Distant measurements are more independent than the formula assumes, so it **understates power**. You think you need 500 participants, but 350 would suffice.
+
+### The Fix: Serial-Correlation-Robust (SCR) Power
+
+The key innovation is replacing the scalar $\rho$ with the **full variance-covariance matrix** $\Sigma$ of the error process. The authors derive a closed-form power formula that takes $\Sigma$ as input:
+
+```
+┌──────────────────────────────────────────────────────┐
+│           STANDARD vs SCR POWER CALCULATION            │
+│                                                        │
+│  STANDARD (McKenzie 2012):                            │
+│    Input: single ρ (constant autocorrelation)         │
+│    Power = f(n, T_pre, T_post, ρ, σ², δ)             │
+│    Assumes: Corr(εₜ, εₛ) = ρ for ALL t ≠ s           │
+│                                                        │
+│  SCR (Burlig et al. 2020):                            │
+│    Input: full Σ matrix (arbitrary serial correlation) │
+│    Power = f(n, T_pre, T_post, Σ, δ)                 │
+│    Allows: Corr(εₜ, εₛ) varies with |t - s|          │
+│                                                        │
+│  Difference matters when:                              │
+│    • Autocorrelation decays over time (almost always) │
+│    • Panel has many periods (T > 5)                   │
+│    • Periods are unevenly spaced                      │
+└──────────────────────────────────────────────────────┘
+```
+
+Critically, the SCR formula has the **same data requirements** as the standard one. You don't need new information — you just need to estimate $\Sigma$ from pilot data or existing panel datasets instead of collapsing it to a single number.
+
+## The Lineage
+
+This paper directly extends a specific lineage:
+
+**Cochran (1939), Frison & Pocock (1992)** — Early work on repeated-measures ANOVA and power in pre-post designs. Assumed compound symmetry (constant $\rho$), which was adequate for short biomedical trials.
+
+**McKenzie (2012)** — Brought repeated-measures power calculations to development economics and social science experiments. Made the critical contribution of showing how $\rho$ determines optimal design. But inherited the constant-$\rho$ assumption from the biomedical literature, where panels are typically short (2-4 rounds).
+
+**Burlig, Preonas & Woerman (2020)** — Showed that as experiments increasingly use administrative data, smart meters, digital surveys, and other high-frequency sources (creating long panels with many $T$), the constant-$\rho$ assumption becomes increasingly dangerous. The departure from McKenzie is respectful but firm: the insight about "more T" is correct, but the specific power gains are miscalculated when autocorrelation decays.
+
+The broader context: the experimental design field has been catching up with the data revolution. When McKenzie wrote in 2012, most development experiments had 2-5 survey rounds. By 2020, researchers were working with monthly electricity data (thousands of periods), weekly mobile money transactions, and daily health records. The constant-$\rho$ approximation that was "good enough" for 3 survey rounds becomes seriously misleading for 52 weekly observations.
+
+### Seminal vs. Transducer
+
+The **seminal** contribution is the SCR power formula itself and the clear demonstration of when and why standard formulas mislead. The Monte Carlo validation and the Stata package `pcpanel` ensure this is immediately practical.
+
+The **transducer** sections are the proofs under specific parametric error structures (AR(1), MA(1)), which are useful for understanding the mechanics but less essential for practitioners who can just feed in an estimated $\Sigma$.
+
+## The Deep Dive
+
+### How Bad Is the Standard Formula?
+
+The authors validate with Monte Carlo simulations and two real datasets.
+
+**Bloom et al. (2015) — Indian textile firms.** Monthly productivity data with strongly decaying autocorrelation. Using the actual serial correlation structure vs. the constant-$\rho$ assumption:
+
+| Design | Constant-ρ Power | SCR Power | Direction of Error |
+|---|---|---|---|
+| 2 pre + 2 post months | 0.75 | 0.60 | **Overpowered by 25%** |
+| 2 pre + 6 post months | 0.92 | 0.85 | Overpowered by 8% |
+| 6 pre + 12 post months | 0.88 | 0.95 | **Underpowered by 8%** |
+
+For the short panel (2+2), you'd think you have 75% power but you actually have 60%. That's the difference between "likely to detect the effect" and "coin flip."
+
+**Pecan Street — U.S. household electricity.** Hourly smart meter data aggregated to various frequencies. The autocorrelation structure is rich and the panel is long, making the discrepancy large:
+
+| Aggregation | Constant-ρ MDE | SCR MDE | MDE Error |
+|---|---|---|---|
+| Weekly, 12 weeks post | 0.15 σ | 0.19 σ | Standard underestimates MDE by 27% |
+| Monthly, 12 months post | 0.12 σ | 0.11 σ | Standard overestimates MDE by 9% |
+
+### The Intuition for Practitioners
+
+The practical message boils down to a simple diagnostic: **plot your outcome's autocorrelation function (ACF)**. If it's roughly flat (constant across lags), the standard formulas are fine. If it decays — and it almost always decays — you need the SCR correction.
+
+The shape of the ACF determines the direction of error. Rapidly decaying ACF → short panels overpowered, long panels underpowered. Slowly decaying ACF → standard formulas are approximately correct.
+
+### Rubber-Ducking the Jargon
+
+**Equicorrelated / Compound symmetry** — Fancy names for "constant autocorrelation." The assumption that any two measurements of the same unit are equally correlated regardless of time gap. In plain English: your earnings in January predict your earnings in December just as well as they predict February's. Obviously unrealistic for most outcomes.
+
+**Serial correlation** — The correlation between measurements of the same thing at different times. "Serial" because it follows a time series. An ACF plot shows how this correlation decays as the time gap increases.
+
+**Minimum Detectable Effect (MDE)** — The smallest treatment effect your experiment can reliably detect at a given power level (usually 80%). Lower MDE = more powerful experiment. The MDE is what you're trying to minimize when choosing a design.
+
+**ANCOVA** — Analysis of Covariance. Running a regression of the post-treatment outcome on treatment status, controlling for pre-treatment outcomes. Strictly better than difference-in-differences when $\rho < 1$ (see McKenzie 2012).
+
+## So What?
+
+If you're designing an experiment with panel data — and in 2026, with the proliferation of administrative records and digital measurement, most experiments are panel experiments — this paper should change your workflow in two ways.
+
+First, **estimate the full autocorrelation structure**, not just a single $\rho$. Use pilot data, historical data, or similar-context datasets. Plot the ACF. If it's not flat, your standard power calculations are wrong.
+
+Second, **use the `pcpanel` Stata package** (or implement the SCR formula in your language of choice) to get correct power calculations. The computational cost is negligible — you're replacing one formula with another that takes a matrix instead of a scalar.
+
+The broader lesson: as data gets richer and higher-frequency, the simplifying assumptions that were tolerable for 3-round surveys become untenable for 50-period panels. Experimental design needs to keep up with the data it's designing for.
+
+---
+
+*Paper: ["Panel Data and Experimental Design"](https://doi.org/10.1016/j.jdeveco.2020.102458) by Fiona Burlig, Louis Preonas, and Matt Woerman. Journal of Development Economics, Vol. 144, May 2020, 102458.*
+
+---
+
+## Reproduction & Implementation
+
+### Environment Setup
+
+```python
+# Core dependencies
+pip install numpy>=1.24.0
+pip install scipy>=1.11.0          # Power calculations
+pip install statsmodels>=0.14.0    # ACF estimation, OLS
+pip install pandas>=2.0.0
+pip install matplotlib>=3.7.0      # ACF plots, power curves
+
+# For Stata users (the authors' pcpanel package)
+# In Stata: ssc install pcpanel
+```
+
+### Pseudo-Code: Serial-Correlation-Robust Power Calculation
+
+```python
+import numpy as np
+from scipy import stats
+from statsmodels.tsa.stattools import acf
+
+def estimate_sigma_matrix(panel_data, max_lag=None):
+    """
+    Estimate the full variance-covariance matrix Σ from pilot
+    or historical panel data.
+
+    panel_data: (n_units, T) array of outcomes
+    Returns: (T, T) covariance matrix
+    """
+    T = panel_data.shape[1]
+    # Demean each unit (remove individual fixed effects)
+    demeaned = panel_data - panel_data.mean(axis=1, keepdims=True)
+    # Estimate covariance across time periods
+    Sigma = np.cov(demeaned.T)
+    return Sigma
+
+
+def power_scr(n_per_arm, Sigma, T_pre, T_post, delta, alpha=0.05):
+    """
+    Serial-Correlation-Robust (SCR) power calculation.
+    Burlig et al. (2020), Proposition 1.
+
+    Parameters:
+        n_per_arm: sample size per arm
+        Sigma:     (T, T) error covariance matrix (T = T_pre + T_post)
+        T_pre:     number of pre-treatment periods
+        T_post:    number of post-treatment periods
+        delta:     treatment effect to detect
+        alpha:     significance level
+    """
+    T = T_pre + T_post
+
+    # Build the ANCOVA contrast vector:
+    # Average post - gamma * average pre
+    # For simplicity, use the DiD-style contrast (results similar)
+    c = np.zeros(T)
+    c[:T_pre] = -1.0 / T_pre if T_pre > 0 else 0
+    c[T_pre:] = 1.0 / T_post
+
+    # Variance of the treatment effect estimator
+    # V(tau_hat) = (2/n) * c' Sigma c
+    var_tau = (2.0 / n_per_arm) * c @ Sigma @ c
+
+    se = np.sqrt(var_tau)
+    z_alpha = stats.norm.ppf(1 - alpha / 2)
+
+    # Power = P(reject H0 | delta)
+    power = 1 - stats.norm.cdf(z_alpha - delta / se)
+    return power
+
+
+def power_standard(n_per_arm, sigma2, rho, T_pre, T_post,
+                   delta, alpha=0.05):
+    """
+    Standard (constant-rho) power calculation from McKenzie (2012).
+    Assumes Corr(eps_t, eps_s) = rho for ALL t != s.
+    """
+    T = T_pre + T_post
+    # Build equicorrelated Sigma
+    Sigma_eq = sigma2 * (rho * np.ones((T, T)) + (1 - rho) * np.eye(T))
+    return power_scr(n_per_arm, Sigma_eq, T_pre, T_post, delta, alpha)
+
+
+def compare_standard_vs_scr(panel_data, T_pre, T_post,
+                             n_per_arm, delta):
+    """
+    Compare standard vs SCR power using real data.
+    Shows when constant-rho assumption misleads.
+    """
+    Sigma_real = estimate_sigma_matrix(panel_data)
+
+    # For standard formula: estimate average autocorrelation
+    T = T_pre + T_post
+    sigma2 = np.mean(np.diag(Sigma_real))
+    off_diag = Sigma_real[np.triu_indices(T, k=1)]
+    rho_avg = np.mean(off_diag) / sigma2
+
+    pwr_standard = power_standard(
+        n_per_arm, sigma2, rho_avg, T_pre, T_post, delta
+    )
+    pwr_scr = power_scr(
+        n_per_arm, Sigma_real[:T, :T], T_pre, T_post, delta
+    )
+
+    print(f"Average rho: {rho_avg:.3f}")
+    print(f"Standard power: {pwr_standard:.3f}")
+    print(f"SCR power:      {pwr_scr:.3f}")
+    print(f"Difference:     {pwr_standard - pwr_scr:+.3f}")
+
+    if pwr_standard > pwr_scr:
+        print("→ Standard formula OVERSTATES power (dangerous!)")
+    else:
+        print("→ Standard formula UNDERSTATES power (conservative)")
+```
+
+### Diagnostic: Plot the ACF
+
+```python
+import matplotlib.pyplot as plt
+from statsmodels.tsa.stattools import acf
+
+def plot_acf_diagnostic(panel_data, max_lag=20):
+    """
+    Key diagnostic from the paper: if the ACF is not flat,
+    you need SCR power calculations.
+    """
+    # Pool residuals across units
+    demeaned = panel_data - panel_data.mean(axis=1, keepdims=True)
+    pooled = demeaned.flatten()
+
+    acf_vals = acf(pooled, nlags=max_lag, fft=True)
+
+    plt.figure(figsize=(10, 4))
+    plt.bar(range(max_lag + 1), acf_vals, color='#2dd4a8', alpha=0.7)
+    plt.axhline(y=acf_vals[1:].mean(), color='#f97583',
+                linestyle='--', label=f'Mean ρ = {acf_vals[1:].mean():.3f}')
+    plt.xlabel('Lag')
+    plt.ylabel('Autocorrelation')
+    plt.title('ACF Diagnostic: Is constant-ρ reasonable?')
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig('acf_diagnostic.png', dpi=150)
+    plt.show()
+```
+
+### Resource Links
+
+#### Official Repository
+
+- **pcpanel** (Stata package by the authors): Install via `ssc install pcpanel` in Stata
+
+#### Community Implementations
+
+- **statsmodels** (ACF estimation, OLS): [github.com/statsmodels/statsmodels](https://github.com/statsmodels/statsmodels)
+- **DeclareDesign** (R framework for power analysis): [github.com/DeclareDesign/DeclareDesign](https://github.com/DeclareDesign/DeclareDesign)
+- **pwr** (R package for power calculations): [CRAN: pwr](https://cran.r-project.org/package=pwr)
+
+#### Further Reading
+
+- [McKenzie (2012)](https://doi.org/10.1016/j.jdeveco.2012.01.002) — The foundational paper that Burlig et al. extends
+- [Frison & Pocock (1992)](https://doi.org/10.1002/sim.4780111304) — ANCOVA vs. change-score in repeated measures
+- [Cameron & Miller (2015)](https://doi.org/10.1016/j.jeconom.2015.03.010) — Practitioner's guide to cluster-robust inference
+- [Bloom et al. (2015)](https://doi.org/10.1093/qje/qjv028) — Indian textile firm data used in the paper's validation

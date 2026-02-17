@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" width="800" height="420">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#161b22"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2dd4a8"/>
+      <stop offset="100%" stop-color="#7eb8e0"/>
+    </linearGradient>
+    <linearGradient id="red" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f97583"/>
+      <stop offset="100%" stop-color="#f85149"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="420" fill="url(#bg)"/>
+
+  <!-- Title -->
+  <text x="400" y="42" text-anchor="middle" fill="url(#accent)" font-family="sans-serif" font-size="21" font-weight="bold">Causal Demand Learning</text>
+  <text x="400" y="68" text-anchor="middle" fill="#8b949e" font-family="sans-serif" font-size="12">DCMOML: Decision-Conditioned Masked-Outcome Meta-Learning</text>
+
+  <!-- Two demand curves side by side -->
+
+  <!-- LEFT: Confounded estimate -->
+  <rect x="50" y="90" width="320" height="210" rx="10" fill="#161b22" stroke="#f85149" stroke-width="1" opacity="0.7"/>
+  <text x="210" y="115" text-anchor="middle" fill="#f97583" font-family="monospace" font-size="12" font-weight="bold">Standard Meta-Learner</text>
+  <text x="210" y="132" text-anchor="middle" fill="#6e7681" font-family="sans-serif" font-size="9">(Confounded)</text>
+
+  <!-- Axes -->
+  <line x1="90" y1="270" x2="340" y2="270" stroke="#30363d" stroke-width="1"/>
+  <line x1="90" y1="150" x2="90" y2="270" stroke="#30363d" stroke-width="1"/>
+  <text x="215" y="290" text-anchor="middle" fill="#6e7681" font-family="sans-serif" font-size="9">Price</text>
+  <text x="75" y="210" text-anchor="middle" fill="#6e7681" font-family="sans-serif" font-size="9" transform="rotate(-90, 75, 210)">Demand</text>
+
+  <!-- True line (negative slope) -->
+  <line x1="110" y1="170" x2="320" y2="255" stroke="#2dd4a8" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+  <text x="310" y="248" fill="#2dd4a8" font-family="sans-serif" font-size="8" opacity="0.5">true</text>
+
+  <!-- Confounded line (positive slope — wrong!) -->
+  <line x1="110" y1="250" x2="320" y2="165" stroke="#f85149" stroke-width="2"/>
+  <text x="305" y="160" fill="#f97583" font-family="sans-serif" font-size="8">estimated</text>
+
+  <!-- Scatter points showing confounding -->
+  <circle cx="140" cy="240" r="3" fill="#6e7681" opacity="0.5"/>
+  <circle cx="170" cy="225" r="3" fill="#6e7681" opacity="0.5"/>
+  <circle cx="200" cy="210" r="3" fill="#6e7681" opacity="0.5"/>
+  <circle cx="240" cy="195" r="3" fill="#6e7681" opacity="0.5"/>
+  <circle cx="270" cy="180" r="3" fill="#6e7681" opacity="0.5"/>
+  <circle cx="300" cy="170" r="3" fill="#6e7681" opacity="0.5"/>
+
+  <!-- RIGHT: DCMOML (causal) -->
+  <rect x="430" y="90" width="320" height="210" rx="10" fill="#161b22" stroke="#2dd4a8" stroke-width="1" opacity="0.7"/>
+  <text x="590" y="115" text-anchor="middle" fill="#2dd4a8" font-family="monospace" font-size="12" font-weight="bold">DCMOML</text>
+  <text x="590" y="132" text-anchor="middle" fill="#6e7681" font-family="sans-serif" font-size="9">(Causally Identified)</text>
+
+  <!-- Axes -->
+  <line x1="470" y1="270" x2="720" y2="270" stroke="#30363d" stroke-width="1"/>
+  <line x1="470" y1="150" x2="470" y2="270" stroke="#30363d" stroke-width="1"/>
+  <text x="595" y="290" text-anchor="middle" fill="#6e7681" font-family="sans-serif" font-size="9">Price</text>
+  <text x="455" y="210" text-anchor="middle" fill="#6e7681" font-family="sans-serif" font-size="9" transform="rotate(-90, 455, 210)">Demand</text>
+
+  <!-- True line -->
+  <line x1="490" y1="170" x2="700" y2="255" stroke="#2dd4a8" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+  <text x="690" y="248" fill="#2dd4a8" font-family="sans-serif" font-size="8" opacity="0.5">true</text>
+
+  <!-- DCMOML estimated line (matches true!) -->
+  <line x1="490" y1="172" x2="700" y2="253" stroke="#2dd4a8" stroke-width="2"/>
+  <text x="685" y="265" fill="#5ce0b8" font-family="sans-serif" font-size="8">estimated ✓</text>
+
+  <!-- Scatter points -->
+  <circle cx="510" cy="178" r="3" fill="#5ce0b8" opacity="0.5"/>
+  <circle cx="545" cy="195" r="3" fill="#5ce0b8" opacity="0.5"/>
+  <circle cx="580" cy="208" r="3" fill="#5ce0b8" opacity="0.5"/>
+  <circle cx="620" cy="222" r="3" fill="#5ce0b8" opacity="0.5"/>
+  <circle cx="660" cy="238" r="3" fill="#5ce0b8" opacity="0.5"/>
+  <circle cx="690" cy="248" r="3" fill="#5ce0b8" opacity="0.5"/>
+
+  <!-- Bottom key insight -->
+  <rect x="120" y="320" width="560" height="70" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1" opacity="0.5"/>
+
+  <text x="220" y="348" text-anchor="middle" fill="#e6db74" font-family="monospace" font-size="11">MASK</text>
+  <text x="220" y="366" text-anchor="middle" fill="#8b949e" font-family="sans-serif" font-size="9">Hide demand at 2 points</text>
+
+  <text x="320" y="355" text-anchor="middle" fill="#6e7681" font-family="sans-serif" font-size="16">+</text>
+
+  <text x="400" y="348" text-anchor="middle" fill="#e6db74" font-family="monospace" font-size="11">RANDOMIZE</text>
+  <text x="400" y="366" text-anchor="middle" fill="#8b949e" font-family="sans-serif" font-size="9">Random query assignment</text>
+
+  <text x="500" y="355" text-anchor="middle" fill="#6e7681" font-family="sans-serif" font-size="16">=</text>
+
+  <text x="590" y="348" text-anchor="middle" fill="#2dd4a8" font-family="monospace" font-size="11">CAUSAL ID</text>
+  <text x="590" y="366" text-anchor="middle" fill="#8b949e" font-family="sans-serif" font-size="9">No instruments needed</text>
+
+  <!-- Bottom accent -->
+  <rect x="100" y="408" width="600" height="2" rx="1" fill="url(#accent)" opacity="0.3"/>
+</svg>

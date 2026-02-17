@@ -1,6 +1,6 @@
 ---
 title: "No Tuning, No Task Cues, No Problem — IBM's Dead-Simple Approach to Automatic Prompt Engineering"
-date: "2026-02-17"
+date: "2026-02-13"
 categories: [Prompt Engineering, LLMs, Automation, Paper Review]
 description: "A deep dive into a paper from IBM Research that generates effective prompts with just 8 examples, zero tuning, and zero extra LLM calls for scoring — and still matches DSPy on benchmarks."
 image: "auto-prompt-thumbnail.svg"

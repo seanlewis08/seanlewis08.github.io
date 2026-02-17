@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Sean Lewis">
+<meta name="dcterms.date" content="2026-02-18">
+<meta name="description" content="Breaking down Imbens &amp; Wooldridge’s influential lecture notes on matching, weighting, and subclassification methods for estimating treatment effects when selection is on observables.">
+
+<title>Estimating Average Treatment Effects Under Unconfoundedness – Sean Lewis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="../../site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="../../site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="../../site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Sean Lewis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../projects.html"> 
+<span class="menu-text">Projects</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/seanlewis08"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/selew/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-gist" id="toc-the-gist" class="nav-link active" data-scroll-target="#the-gist">The Gist</a></li>
+  <li><a href="#why-it-matters-now" id="toc-why-it-matters-now" class="nav-link" data-scroll-target="#why-it-matters-now">Why It Matters Now</a></li>
+  <li><a href="#the-setup-what-is-unconfoundedness" id="toc-the-setup-what-is-unconfoundedness" class="nav-link" data-scroll-target="#the-setup-what-is-unconfoundedness">The Setup: What Is Unconfoundedness?</a></li>
+  <li><a href="#the-lineage-where-this-fits" id="toc-the-lineage-where-this-fits" class="nav-link" data-scroll-target="#the-lineage-where-this-fits">The Lineage: Where This Fits</a></li>
+  <li><a href="#the-methods-a-toolkit-tour" id="toc-the-methods-a-toolkit-tour" class="nav-link" data-scroll-target="#the-methods-a-toolkit-tour">The Methods: A Toolkit Tour</a>
+  <ul class="collapse">
+  <li><a href="#regression-adjustment" id="toc-regression-adjustment" class="nav-link" data-scroll-target="#regression-adjustment">1. Regression Adjustment</a></li>
+  <li><a href="#the-propensity-score" id="toc-the-propensity-score" class="nav-link" data-scroll-target="#the-propensity-score">2. The Propensity Score</a></li>
+  <li><a href="#subclassification-blocking" id="toc-subclassification-blocking" class="nav-link" data-scroll-target="#subclassification-blocking">3. Subclassification (Blocking)</a></li>
+  <li><a href="#matching" id="toc-matching" class="nav-link" data-scroll-target="#matching">4. Matching</a></li>
+  <li><a href="#inverse-probability-weighting-ipw" id="toc-inverse-probability-weighting-ipw" class="nav-link" data-scroll-target="#inverse-probability-weighting-ipw">5. Inverse Probability Weighting (IPW)</a></li>
+  <li><a href="#doubly-robust-estimation" id="toc-doubly-robust-estimation" class="nav-link" data-scroll-target="#doubly-robust-estimation">6. Doubly Robust Estimation</a></li>
+  </ul></li>
+  <li><a href="#the-lalonde-application-a-case-study-in-fragility" id="toc-the-lalonde-application-a-case-study-in-fragility" class="nav-link" data-scroll-target="#the-lalonde-application-a-case-study-in-fragility">The Lalonde Application: A Case Study in Fragility</a></li>
+  <li><a href="#key-results-comparison" id="toc-key-results-comparison" class="nav-link" data-scroll-target="#key-results-comparison">Key Results Comparison</a></li>
+  <li><a href="#what-to-watch-out-for" id="toc-what-to-watch-out-for" class="nav-link" data-scroll-target="#what-to-watch-out-for">What to Watch Out For</a></li>
+  <li><a href="#takeaways-for-practitioners" id="toc-takeaways-for-practitioners" class="nav-link" data-scroll-target="#takeaways-for-practitioners">Takeaways for Practitioners</a></li>
+  <li><a href="#reproduction-implementation" id="toc-reproduction-implementation" class="nav-link" data-scroll-target="#reproduction-implementation">Reproduction &amp; Implementation</a>
+  <ul class="collapse">
+  <li><a href="#environment-setup" id="toc-environment-setup" class="nav-link" data-scroll-target="#environment-setup">Environment Setup</a></li>
+  <li><a href="#core-algorithm-doubly-robust-ate-estimator" id="toc-core-algorithm-doubly-robust-ate-estimator" class="nav-link" data-scroll-target="#core-algorithm-doubly-robust-ate-estimator">Core Algorithm: Doubly Robust ATE Estimator</a></li>
+  <li><a href="#propensity-score-diagnostics" id="toc-propensity-score-diagnostics" class="nav-link" data-scroll-target="#propensity-score-diagnostics">Propensity Score Diagnostics</a></li>
+  <li><a href="#resource-links" id="toc-resource-links" class="nav-link" data-scroll-target="#resource-links">Resource Links</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Estimating Average Treatment Effects Under Unconfoundedness</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">Causal Inference</div>
+    <div class="quarto-category">Econometrics</div>
+    <div class="quarto-category">Program Evaluation</div>
+    <div class="quarto-category">Propensity Score</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Breaking down Imbens &amp; Wooldridge’s influential lecture notes on matching, weighting, and subclassification methods for estimating treatment effects when selection is on observables.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Sean Lewis </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">February 18, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="the-gist" class="level2">
+<h2 class="anchored" data-anchor-id="the-gist">The Gist</h2>
+<p>You ran a job training program. Some people enrolled, some didn’t. Earnings data roll in. The question sounds simple: <em>did the program work?</em> The statistical answer is anything but. The fundamental problem of causal inference is that you never observe the same person in both states — treated and untreated — at the same time. Imbens and Wooldridge’s 2008 lecture notes, part of their IRP series at the University of Wisconsin, lay out the modern toolkit for answering this question when you can’t run a perfect experiment but believe you’ve measured enough about people to make the comparison fair.</p>
+</section>
+<section id="why-it-matters-now" class="level2">
+<h2 class="anchored" data-anchor-id="why-it-matters-now">Why It Matters Now</h2>
+<p>These lecture notes have become a de facto reference for applied economists and data scientists working with observational data. The methods covered here — propensity score matching, inverse probability weighting, subclassification, and regression adjustment — form the backbone of causal inference pipelines at tech companies, in public policy evaluation, and across the social sciences. If you’ve ever needed to estimate the causal effect of a treatment when randomization isn’t possible (or when an experiment was compromised by non-compliance), this is the playbook.</p>
+<p>The paper is also historically important because it uses the Lalonde (1986) and Dehejia-Wahba (1999) datasets as running examples — the same datasets that launched decades of debate about whether non-experimental methods can replicate experimental benchmarks.</p>
+</section>
+<section id="the-setup-what-is-unconfoundedness" class="level2">
+<h2 class="anchored" data-anchor-id="the-setup-what-is-unconfoundedness">The Setup: What Is Unconfoundedness?</h2>
+<p>The core assumption is sometimes called “selection on observables,” “conditional independence,” or “ignorability.” In plain language: once you condition on a rich enough set of pre-treatment covariates <span class="math inline">\(X\)</span>, treatment assignment <span class="math inline">\(W\)</span> is as good as random.</p>
+<p><span class="math display">\[
+W \perp\!\!\!\perp (Y(0), Y(1)) \mid X
+\]</span></p>
+<p>This is a strong, untestable assumption. You’re claiming there are no lurking unobserved confounders that simultaneously drive both who gets treated and what their outcomes would be. The entire paper is about what to do <em>given</em> this assumption holds.</p>
+<p>The estimands of interest are:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Estimand</th>
+<th>Definition</th>
+<th>Who It’s About</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>ATE</strong> (Average Treatment Effect)</td>
+<td><span class="math inline">\(\tau_{ATE} = E[Y(1) - Y(0)]\)</span></td>
+<td>The full population</td>
+</tr>
+<tr class="even">
+<td><strong>ATT</strong> (Average Treatment Effect on the Treated)</td>
+<td><span class="math inline">\(\tau_{ATT} = E[Y(1) - Y(0) \mid W=1]\)</span></td>
+<td>Only the treated</td>
+</tr>
+<tr class="odd">
+<td><strong>ATNT</strong> (Average Treatment Effect on the Non-Treated)</td>
+<td><span class="math inline">\(\tau_{ATNT} = E[Y(1) - Y(0) \mid W=0]\)</span></td>
+<td>Only the untreated</td>
+</tr>
+</tbody>
+</table>
+<p>The ATT is often the policy-relevant quantity: <em>for the people who actually went through the program, how much did it help them?</em></p>
+</section>
+<section id="the-lineage-where-this-fits" class="level2">
+<h2 class="anchored" data-anchor-id="the-lineage-where-this-fits">The Lineage: Where This Fits</h2>
+<p>The intellectual thread runs from Rubin’s potential outcomes framework (1974) through Rosenbaum and Rubin’s propensity score theorem (1983) to the modern semiparametric efficiency literature (Hahn 1998, Hirano, Imbens, Ridder 2003). This paper synthesizes that thread into a coherent practitioner’s guide.</p>
+<p>The key historical tension: Lalonde (1986) showed that standard non-experimental estimators (OLS, differencing) failed to replicate the results of a randomized job training experiment (the NSW). Dehejia and Wahba (1999) argued propensity score methods could recover the experimental benchmark. Smith and Todd (2005) pushed back, showing that results were sensitive to specification choices. Imbens and Wooldridge’s notes navigate this debate carefully, emphasizing that the <em>overlap condition</em> and covariate quality matter as much as the estimation method itself.</p>
+</section>
+<section id="the-methods-a-toolkit-tour" class="level2">
+<h2 class="anchored" data-anchor-id="the-methods-a-toolkit-tour">The Methods: A Toolkit Tour</h2>
+<section id="regression-adjustment" class="level3">
+<h3 class="anchored" data-anchor-id="regression-adjustment">1. Regression Adjustment</h3>
+<p>The simplest approach: fit a regression of outcomes on covariates separately for treated and control groups, then average the predicted treatment effects. The paper emphasizes that you should estimate separate models for <span class="math inline">\(E[Y|X, W=1]\)</span> and <span class="math inline">\(E[Y|X, W=0]\)</span> rather than a single pooled model with an additive treatment indicator — this allows full interaction between treatment status and covariates.</p>
+</section>
+<section id="the-propensity-score" class="level3">
+<h3 class="anchored" data-anchor-id="the-propensity-score">2. The Propensity Score</h3>
+<p>Rosenbaum and Rubin’s key insight: if unconfoundedness holds given <span class="math inline">\(X\)</span>, it also holds given <span class="math inline">\(e(X) = P(W=1|X)\)</span>. This collapses a high-dimensional conditioning problem into a single scalar.</p>
+<p>The paper warns against both extremes of the propensity score distribution. Observations with <span class="math inline">\(e(X)\)</span> near 0 or 1 signal a <em>lack of overlap</em> — there’s no comparable counterfactual in the other group. The recommended fix: trim the sample to the region where <span class="math inline">\(0.1 \leq \hat{e}(X) \leq 0.9\)</span>, or more conservatively, restrict to the support where both groups exist.</p>
+</section>
+<section id="subclassification-blocking" class="level3">
+<h3 class="anchored" data-anchor-id="subclassification-blocking">3. Subclassification (Blocking)</h3>
+<p>Partition observations into strata based on quantiles of <span class="math inline">\(\hat{e}(X)\)</span>. Within each stratum, treated and control units are roughly comparable. Estimate within-stratum treatment effects and take a weighted average. Cochran (1968) showed that as few as 5 subclasses remove over 90% of the bias from a single confounding covariate.</p>
+</section>
+<section id="matching" class="level3">
+<h3 class="anchored" data-anchor-id="matching">4. Matching</h3>
+<p>For each treated unit, find the closest control unit(s) based on the propensity score or covariate distance. The matched control set becomes the synthetic counterfactual. Key details:</p>
+<ul>
+<li><strong>With vs.&nbsp;without replacement</strong>: matching with replacement reduces bias (better matches) but increases variance (fewer unique controls).</li>
+<li><strong>Bias correction</strong>: Abadie and Imbens (2006) show that simple matching estimators have a conditional bias that doesn’t vanish at rate <span class="math inline">\(\sqrt{N}\)</span> if matching on more than one continuous covariate. Their fix: add a regression-based bias correction term.</li>
+<li><strong>Variance estimation</strong>: bootstrap is not valid for nearest-neighbor matching estimators (Abadie and Imbens, 2008). Use the Abadie-Imbens analytical variance estimator instead.</li>
+</ul>
+</section>
+<section id="inverse-probability-weighting-ipw" class="level3">
+<h3 class="anchored" data-anchor-id="inverse-probability-weighting-ipw">5. Inverse Probability Weighting (IPW)</h3>
+<p>Weight each observation by the inverse of the probability of receiving the treatment it actually received:</p>
+<p><span class="math display">\[
+\hat{\tau}_{IPW} = \frac{1}{N}\sum_{i=1}^{N}\left[\frac{W_i \cdot Y_i}{\hat{e}(X_i)} - \frac{(1-W_i)\cdot Y_i}{1-\hat{e}(X_i)}\right]
+\]</span></p>
+<p>This reweights the sample to create a pseudo-population where treatment is independent of covariates. The Horvitz-Thompson version uses population size in the denominator; the Hájek (normalized) version divides by the sum of weights instead, which is more stable in practice.</p>
+<p><strong>The danger</strong>: if <span class="math inline">\(\hat{e}(X)\)</span> is close to 0 or 1, individual weights explode, and a few observations dominate the estimate. Trimming or weight truncation is essential.</p>
+</section>
+<section id="doubly-robust-estimation" class="level3">
+<h3 class="anchored" data-anchor-id="doubly-robust-estimation">6. Doubly Robust Estimation</h3>
+<p>The paper’s most sophisticated recommendation: combine regression adjustment with IPW. The resulting estimator is consistent if <em>either</em> the propensity score model <em>or</em> the outcome regression model is correctly specified — you get two chances to be right. This is the approach developed by Robins, Rotnitzky, and others in the biostatistics literature and shown to achieve the semiparametric efficiency bound by Hirano, Imbens, and Ridder (2003).</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">flowchart TD
+    A["Observational Data&lt;br/&gt;(Treated + Control)"] --&gt; B["Estimate Propensity Score&lt;br/&gt;ê(X) = P(W=1|X)"]
+    B --&gt; C{"Check Overlap"}
+    C --&gt;|Poor overlap| D["Trim Sample&lt;br/&gt;0.1 ≤ ê(X) ≤ 0.9"]
+    C --&gt;|Good overlap| E["Proceed"]
+    D --&gt; E
+    E --&gt; F["Choose Estimation Strategy"]
+    F --&gt; G["Subclassification&lt;br/&gt;(Block on ê quantiles)"]
+    F --&gt; H["Matching&lt;br/&gt;(NN on ê or X)"]
+    F --&gt; I["IPW&lt;br/&gt;(Reweight by 1/ê)"]
+    F --&gt; J["Regression Adjustment&lt;br/&gt;(Separate µ₁, µ₀ models)"]
+    G --&gt; K["Doubly Robust&lt;br/&gt;(Combine IPW + Regression)"]
+    H --&gt; K
+    I --&gt; K
+    J --&gt; K
+    K --&gt; L["Estimate ATE / ATT&lt;br/&gt;with valid standard errors"]
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="the-lalonde-application-a-case-study-in-fragility" class="level2">
+<h2 class="anchored" data-anchor-id="the-lalonde-application-a-case-study-in-fragility">The Lalonde Application: A Case Study in Fragility</h2>
+<p>The running example uses data from the National Supported Work (NSW) program — a randomized job training experiment from the 1970s. The experimental benchmark shows the program raised earnings by roughly $1,800.</p>
+<p>The twist: Lalonde replaced the experimental control group with observational comparison groups (from the CPS and PSID) and showed that standard estimators gave wildly different answers — some even got the sign wrong. The Dehejia-Wahba subsample, which restricts to a more comparable comparison group, fares better with propensity score methods.</p>
+<p>The key lesson the paper drives home: the answer depends heavily on the quality of the comparison group, the overlap in covariate distributions, and how carefully you handle the propensity score extremes. No method is a magic bullet.</p>
+</section>
+<section id="key-results-comparison" class="level2">
+<h2 class="anchored" data-anchor-id="key-results-comparison">Key Results Comparison</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>Estimate (approx.)</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Experimental benchmark</td>
+<td>~$1,800</td>
+<td>Gold standard</td>
+</tr>
+<tr class="even">
+<td>OLS (CPS controls)</td>
+<td>Negative</td>
+<td>Wrong sign; bad overlap</td>
+</tr>
+<tr class="odd">
+<td>Propensity score matching (DW sample)</td>
+<td>~$1,500–$1,900</td>
+<td>Close to benchmark</td>
+</tr>
+<tr class="even">
+<td>IPW (trimmed)</td>
+<td>~$1,600–$2,000</td>
+<td>Sensitive to trimming</td>
+</tr>
+<tr class="odd">
+<td>Doubly robust</td>
+<td>~$1,700–$1,900</td>
+<td>Most stable</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="what-to-watch-out-for" class="level2">
+<h2 class="anchored" data-anchor-id="what-to-watch-out-for">What to Watch Out For</h2>
+<ol type="1">
+<li><p><strong>Overlap violations</strong>: If the propensity score piles up near 0 or 1, no method will save you. Always plot the propensity score distributions for treated and control groups.</p></li>
+<li><p><strong>The propensity score paradox</strong>: A “good” propensity score model (high predictive accuracy) can actually make your estimator worse by creating extreme weights. You want balance, not prediction.</p></li>
+<li><p><strong>Bootstrap failure for matching</strong>: Abadie and Imbens (2008) proved the bootstrap is inconsistent for nearest-neighbor matching estimators. Use their analytical variance formula.</p></li>
+<li><p><strong>Covariate selection matters</strong>: Imbens (2004) discusses how including variables that are correlated with the outcome but not treatment can improve precision, while including variables correlated with treatment but not the outcome can hurt it.</p></li>
+<li><p><strong>Pre-treatment variables only</strong>: Never condition on post-treatment variables. This can introduce collider bias and break the causal interpretation entirely.</p></li>
+</ol>
+</section>
+<section id="takeaways-for-practitioners" class="level2">
+<h2 class="anchored" data-anchor-id="takeaways-for-practitioners">Takeaways for Practitioners</h2>
+<p>The paper’s practical advice boils down to a workflow: (1) assess overlap using the propensity score, (2) trim the sample to the region of common support, (3) use a doubly robust estimator that combines weighting and regression, and (4) conduct sensitivity analysis for the unconfoundedness assumption. None of this guarantees a causal estimate — that depends on whether the untestable assumption actually holds — but it gives you the best shot with the tools available.</p>
+<hr>
+</section>
+<section id="reproduction-implementation" class="level2">
+<h2 class="anchored" data-anchor-id="reproduction-implementation">Reproduction &amp; Implementation</h2>
+<section id="environment-setup" class="level3">
+<h3 class="anchored" data-anchor-id="environment-setup">Environment Setup</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Core libraries</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>pip install numpy pandas scipy statsmodels scikit<span class="op">-</span>learn</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Causal inference packages</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>pip install econml          <span class="co"># Microsoft's causal ML library (&gt;=0.14)</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>pip install dowhy           <span class="co"># Microsoft's DoWhy for causal graphs (&gt;=0.9)</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>pip install causalinference <span class="co"># Lightweight propensity score package</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Versions used</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Python 3.10+</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co"># numpy &gt;= 1.24</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"># pandas &gt;= 2.0</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># statsmodels &gt;= 0.14</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># scikit-learn &gt;= 1.3</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="core-algorithm-doubly-robust-ate-estimator" class="level3">
+<h3 class="anchored" data-anchor-id="core-algorithm-doubly-robust-ate-estimator">Core Algorithm: Doubly Robust ATE Estimator</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression, LinearRegression</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> doubly_robust_ate(Y, W, X):</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">    Doubly robust estimator for the Average Treatment Effect.</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">    Y : array, shape (n,) — observed outcomes</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">    W : array, shape (n,) — treatment indicator (0 or 1)</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co">    X : array, shape (n, p) — pre-treatment covariates</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">    -------</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">    tau_hat : float — estimated ATE</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="bu">len</span>(Y)</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Step 1: Estimate propensity score</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    ps_model <span class="op">=</span> LogisticRegression(max_iter<span class="op">=</span><span class="dv">1000</span>)</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    ps_model.fit(X, W)</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    e_hat <span class="op">=</span> ps_model.predict_proba(X)[:, <span class="dv">1</span>]</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Step 2: Trim extreme propensity scores</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    mask <span class="op">=</span> (e_hat <span class="op">&gt;=</span> <span class="fl">0.1</span>) <span class="op">&amp;</span> (e_hat <span class="op">&lt;=</span> <span class="fl">0.9</span>)</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    Y, W, X, e_hat <span class="op">=</span> Y[mask], W[mask], X[mask], e_hat[mask]</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> mask.<span class="bu">sum</span>()</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Step 3: Estimate outcome regressions</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    mu1_model <span class="op">=</span> LinearRegression()</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>    mu1_model.fit(X[W <span class="op">==</span> <span class="dv">1</span>], Y[W <span class="op">==</span> <span class="dv">1</span>])</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    mu1_hat <span class="op">=</span> mu1_model.predict(X)</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>    mu0_model <span class="op">=</span> LinearRegression()</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>    mu0_model.fit(X[W <span class="op">==</span> <span class="dv">0</span>], Y[W <span class="op">==</span> <span class="dv">0</span>])</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>    mu0_hat <span class="op">=</span> mu0_model.predict(X)</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Step 4: Doubly robust estimator</span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   DR = regression adjustment + IPW correction</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>    dr_scores <span class="op">=</span> (</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>        (mu1_hat <span class="op">-</span> mu0_hat)</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> W <span class="op">*</span> (Y <span class="op">-</span> mu1_hat) <span class="op">/</span> e_hat</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>        <span class="op">-</span> (<span class="dv">1</span> <span class="op">-</span> W) <span class="op">*</span> (Y <span class="op">-</span> mu0_hat) <span class="op">/</span> (<span class="dv">1</span> <span class="op">-</span> e_hat)</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>    tau_hat <span class="op">=</span> np.mean(dr_scores)</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>    se_hat <span class="op">=</span> np.std(dr_scores) <span class="op">/</span> np.sqrt(n)</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> tau_hat, se_hat</span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Usage with Lalonde data ---</span></span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a><span class="co"># from causalinference import CausalModel</span></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a><span class="co"># import pandas as pd</span></span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a><span class="co"># df = pd.read_stata("nsw_dw.dta")  # Dehejia-Wahba sample</span></span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a><span class="co"># Y = df["re78"].values</span></span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a><span class="co"># W = df["treat"].values</span></span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a><span class="co"># X = df[["age","education","black","hispanic",</span></span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a><span class="co">#          "married","nodegree","re74","re75"]].values</span></span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a><span class="co"># ate, se = doubly_robust_ate(Y, W, X)</span></span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a><span class="co"># print(f"ATE: ${ate:,.0f} (SE: ${se:,.0f})")</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="propensity-score-diagnostics" class="level3">
+<h3 class="anchored" data-anchor-id="propensity-score-diagnostics">Propensity Score Diagnostics</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_propensity_overlap(e_hat, W):</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Histogram of propensity scores by treatment group."""</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">4</span>))</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    ax.hist(e_hat[W <span class="op">==</span> <span class="dv">1</span>], bins<span class="op">=</span><span class="dv">30</span>, alpha<span class="op">=</span><span class="fl">0.6</span>, label<span class="op">=</span><span class="st">"Treated"</span>, density<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    ax.hist(e_hat[W <span class="op">==</span> <span class="dv">0</span>], bins<span class="op">=</span><span class="dv">30</span>, alpha<span class="op">=</span><span class="fl">0.6</span>, label<span class="op">=</span><span class="st">"Control"</span>, density<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    ax.axvline(<span class="fl">0.1</span>, color<span class="op">=</span><span class="st">"red"</span>, linestyle<span class="op">=</span><span class="st">"--"</span>, label<span class="op">=</span><span class="st">"Trim threshold"</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    ax.axvline(<span class="fl">0.9</span>, color<span class="op">=</span><span class="st">"red"</span>, linestyle<span class="op">=</span><span class="st">"--"</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">"Estimated Propensity Score"</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(<span class="st">"Density"</span>)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    ax.legend()</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="st">"Overlap Diagnostic"</span>)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    plt.tight_layout()</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> fig</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="resource-links" class="level3">
+<h3 class="anchored" data-anchor-id="resource-links">Resource Links</h3>
+<section id="original-paper-data" class="level4">
+<h4 class="anchored" data-anchor-id="original-paper-data">Original Paper &amp; Data</h4>
+<ul>
+<li><a href="https://www.nber.org/papers/w14251">Imbens &amp; Wooldridge IRP Lecture Notes (2008)</a> — NBER Working Paper version of the broader survey</li>
+<li><a href="https://doi.org/10.2307/1806062">Lalonde (1986) original paper</a> — <em>American Economic Review</em></li>
+<li><a href="https://doi.org/10.1080/01621459.1999.10473858">Dehejia &amp; Wahba (1999)</a> — <em>JASA</em></li>
+</ul>
+</section>
+<section id="code-implementations" class="level4">
+<h4 class="anchored" data-anchor-id="code-implementations">Code Implementations</h4>
+<ul>
+<li><a href="https://github.com/py-why/EconML">EconML — Microsoft Research</a> — doubly robust learners, DML, and more</li>
+<li><a href="https://github.com/py-why/dowhy">DoWhy — Microsoft Research</a> — causal graph + estimation pipeline</li>
+<li><a href="https://github.com/laurencium/causalinference">causalinference (Python)</a> — lightweight propensity score matching and IPW</li>
+</ul>
+</section>
+<section id="related-notebooks-tutorials" class="level4">
+<h4 class="anchored" data-anchor-id="related-notebooks-tutorials">Related Notebooks &amp; Tutorials</h4>
+<ul>
+<li><a href="https://matheusfacure.github.io/python-causality-handbook/">Causal Inference for the Brave and True</a> — free online book with Python notebooks</li>
+<li><a href="https://www.kaggle.com/datasets">Lalonde dataset on Kaggle</a> — search “Lalonde NSW” for cleaned versions</li>
+<li><a href="https://mixtape.scunning.com/">Scott Cunningham’s Mixtape (Stata/R/Python)</a> — textbook covering these exact methods</li>
+</ul>
+
+
+</section>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<script src="https://utteranc.es/client.js" repo="seanlewis08/blogComments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+<script src="animations.js"></script>
+
+
+
+
+</body></html>

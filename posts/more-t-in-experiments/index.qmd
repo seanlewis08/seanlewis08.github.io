@@ -1,0 +1,287 @@
+---
+title: "Your RCT Has a Power Problem — And the Fix Is More Surveys, Not More People"
+date: "2026-02-16"
+categories: [Experimental Design, Causal Inference, Development Economics, Paper Review]
+description: "A deep dive into McKenzie's classic paper on why most experiments waste statistical power by collecting only one baseline and one follow-up. For noisy outcomes like profits and income, adding measurement rounds beats adding sample size."
+image: "more-t-thumbnail.svg"
+---
+
+## The Hook
+
+Here's a scenario that plays out constantly in applied research: you're designing a randomized experiment to measure the impact of a microcredit program on business profits. You do the textbook thing — collect a baseline survey, randomize treatment, wait a year, collect a follow-up survey. You run the analysis and get... a noisy estimate with a wide confidence interval and a p-value of 0.15.
+
+The experiment "failed" — not because the program didn't work, but because your design couldn't detect the effect. You spent two years and a quarter million dollars to learn nothing.
+
+David McKenzie's 2012 paper **"Beyond Baseline and Follow-up: The Case for More T in Experiments"** makes a devastatingly simple argument: **the standard single-baseline, single-follow-up design is often the worst way to spend your survey budget.** For the kind of noisy, low-autocorrelation outcomes that dominate development economics — business profits, household income, consumption expenditure — you can dramatically increase statistical power by collecting *more rounds of data* instead of surveying more people.
+
+The punchline: for outcomes with an autocorrelation of 0.25 (typical for monthly business profits in developing countries), running **four post-treatment survey rounds** gives you the same power as **doubling your sample size**. And it's usually much cheaper.
+
+## The Argument
+
+McKenzie's logic unfolds from one critical observation that the field had been ignoring.
+
+### The Autocorrelation Problem
+
+Standard power calculations assume you know two things: the effect size you want to detect and the variance of the outcome. For a difference-in-means estimator, you need $n \propto \sigma^2 / \delta^2$ observations per group, where $\sigma^2$ is the outcome variance and $\delta$ is the minimum detectable effect.
+
+Adding a baseline survey helps — you can use difference-in-differences (DiD) or ANCOVA to absorb individual-level variation, which reduces variance. But how *much* it helps depends entirely on the **autocorrelation** $\rho$ between baseline and follow-up measurements.
+
+Here's what most researchers don't internalize: for many economic outcomes, $\rho$ is **shockingly low**. McKenzie presents evidence from six developing-country datasets:
+
+| Outcome | Autocorrelation ($\rho$) |
+|---|---|
+| Monthly business profits | 0.16 – 0.39 |
+| Monthly business revenues | 0.24 – 0.52 |
+| Weekly earnings | 0.30 |
+| Monthly household expenditure | 0.30 – 0.58 |
+| Monthly household income | 0.24 – 0.42 |
+| Test scores | 0.60 – 0.80 |
+
+Business profits — one of the most common outcomes in microenterprise experiments — have autocorrelations as low as 0.16. This means a baseline measurement of profits explains only about 3% of the variance in follow-up profits. **Your expensive baseline survey is barely helping.**
+
+### ANCOVA Beats Diff-in-Diff
+
+Before getting to the "more T" argument, McKenzie establishes an important preliminary result: **ANCOVA is always at least as efficient as difference-in-differences**, and strictly more efficient when $\rho < 1$.
+
+The difference is subtle but important. DiD estimates $\hat{\tau} = (\bar{Y}_1^T - \bar{Y}_0^T) - (\bar{Y}_1^C - \bar{Y}_0^C)$ — it subtracts the full baseline mean. ANCOVA runs a regression of follow-up outcomes on treatment, controlling for baseline: $Y_{it} = \alpha + \tau W_i + \gamma Y_{i0} + \epsilon_{it}$.
+
+When $\rho < 1$, DiD over-corrects. It subtracts more baseline variation than is predictive of follow-up variation. ANCOVA lets the data determine the optimal weight on the baseline ($\hat{\gamma} \neq 1$), which is always better. For $\rho = 0.25$, ANCOVA is about **15-20% more efficient** than DiD.
+
+### The Core Insight: Multiple Measurements
+
+Now the main event. If baseline autocorrelation is low, what *should* you do with your survey budget? McKenzie compares three designs, all with the same total number of surveys:
+
+**Design A**: 1 baseline + 1 follow-up (the standard)
+
+**Design B**: 0 baselines + 2 follow-ups (skip the baseline entirely!)
+
+**Design C**: 1 baseline + multiple follow-ups
+
+For outcomes with $\rho = 0.25$, here's what happens to the minimum detectable effect size (MDE):
+
+| Design | Baseline Rounds | Follow-up Rounds | Relative MDE |
+|---|---|---|---|
+| Single post | 1 | 1 | 1.00 (reference) |
+| Single post, no baseline | 0 | 1 | 1.08 |
+| ANCOVA, 2 follow-ups | 1 | 2 | 0.83 |
+| ANCOVA, 4 follow-ups | 1 | 4 | 0.70 |
+| ANCOVA, 8 follow-ups | 1 | 8 | 0.59 |
+| No baseline, 4 follow-ups | 0 | 4 | 0.71 |
+
+The pattern: **each additional follow-up round gives diminishing but substantial power gains**. Going from 1 to 4 follow-ups reduces the MDE by 30% — equivalent to roughly doubling your sample.
+
+And the most surprising result: **for $\rho \leq 0.25$, dropping the baseline and using those resources for extra follow-ups is often *better* than the standard design.** The baseline is so weakly predictive that you're better off spending that survey round getting another post-treatment measurement.
+
+### When Does This Flip?
+
+The recommendation depends critically on $\rho$:
+
+```
+┌─────────────────────────────────────────────────┐
+│         DESIGN RECOMMENDATIONS BY ρ              │
+│                                                   │
+│  ρ < 0.2  (profits, volatile outcomes):          │
+│    → Skip baseline, maximize follow-up rounds    │
+│    → Each extra T has big payoffs                │
+│                                                   │
+│  0.2 < ρ < 0.5  (income, expenditure):           │
+│    → Keep 1 baseline, add follow-up rounds       │
+│    → ANCOVA with multiple T is optimal           │
+│                                                   │
+│  ρ > 0.5  (test scores, anthropometrics):        │
+│    → Baseline is valuable, standard design OK    │
+│    → Extra T helps less (gains diminish faster)  │
+│                                                   │
+│  Always: ANCOVA > Diff-in-Diff                   │
+└─────────────────────────────────────────────────┘
+```
+
+## The Lineage
+
+McKenzie's paper sits at the intersection of two literatures that had been talking past each other.
+
+**The experimental design tradition** (Cochran, Cox, Fisher) had long understood that repeated measurements improve precision. Agricultural experiments routinely used multiple harvest rounds. But this wisdom hadn't penetrated the social science RCT boom — where the baseline-follow-up dyad became an unquestioned default.
+
+**The development economics RCT revolution** (Banerjee, Duflo, Kremer — the "randomistas") dramatically expanded the use of field experiments in the 2000s. But the focus was on identification (is the estimate causal?) rather than precision (is the estimate precise enough?). Power calculations were often done mechanically, plugging in assumed effect sizes without thinking hard about the outcome's time-series properties.
+
+**The panel data literature** (Wooldridge, Arellano-Bond) had developed sophisticated methods for longitudinal data, but mostly in observational settings. The specific question of how to *optimally design* the panel structure of an experiment was underexplored.
+
+McKenzie connected these threads by showing that the time-series properties of the outcome — specifically the autocorrelation — should drive fundamental design choices. This was a rare paper that changed how researchers *plan* experiments, not just how they analyze them.
+
+### Seminal vs. Transducer
+
+The **seminal** contribution is the framework itself: the insight that autocorrelation determines the relative value of baselines vs. follow-ups, and the specific recommendation to use ANCOVA with multiple post-treatment rounds. This remains the standard reference for experimental design in development economics.
+
+The **transducer** elements are the specific simulation parameters and some of the dataset-specific autocorrelation estimates, which have since been superseded by larger compilations. The constant-autocorrelation assumption was later relaxed by Burlig, Preonas & Woerman (2020), who showed that *declining* autocorrelation over time changes the optimal design in important ways.
+
+## The Deep Dive
+
+### The Power Formula
+
+The key equation driving everything is the variance of the ANCOVA treatment effect estimator with $m$ post-treatment periods and 1 baseline:
+
+$$\text{Var}(\hat{\tau}) = \frac{2}{n} \left[ \frac{(1 + (m-1)\rho)\sigma^2(1-\rho^2)}{m} \right]$$
+
+where $n$ is the sample size per arm, $m$ is the number of follow-up rounds, $\rho$ is the autocorrelation, and $\sigma^2$ is the outcome variance.
+
+The term $(1 + (m-1)\rho)/m$ is the magic: as $m$ increases, this ratio shrinks. When $\rho$ is small, it shrinks faster — each new measurement adds nearly independent information. When $\rho$ is large, gains diminish quickly because measurements are highly correlated.
+
+### Real-World Impact
+
+McKenzie illustrates with Sri Lankan microenterprise data (de Mel, McKenzie & Woodruff, 2008). With quarterly profit data ($\rho \approx 0.30$) and 8 follow-up rounds instead of 1, the researchers could detect effects about **40% smaller** than a single-round design — or equivalently, achieve the same power with about **40% fewer firms**.
+
+For a typical microenterprise experiment costing $500 per firm surveyed, switching from a 1-follow-up design with 800 firms to a 4-follow-up design with 500 firms saves roughly $25,000 in survey costs *while improving power*. The "more T" design is both cheaper and better.
+
+## So What?
+
+McKenzie's paper should be mandatory reading before designing any experiment where the primary outcome is noisy and measured repeatedly. The concrete takeaways:
+
+First, **know your outcome's autocorrelation** before choosing a design. Don't assume it's high. For business profits, income, and many economic outcomes, it's surprisingly low — and that changes everything.
+
+Second, **use ANCOVA, not difference-in-differences.** There is no setting where DiD beats ANCOVA, and for low-$\rho$ outcomes the efficiency gap is substantial.
+
+Third, **consider trading sample size for measurement rounds.** The marginal value of an extra survey round often exceeds the marginal value of an extra participant — especially when per-survey costs are low relative to per-participant costs (phone surveys, administrative data, high-frequency digital data).
+
+Fourth, **don't treat the baseline as sacred.** For $\rho < 0.2$, the baseline is so weakly predictive that you may be better off reallocating those resources to additional follow-ups.
+
+This paper shifted how an entire field designs experiments. Fourteen years later, "how many T?" is now a standard question in every pre-analysis plan.
+
+---
+
+*Paper: ["Beyond Baseline and Follow-up: The Case for More T in Experiments"](https://doi.org/10.1016/j.jdeveco.2012.01.002) by David McKenzie. Journal of Development Economics, Vol. 99, No. 2, November 2012, pp. 210-221.*
+
+---
+
+## Reproduction & Implementation
+
+### Environment Setup
+
+```python
+# Core dependencies
+pip install numpy>=1.24.0
+pip install scipy>=1.11.0          # Power calculations, distributions
+pip install statsmodels>=0.14.0    # ANCOVA, OLS, robust SEs
+pip install pandas>=2.0.0
+pip install matplotlib>=3.7.0      # Power curve visualization
+```
+
+### Pseudo-Code: Power Calculations for Panel Experiments
+
+```python
+import numpy as np
+from scipy import stats
+
+def mde_single_post(n_per_arm, sigma, alpha=0.05, power=0.80):
+    """
+    Minimum Detectable Effect with single post-treatment round.
+    Standard textbook formula.
+    """
+    z_alpha = stats.norm.ppf(1 - alpha / 2)
+    z_beta = stats.norm.ppf(power)
+    mde = (z_alpha + z_beta) * sigma * np.sqrt(2 / n_per_arm)
+    return mde
+
+
+def mde_ancova(n_per_arm, sigma, rho, m_post, alpha=0.05, power=0.80):
+    """
+    MDE with ANCOVA estimator, 1 baseline, m_post follow-up rounds.
+
+    Key formula from McKenzie (2012):
+      Var(tau_hat) = (2/n) * [(1 + (m-1)*rho) * sigma^2 * (1-rho^2)] / m
+
+    Parameters:
+        n_per_arm: sample size per treatment arm
+        sigma:     outcome standard deviation
+        rho:       autocorrelation between any two periods
+        m_post:    number of post-treatment measurement rounds
+    """
+    z_alpha = stats.norm.ppf(1 - alpha / 2)
+    z_beta = stats.norm.ppf(power)
+
+    # Variance of the ANCOVA treatment effect estimator
+    var_tau = (2 / n_per_arm) * (
+        (1 + (m_post - 1) * rho) * sigma**2 * (1 - rho**2)
+    ) / m_post
+
+    mde = (z_alpha + z_beta) * np.sqrt(var_tau)
+    return mde
+
+
+def mde_no_baseline(n_per_arm, sigma, rho, m_post, alpha=0.05, power=0.80):
+    """
+    MDE with NO baseline, m_post follow-up rounds averaged.
+    For low-rho outcomes, this can beat the 1-baseline design.
+    """
+    z_alpha = stats.norm.ppf(1 - alpha / 2)
+    z_beta = stats.norm.ppf(power)
+
+    # Variance when averaging m_post rounds, no baseline control
+    var_tau = (2 / n_per_arm) * sigma**2 * (
+        (1 + (m_post - 1) * rho) / m_post
+    )
+
+    mde = (z_alpha + z_beta) * np.sqrt(var_tau)
+    return mde
+
+
+def compare_designs(n=200, sigma=1.0, rho=0.25):
+    """
+    Reproduce McKenzie's core comparison table.
+    Shows MDE for different designs at fixed sample size.
+    """
+    print(f"n per arm = {n}, sigma = {sigma}, rho = {rho}")
+    print(f"{'Design':<35} {'MDE':>8} {'Relative':>10}")
+    print("-" * 55)
+
+    base_mde = mde_single_post(n, sigma)
+    print(f"{'Single post, no baseline':<35} {base_mde:>8.3f} {1.00:>10.2f}")
+
+    for m in [1, 2, 4, 8]:
+        mde = mde_ancova(n, sigma, rho, m)
+        print(f"{'ANCOVA, 1 base + ' + str(m) + ' follow-up':<35} "
+              f"{mde:>8.3f} {mde/base_mde:>10.2f}")
+
+    for m in [2, 4, 8]:
+        mde = mde_no_baseline(n, sigma, rho, m)
+        print(f"{'No baseline + ' + str(m) + ' follow-ups':<35} "
+              f"{mde:>8.3f} {mde/base_mde:>10.2f}")
+
+
+# ---- ANCOVA ESTIMATOR ----
+
+def ancova_estimate(Y_post, Y_baseline, treatment):
+    """
+    ANCOVA: regress post-treatment outcome on treatment,
+    controlling for baseline.
+    Always >= as efficient as Diff-in-Diff when rho < 1.
+    """
+    import statsmodels.api as sm
+    X = np.column_stack([treatment, Y_baseline, np.ones(len(treatment))])
+    model = sm.OLS(Y_post, X).fit(cov_type='HC2')
+    tau_hat = model.params[0]
+    se = model.bse[0]
+    return tau_hat, se
+
+# Run comparison
+compare_designs(n=200, sigma=1.0, rho=0.25)
+```
+
+### Resource Links
+
+#### Official Repository
+
+No official code repository; power formulas are implemented directly from the paper's equations.
+
+#### Community Implementations
+
+- **Optimal Design** (R package for experimental power): [CRAN: optimalDesign](https://cran.r-project.org/package=optimalDesign)
+- **pwr** (R package for power calculations): [CRAN: pwr](https://cran.r-project.org/package=pwr)
+- **statsmodels** (ANCOVA in Python): [github.com/statsmodels/statsmodels](https://github.com/statsmodels/statsmodels)
+- **pcpanel** (Stata, extends McKenzie — see Burlig et al.): Available via `ssc install pcpanel`
+
+#### Further Reading
+
+- [Burlig, Preonas & Woerman (2020)](https://doi.org/10.1016/j.jdeveco.2020.102458) — Extends McKenzie to arbitrary serial correlation
+- [Frison & Pocock (1992)](https://doi.org/10.1002/sim.4780111304) — Original ANCOVA vs. DiD comparison in clinical trials
+- [Athey & Imbens (2017)](https://doi.org/10.3386/w23191) — The econometrics of randomized experiments
+- [Duflo, Glennerster & Kremer (2007)](https://doi.org/10.1016/S1573-4471(07)04061-2) — Handbook chapter on field experiments in development

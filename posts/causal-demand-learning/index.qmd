@@ -1,0 +1,392 @@
+---
+title: "Your Pricing Model Is Learning the Manager, Not the Market — How to Fix Multi-Task Demand Estimation"
+date: "2026-02-14"
+categories: [Causal Inference, Pricing, Meta-Learning, Econometrics, Paper Review]
+description: "A deep dive into DCMOML — a new framework that fixes the hidden confounding problem in multi-task demand learning. When historical prices reflect human decisions, standard meta-learners learn the policy, not the demand curve."
+image: "causal-demand-thumbnail.svg"
+---
+
+## The Hook
+
+Imagine you're a data scientist at a retail chain with 10,000 products across 500 stores. You want to estimate how price affects demand for each product-store combination. The problem: each combination has maybe 3-5 historical price points. Way too few to estimate anything individually.
+
+The obvious solution is **multi-task learning** — pool information across similar product-store pairs, learn shared structure, and let the model borrow strength where individual data is thin. This is textbook. Everyone does it.
+
+Here's the catch that almost nobody talks about: **the prices in your historical data aren't random.** They were set by category managers, pricing algorithms, or markdown rules that *responded to information you can't observe* — supplier negotiations, competitive intelligence, inventory pressure, gut feel. Those unobserved factors also affect demand. Which means your prices are **endogenous** — correlated with the error term in your demand equation.
+
+And here's the punchline: when you pool endogenous data across tasks in a meta-learner, the bias doesn't wash out. **It compounds.** Your model learns the *policy that generated the prices*, not the *causal relationship between price and demand*. The more data you add, the more confidently wrong you get.
+
+A new paper by Varun Gupta (University of Utah) and Vijay Kamble (University of Illinois Chicago), **"Causal Identification in Multi-Task Demand Learning with Confounding"**, cracks this problem open. They prove exactly *why* standard approaches fail, and propose a deceptively simple fix called **DCMOML** — Decision-Conditioned Masked-Outcome Meta-Learning — that achieves causal identification without instruments, without randomized experiments, and without knowing the confounding structure.
+
+## The Argument
+
+### Why Standard Approaches Fail
+
+To understand the contribution, you need to see the trap clearly.
+
+In a standard linear demand model, demand for task $i$ at price $p$ is:
+
+$$D_i(p) = \alpha_i + \theta_i \cdot p + \epsilon$$
+
+where $\theta_i$ is the **causal price elasticity** you want to learn, $\alpha_i$ is a task-specific intercept, and $\epsilon$ is noise. The parameters $(\alpha_i, \theta_i)$ vary across tasks but are drawn from some shared distribution conditioned on observable covariates $X_i$.
+
+The problem is that the manager setting the price *knows something about* $\alpha_i$ (and maybe $\theta_i$) that you don't observe. If a store has high baseline demand (high $\alpha_i$), the manager might set a higher price. This creates a spurious positive correlation between price and demand *through the manager's decision*, masking the true negative causal effect of price on demand.
+
+**Pooled regression** (throwing all data into one big regression) treats this confounding as if it were signal. It learns a biased average elasticity.
+
+**Standard meta-learning** (e.g., MAML, neural processes, or even simple mixed-effects models) is subtler but equally doomed. The meta-learner sees that tasks with higher prices tend to have higher demand (because managers price high when they know demand is high). It learns to *predict* demand by implicitly reconstructing the manager's information — which is exactly the confounding you needed to remove.
+
+The authors call this **confounding by latent fundamentals** and prove that under this setting, both pooled regression and meta-learners converge to the wrong answer, even with infinite data.
+
+### The Fix: DCMOML
+
+The key insight behind DCMOML is a two-part trick:
+
+**Part 1 — Condition on the full price history.** If you show the model *all* the prices that were set for a given task, you're effectively revealing the manager's information set. Conditioning on the price sequence absorbs the confounding — similar in spirit to how controlling for a confounder in regression removes bias.
+
+**Part 2 — But mask the demand outcomes at critical points.** Here's the problem with Part 1 alone: if the model sees both the prices *and* the demands at those prices, it can trivially predict the demand at the query price by just looking it up. It doesn't need to learn the causal relationship at all — it can memorize.
+
+So DCMOML picks **two** candidate query price points, reveals their prices to the model but **hides their demand outcomes**, and then randomly designates one as the actual query. Because the model can't distinguish which masked point is the query, it's forced to learn a function that generalizes — and the authors prove this function converges to the **causal conditional mean** $E[\theta_i | X_i]$.
+
+This is elegant because it requires no instrumental variables, no randomized experiments, and no structural assumptions about the confounding mechanism. The only assumption (Assumption 1 in the paper) is that the *final* price in each task's history doesn't causally depend on the demand observed at the *penultimate* distinct price point. This is satisfied whenever prices are set non-adaptively (common in retail markdown schedules) or when the firm uses a simple two-point experimentation scheme.
+
+## The Lineage
+
+This paper sits at the intersection of three research threads that have been running in parallel:
+
+**Causal inference in pricing / demand estimation** — The endogeneity problem in demand estimation is ancient (it goes back to the simultaneous equations problem in econometrics from the 1940s-50s). The classical fix is instrumental variables (IV): find something that shifts prices but doesn't directly affect demand. But good instruments are hard to find in practice, especially at the granular product-store level. Recent work has explored panel data methods, shift-share instruments, and synthetic control, but all require structural assumptions that may not hold.
+
+**Meta-learning and multi-task learning** — The machine learning community has built increasingly sophisticated methods for borrowing strength across related tasks: MAML, neural processes, multi-output GPs, hypernetworks. But almost all of this literature assumes the training data within each task is generated by the same process the model will face at test time — i.e., no distribution shift from endogenous data collection. The authors show this assumption is silently violated in pricing contexts.
+
+**Online learning and dynamic pricing** — There's a rich operations research literature on pricing algorithms that learn demand curves while simultaneously setting prices (explore/exploit). These algorithms handle endogeneity by *controlling* the price-setting process. But DCMOML solves a different problem: learning from *historical* data where someone else set the prices, and you have no ability to run new experiments.
+
+The tension the paper resolves: the ML community has the multi-task learning tools but ignores endogeneity. The econometrics community understands endogeneity but doesn't leverage multi-task structure. DCMOML bridges the gap.
+
+## The Deep Dive
+
+### The Architecture
+
+Here's the DCMOML process flow:
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                  TRAINING: Task i                         │
+│                                                          │
+│  Historical data: {(p₁, d₁), (p₂, d₂), ..., (pₜ, dₜ)} │
+│  Covariates: Xᵢ                                         │
+└────────────────────────┬─────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────┐
+│          STEP 1: Select Two Candidate Query Points       │
+│                                                          │
+│  Pick two distinct price points from the history:        │
+│    pⱼ and pₖ  (the last two distinct prices)            │
+│                                                          │
+│  Randomly assign one as the QUERY, one as the DECOY     │
+└────────────────────────┬─────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────┐
+│       STEP 2: Build the Context Set (What Model Sees)    │
+│                                                          │
+│  ✅ Covariates Xᵢ                                       │
+│  ✅ Full price sequence: (p₁, p₂, ..., pₜ)             │
+│  ✅ Demand at NON-masked prices: (d₁, ..., dₜ₋₂)       │
+│  ✅ Prices at masked points: pⱼ, pₖ (revealed)         │
+│  ❌ Demands at masked points: dⱼ, dₖ (HIDDEN)          │
+│                                                          │
+│  Query input: one of {pⱼ, pₖ} chosen at random         │
+└────────────────────────┬─────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────┐
+│         STEP 3: Meta-Learner Predicts Demand             │
+│                                                          │
+│  Model must predict d(query_price) using:                │
+│   - The context set above                                │
+│   - It CANNOT distinguish query from decoy               │
+│   - Forced to learn generalizable price → demand map     │
+│                                                          │
+│  Loss = MSE( predicted_demand, true_demand )             │
+└────────────────────────┬─────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────┐
+│              RESULT: Causal Identification                │
+│                                                          │
+│  Theorem 1: Optimal predictor converges to               │
+│    E[Θᵢ | Xᵢ] · p + E[αᵢ | Xᵢ]                        │
+│                                                          │
+│  → The TRUE causal conditional mean, not the             │
+│    policy-confounded estimate                            │
+└──────────────────────────────────────────────────────────┘
+```
+
+The critical subtlety: **masking two points and randomizing the query** is what makes this work. If you only masked one point, the model would know exactly which price is the query and could exploit the correlation between that price and the latent demand fundamentals. With two masked points and random assignment, the model faces genuine uncertainty — and the only way to minimize loss under that uncertainty is to learn the causal relationship.
+
+### The Results
+
+#### Synthetic Experiments
+
+The authors test under controlled confounding with known ground-truth elasticities. They vary the **confounding strength** $\gamma$ from 0 (no confounding) to 4 (severe confounding):
+
+| Method | $\gamma = 0$ | $\gamma = 1$ | $\gamma = 2$ | $\gamma = 4$ |
+|---|---|---|---|---|
+| **DCMOML** | ~0.03 | ~0.08 | ~0.10 | ~0.14 |
+| Pooled OLS | ~0.03 | ~0.45 | ~0.82 | ~1.55 |
+| Standard Meta-Learner | ~0.04 | ~0.38 | ~0.70 | ~1.35 |
+| Meta-Learner (price-only context) | ~0.04 | ~0.15 | ~0.22 | ~0.45 |
+| IV (2SLS) | ~0.10 | ~0.10 | ~0.10 | ~0.10 |
+
+*(Values are approximate RMSE on causal parameter recovery from the paper's Figure 2)*
+
+The pattern is stark: as confounding increases, every standard method's error explodes. DCMOML stays flat and low — comparable to IV estimation but **without requiring an instrument**. The standard meta-learner is actually *worse* than doing nothing clever (pooled OLS) at high confounding levels, because it more efficiently learns the wrong thing.
+
+#### Real Data: UK Online Retail
+
+On real transaction data from a UK online retailer (4,000+ products):
+
+| Method | Static-Top3 RMSE | Exposure-Sequence RMSE |
+|---|---|---|
+| **DCMOML** | **0.534** | **0.609** |
+| Standard Meta-Learner | 0.541 | 0.625 |
+| Pooled OLS | 0.582 | 0.653 |
+| MAML | 0.559 | 0.637 |
+
+DCMOML achieves the lowest holdout RMSE on both evaluation protocols. The gains are modest in absolute terms (as expected with real data where confounding strength is unknown), but consistently in the right direction.
+
+### Rubber-Ducking the Jargon
+
+A few terms that might trip up readers outside econometrics:
+
+**Endogeneity** — When your independent variable (price) is correlated with the error term (unobserved demand factors). In plain English: the thing you're trying to study is tangled up with stuff you can't see, and that tangle biases your estimates.
+
+**Confounding by latent fundamentals** — The specific flavor of endogeneity in this paper. The "fundamentals" are task-level parameters $(\alpha_i, \theta_i)$ that drive both demand *and* the manager's pricing decisions. "Latent" means you don't observe them directly. The manager acts on private information about these fundamentals, creating a spurious association in the data.
+
+**Instrumental variable (IV)** — The classical econometric fix. Find a variable that affects price but has no direct effect on demand (a "valid instrument"). Classic examples: shipping costs, input costs, weather disruptions to supply. The problem: at the product-store level, good instruments are rare. DCMOML sidesteps the need for instruments entirely.
+
+**Causal identification** — Proving that your estimation strategy recovers the *true causal effect*, not a confounded correlation. DCMOML achieves identification through its masking and randomization scheme, not through instruments or structural assumptions.
+
+**Meta-learning** — Learning to learn. In this context: training a model on many tasks (product-store pairs) so it can quickly adapt to a new task with minimal data. The paper uses neural network-based meta-learners (specifically, architectures resembling conditional neural processes).
+
+## So What?
+
+This paper matters for anyone doing pricing analytics at scale. The dirty secret of most enterprise pricing models is that they're trained on endogenous historical data and nobody checks whether the estimated elasticities are causal or confounded. Teams report elasticities, build optimization models on top of them, and make pricing decisions — all potentially based on estimates that reflect the *old policy*, not the *market*.
+
+DCMOML offers a practical fix that doesn't require running expensive randomized pricing experiments or hunting for instrumental variables. You just need the historical price-demand data you already have, plus a meta-learning architecture with a specific masking scheme.
+
+The assumption cost is low: the last price in each task's history can't depend on demand observed at the second-to-last distinct price. For most retail settings with scheduled markdowns or periodic price reviews, this holds naturally.
+
+If you're building demand estimation systems and you've been hand-waving away endogeneity, this paper is the wake-up call — and the solution — in one package.
+
+---
+
+*Paper: ["Causal Identification in Multi-Task Demand Learning with Confounding"](https://arxiv.org/abs/2602.09969) by Varun Gupta and Vijay Kamble. arXiv:2602.09969, February 2026.*
+
+---
+
+## Reproduction & Implementation
+
+### Environment Setup
+
+```python
+# Core dependencies
+pip install torch>=2.0.0          # Neural network meta-learner
+pip install numpy>=1.24.0
+pip install pandas>=2.0.0
+pip install scikit-learn>=1.3.0
+pip install matplotlib>=3.7.0
+pip install statsmodels>=0.14.0   # For IV/2SLS baselines
+pip install linearmodels>=5.0     # Panel IV estimation
+
+# Optional: for real-data experiments
+pip install openpyxl              # Reading UK Online Retail Excel data
+```
+
+### Pseudo-Code: DCMOML Training Loop
+
+```python
+import torch
+import torch.nn as nn
+import numpy as np
+
+class MetaLearner(nn.Module):
+    """
+    A conditional neural process-style meta-learner.
+    Takes a context set and a query price, predicts query demand.
+    """
+    def __init__(self, covariate_dim, hidden_dim=128):
+        super().__init__()
+        # Encoder: processes each context point (price, demand) pair
+        # plus covariates into a fixed-dim representation
+        self.context_encoder = nn.Sequential(
+            nn.Linear(covariate_dim + 2, hidden_dim),  # +2 for (price, demand)
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim)
+        )
+        # Price-only encoder for masked points (price visible, demand hidden)
+        self.price_encoder = nn.Sequential(
+            nn.Linear(covariate_dim + 1, hidden_dim),  # +1 for price only
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim)
+        )
+        # Decoder: context representation + query price → predicted demand
+        self.decoder = nn.Sequential(
+            nn.Linear(hidden_dim + 1, hidden_dim),     # +1 for query price
+            nn.ReLU(),
+            nn.Linear(hidden_dim, 1)
+        )
+
+    def forward(self, X_i, context_prices, context_demands,
+                masked_prices, query_price):
+        """
+        X_i:              (batch, covariate_dim) task covariates
+        context_prices:   (batch, n_context) prices with observed demands
+        context_demands:  (batch, n_context) corresponding demands
+        masked_prices:    (batch, 2) the two masked price points
+        query_price:      (batch, 1) which masked point is the query
+        """
+        # Encode observed context points
+        ctx = torch.cat([
+            X_i.unsqueeze(1).expand(-1, context_prices.size(1), -1),
+            context_prices.unsqueeze(-1),
+            context_demands.unsqueeze(-1)
+        ], dim=-1)
+        ctx_repr = self.context_encoder(ctx).mean(dim=1)  # aggregate
+
+        # Encode masked price points (NO demand info)
+        masked = torch.cat([
+            X_i.unsqueeze(1).expand(-1, 2, -1),
+            masked_prices.unsqueeze(-1)
+        ], dim=-1)
+        masked_repr = self.price_encoder(masked).mean(dim=1)
+
+        # Combine representations
+        combined = ctx_repr + masked_repr  # or concat
+
+        # Decode: predict demand at query price
+        decoder_input = torch.cat([combined, query_price], dim=-1)
+        return self.decoder(decoder_input).squeeze(-1)
+
+
+def dcmoml_train_step(model, optimizer, task_batch):
+    """
+    One training step of DCMOML.
+
+    task_batch: list of tasks, each with:
+      - X_i: covariates
+      - prices: full price sequence [p1, ..., pT]
+      - demands: full demand sequence [d1, ..., dT]
+    """
+    model.train()
+    total_loss = 0
+
+    for task in task_batch:
+        X_i = task['covariates']
+        prices = task['prices']     # shape (T,)
+        demands = task['demands']   # shape (T,)
+
+        # ---- DCMOML MASKING SCHEME ----
+
+        # Find last two DISTINCT price points
+        distinct_prices = []
+        seen = set()
+        for p, d in reversed(list(zip(prices, demands))):
+            if p.item() not in seen:
+                distinct_prices.append((p, d))
+                seen.add(p.item())
+            if len(distinct_prices) == 2:
+                break
+
+        if len(distinct_prices) < 2:
+            continue  # Need at least 2 distinct prices
+
+        (p_j, d_j), (p_k, d_k) = distinct_prices
+
+        # Context = everything EXCEPT the two masked points' demands
+        mask = ~((prices == p_j) | (prices == p_k))
+        context_prices = prices[mask]
+        context_demands = demands[mask]
+
+        # Masked prices (revealed) but demands (hidden)
+        masked_prices = torch.stack([p_j, p_k])
+
+        # RANDOMLY assign query vs decoy
+        if np.random.rand() > 0.5:
+            query_price = p_j.unsqueeze(0)
+            query_demand = d_j
+        else:
+            query_price = p_k.unsqueeze(0)
+            query_demand = d_k
+
+        # Forward pass
+        pred = model(
+            X_i.unsqueeze(0),
+            context_prices.unsqueeze(0),
+            context_demands.unsqueeze(0),
+            masked_prices.unsqueeze(0),
+            query_price.unsqueeze(0)
+        )
+
+        loss = (pred - query_demand) ** 2
+        total_loss += loss
+
+    optimizer.zero_grad()
+    total_loss.backward()
+    optimizer.step()
+
+    return total_loss.item()
+```
+
+### Core Identification Logic (Theorem 1 Intuition)
+
+```python
+# WHY masking + randomization = causal identification:
+#
+# Without masking:
+#   Model sees (p_query, d_query) in context → trivially memorizes
+#   Learns: f(context, p) = lookup(p in context)
+#   Result: BIASED (reflects policy, not causal effect)
+#
+# With masking but NO randomization:
+#   Model knows which masked point is query
+#   Can exploit: E[d | p_query, manager_chose_p_query] ≠ E[d | p] (causal)
+#   Result: STILL BIASED (information leakage about which point is query)
+#
+# With masking AND randomization (DCMOML):
+#   Model sees two masked prices {p_j, p_k}, doesn't know which is query
+#   Optimal strategy: predict E[d | X_i, all_prices, p_query]
+#   Because query is random: this equals the CAUSAL conditional mean
+#   Result: IDENTIFIED ✓
+#
+# The full price history conditions out the latent fundamentals,
+# and the randomization prevents the model from exploiting residual
+# information about which point is actually being queried.
+```
+
+### Resource Links
+
+#### Official Repository
+
+No official code repository has been released as of February 2026.
+
+#### Related Implementations & Baselines
+
+- **Conditional Neural Processes** (meta-learning backbone): [github.com/deepmind/neural-processes](https://github.com/deepmind/neural-processes)
+- **MAML** (baseline meta-learner): [github.com/cbfinn/maml](https://github.com/cbfinn/maml)
+- **linearmodels** (IV/2SLS estimation): [github.com/bashtage/linearmodels](https://github.com/bashtage/linearmodels)
+- **EconML** (causal ML library by Microsoft): [github.com/py-why/EconML](https://github.com/py-why/EconML)
+- **DoWhy** (causal inference framework): [github.com/py-why/dowhy](https://github.com/py-why/dowhy)
+
+#### Datasets
+
+- **UK Online Retail Dataset** (used in paper): [UCI ML Repository](https://archive.ics.uci.edu/dataset/352/online+retail)
+
+#### Further Reading
+
+- [Causal Inference: The Mixtape](https://mixtape.scunning.com/) — Scott Cunningham's accessible intro to causal inference and IV estimation
+- [Meta-Learning: A Survey](https://arxiv.org/abs/1810.03548) — Hospedales et al., comprehensive meta-learning overview
+- [Double/Debiased Machine Learning](https://arxiv.org/abs/1608.00060) — Chernozhukov et al., the DML framework for causal ML
+- [Dynamic Pricing and Learning](https://arxiv.org/abs/1902.07832) — den Boer, survey of online pricing algorithms
+- [Neural Processes](https://arxiv.org/abs/1807.01622) — Garnelo et al., the architecture family DCMOML builds on

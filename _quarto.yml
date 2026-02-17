@@ -19,7 +19,7 @@ website:
 format:
   html:
     theme:
-      - darkly
+      - cosmo
     css: styles.css
     include-after-body:
       text: |

@@ -1,0 +1,268 @@
+---
+title: "Estimating Average Treatment Effects Under Unconfoundedness"
+date: "2026-02-18"
+categories: [Causal Inference, Econometrics, Program Evaluation, Propensity Score]
+description: "Breaking down Imbens & Wooldridge's influential lecture notes on matching, weighting, and subclassification methods for estimating treatment effects when selection is on observables."
+image: ate-thumbnail.svg
+---
+
+## The Gist
+
+You ran a job training program. Some people enrolled, some didn't. Earnings data roll in. The question sounds simple: *did the program work?* The statistical answer is anything but. The fundamental problem of causal inference is that you never observe the same person in both states — treated and untreated — at the same time. Imbens and Wooldridge's 2008 lecture notes, part of their IRP series at the University of Wisconsin, lay out the modern toolkit for answering this question when you can't run a perfect experiment but believe you've measured enough about people to make the comparison fair.
+
+## Why It Matters Now
+
+These lecture notes have become a de facto reference for applied economists and data scientists working with observational data. The methods covered here — propensity score matching, inverse probability weighting, subclassification, and regression adjustment — form the backbone of causal inference pipelines at tech companies, in public policy evaluation, and across the social sciences. If you've ever needed to estimate the causal effect of a treatment when randomization isn't possible (or when an experiment was compromised by non-compliance), this is the playbook.
+
+The paper is also historically important because it uses the Lalonde (1986) and Dehejia-Wahba (1999) datasets as running examples — the same datasets that launched decades of debate about whether non-experimental methods can replicate experimental benchmarks.
+
+## The Setup: What Is Unconfoundedness?
+
+The core assumption is sometimes called "selection on observables," "conditional independence," or "ignorability." In plain language: once you condition on a rich enough set of pre-treatment covariates $X$, treatment assignment $W$ is as good as random.
+
+$$
+W \perp\!\!\!\perp (Y(0), Y(1)) \mid X
+$$
+
+This is a strong, untestable assumption. You're claiming there are no lurking unobserved confounders that simultaneously drive both who gets treated and what their outcomes would be. The entire paper is about what to do *given* this assumption holds.
+
+The estimands of interest are:
+
+| Estimand | Definition | Who It's About |
+|---|---|---|
+| **ATE** (Average Treatment Effect) | $\tau_{ATE} = E[Y(1) - Y(0)]$ | The full population |
+| **ATT** (Average Treatment Effect on the Treated) | $\tau_{ATT} = E[Y(1) - Y(0) \mid W=1]$ | Only the treated |
+| **ATNT** (Average Treatment Effect on the Non-Treated) | $\tau_{ATNT} = E[Y(1) - Y(0) \mid W=0]$ | Only the untreated |
+
+The ATT is often the policy-relevant quantity: *for the people who actually went through the program, how much did it help them?*
+
+## The Lineage: Where This Fits
+
+The intellectual thread runs from Rubin's potential outcomes framework (1974) through Rosenbaum and Rubin's propensity score theorem (1983) to the modern semiparametric efficiency literature (Hahn 1998, Hirano, Imbens, Ridder 2003). This paper synthesizes that thread into a coherent practitioner's guide.
+
+The key historical tension: Lalonde (1986) showed that standard non-experimental estimators (OLS, differencing) failed to replicate the results of a randomized job training experiment (the NSW). Dehejia and Wahba (1999) argued propensity score methods could recover the experimental benchmark. Smith and Todd (2005) pushed back, showing that results were sensitive to specification choices. Imbens and Wooldridge's notes navigate this debate carefully, emphasizing that the *overlap condition* and covariate quality matter as much as the estimation method itself.
+
+## The Methods: A Toolkit Tour
+
+### 1. Regression Adjustment
+
+The simplest approach: fit a regression of outcomes on covariates separately for treated and control groups, then average the predicted treatment effects. The paper emphasizes that you should estimate separate models for $E[Y|X, W=1]$ and $E[Y|X, W=0]$ rather than a single pooled model with an additive treatment indicator — this allows full interaction between treatment status and covariates.
+
+### 2. The Propensity Score
+
+Rosenbaum and Rubin's key insight: if unconfoundedness holds given $X$, it also holds given $e(X) = P(W=1|X)$. This collapses a high-dimensional conditioning problem into a single scalar.
+
+The paper warns against both extremes of the propensity score distribution. Observations with $e(X)$ near 0 or 1 signal a *lack of overlap* — there's no comparable counterfactual in the other group. The recommended fix: trim the sample to the region where $0.1 \leq \hat{e}(X) \leq 0.9$, or more conservatively, restrict to the support where both groups exist.
+
+### 3. Subclassification (Blocking)
+
+Partition observations into strata based on quantiles of $\hat{e}(X)$. Within each stratum, treated and control units are roughly comparable. Estimate within-stratum treatment effects and take a weighted average. Cochran (1968) showed that as few as 5 subclasses remove over 90% of the bias from a single confounding covariate.
+
+### 4. Matching
+
+For each treated unit, find the closest control unit(s) based on the propensity score or covariate distance. The matched control set becomes the synthetic counterfactual. Key details:
+
+- **With vs. without replacement**: matching with replacement reduces bias (better matches) but increases variance (fewer unique controls).
+- **Bias correction**: Abadie and Imbens (2006) show that simple matching estimators have a conditional bias that doesn't vanish at rate $\sqrt{N}$ if matching on more than one continuous covariate. Their fix: add a regression-based bias correction term.
+- **Variance estimation**: bootstrap is not valid for nearest-neighbor matching estimators (Abadie and Imbens, 2008). Use the Abadie-Imbens analytical variance estimator instead.
+
+### 5. Inverse Probability Weighting (IPW)
+
+Weight each observation by the inverse of the probability of receiving the treatment it actually received:
+
+$$
+\hat{\tau}_{IPW} = \frac{1}{N}\sum_{i=1}^{N}\left[\frac{W_i \cdot Y_i}{\hat{e}(X_i)} - \frac{(1-W_i)\cdot Y_i}{1-\hat{e}(X_i)}\right]
+$$
+
+This reweights the sample to create a pseudo-population where treatment is independent of covariates. The Horvitz-Thompson version uses population size in the denominator; the Hájek (normalized) version divides by the sum of weights instead, which is more stable in practice.
+
+**The danger**: if $\hat{e}(X)$ is close to 0 or 1, individual weights explode, and a few observations dominate the estimate. Trimming or weight truncation is essential.
+
+### 6. Doubly Robust Estimation
+
+The paper's most sophisticated recommendation: combine regression adjustment with IPW. The resulting estimator is consistent if *either* the propensity score model *or* the outcome regression model is correctly specified — you get two chances to be right. This is the approach developed by Robins, Rotnitzky, and others in the biostatistics literature and shown to achieve the semiparametric efficiency bound by Hirano, Imbens, and Ridder (2003).
+
+```{mermaid}
+flowchart TD
+    A["Observational Data<br/>(Treated + Control)"] --> B["Estimate Propensity Score<br/>ê(X) = P(W=1|X)"]
+    B --> C{"Check Overlap"}
+    C -->|Poor overlap| D["Trim Sample<br/>0.1 ≤ ê(X) ≤ 0.9"]
+    C -->|Good overlap| E["Proceed"]
+    D --> E
+    E --> F["Choose Estimation Strategy"]
+    F --> G["Subclassification<br/>(Block on ê quantiles)"]
+    F --> H["Matching<br/>(NN on ê or X)"]
+    F --> I["IPW<br/>(Reweight by 1/ê)"]
+    F --> J["Regression Adjustment<br/>(Separate µ₁, µ₀ models)"]
+    G --> K["Doubly Robust<br/>(Combine IPW + Regression)"]
+    H --> K
+    I --> K
+    J --> K
+    K --> L["Estimate ATE / ATT<br/>with valid standard errors"]
+```
+
+## The Lalonde Application: A Case Study in Fragility
+
+The running example uses data from the National Supported Work (NSW) program — a randomized job training experiment from the 1970s. The experimental benchmark shows the program raised earnings by roughly $1,800.
+
+The twist: Lalonde replaced the experimental control group with observational comparison groups (from the CPS and PSID) and showed that standard estimators gave wildly different answers — some even got the sign wrong. The Dehejia-Wahba subsample, which restricts to a more comparable comparison group, fares better with propensity score methods.
+
+The key lesson the paper drives home: the answer depends heavily on the quality of the comparison group, the overlap in covariate distributions, and how carefully you handle the propensity score extremes. No method is a magic bullet.
+
+## Key Results Comparison
+
+| Method | Estimate (approx.) | Notes |
+|---|---|---|
+| Experimental benchmark | ~$1,800 | Gold standard |
+| OLS (CPS controls) | Negative | Wrong sign; bad overlap |
+| Propensity score matching (DW sample) | ~$1,500–$1,900 | Close to benchmark |
+| IPW (trimmed) | ~$1,600–$2,000 | Sensitive to trimming |
+| Doubly robust | ~$1,700–$1,900 | Most stable |
+
+## What to Watch Out For
+
+1. **Overlap violations**: If the propensity score piles up near 0 or 1, no method will save you. Always plot the propensity score distributions for treated and control groups.
+
+2. **The propensity score paradox**: A "good" propensity score model (high predictive accuracy) can actually make your estimator worse by creating extreme weights. You want balance, not prediction.
+
+3. **Bootstrap failure for matching**: Abadie and Imbens (2008) proved the bootstrap is inconsistent for nearest-neighbor matching estimators. Use their analytical variance formula.
+
+4. **Covariate selection matters**: Imbens (2004) discusses how including variables that are correlated with the outcome but not treatment can improve precision, while including variables correlated with treatment but not the outcome can hurt it.
+
+5. **Pre-treatment variables only**: Never condition on post-treatment variables. This can introduce collider bias and break the causal interpretation entirely.
+
+## Takeaways for Practitioners
+
+The paper's practical advice boils down to a workflow: (1) assess overlap using the propensity score, (2) trim the sample to the region of common support, (3) use a doubly robust estimator that combines weighting and regression, and (4) conduct sensitivity analysis for the unconfoundedness assumption. None of this guarantees a causal estimate — that depends on whether the untestable assumption actually holds — but it gives you the best shot with the tools available.
+
+---
+
+## Reproduction & Implementation
+
+### Environment Setup
+
+```python
+# Core libraries
+pip install numpy pandas scipy statsmodels scikit-learn
+
+# Causal inference packages
+pip install econml          # Microsoft's causal ML library (>=0.14)
+pip install dowhy           # Microsoft's DoWhy for causal graphs (>=0.9)
+pip install causalinference # Lightweight propensity score package
+
+# Versions used
+# Python 3.10+
+# numpy >= 1.24
+# pandas >= 2.0
+# statsmodels >= 0.14
+# scikit-learn >= 1.3
+```
+
+### Core Algorithm: Doubly Robust ATE Estimator
+
+```python
+import numpy as np
+from sklearn.linear_model import LogisticRegression, LinearRegression
+
+def doubly_robust_ate(Y, W, X):
+    """
+    Doubly robust estimator for the Average Treatment Effect.
+
+    Parameters
+    ----------
+    Y : array, shape (n,) — observed outcomes
+    W : array, shape (n,) — treatment indicator (0 or 1)
+    X : array, shape (n, p) — pre-treatment covariates
+
+    Returns
+    -------
+    tau_hat : float — estimated ATE
+    """
+    n = len(Y)
+
+    # Step 1: Estimate propensity score
+    ps_model = LogisticRegression(max_iter=1000)
+    ps_model.fit(X, W)
+    e_hat = ps_model.predict_proba(X)[:, 1]
+
+    # Step 2: Trim extreme propensity scores
+    mask = (e_hat >= 0.1) & (e_hat <= 0.9)
+    Y, W, X, e_hat = Y[mask], W[mask], X[mask], e_hat[mask]
+    n = mask.sum()
+
+    # Step 3: Estimate outcome regressions
+    mu1_model = LinearRegression()
+    mu1_model.fit(X[W == 1], Y[W == 1])
+    mu1_hat = mu1_model.predict(X)
+
+    mu0_model = LinearRegression()
+    mu0_model.fit(X[W == 0], Y[W == 0])
+    mu0_hat = mu0_model.predict(X)
+
+    # Step 4: Doubly robust estimator
+    #   DR = regression adjustment + IPW correction
+    dr_scores = (
+        (mu1_hat - mu0_hat)
+        + W * (Y - mu1_hat) / e_hat
+        - (1 - W) * (Y - mu0_hat) / (1 - e_hat)
+    )
+
+    tau_hat = np.mean(dr_scores)
+    se_hat = np.std(dr_scores) / np.sqrt(n)
+
+    return tau_hat, se_hat
+
+
+# --- Usage with Lalonde data ---
+# from causalinference import CausalModel
+# import pandas as pd
+#
+# df = pd.read_stata("nsw_dw.dta")  # Dehejia-Wahba sample
+# Y = df["re78"].values
+# W = df["treat"].values
+# X = df[["age","education","black","hispanic",
+#          "married","nodegree","re74","re75"]].values
+#
+# ate, se = doubly_robust_ate(Y, W, X)
+# print(f"ATE: ${ate:,.0f} (SE: ${se:,.0f})")
+```
+
+### Propensity Score Diagnostics
+
+```python
+import matplotlib.pyplot as plt
+
+def plot_propensity_overlap(e_hat, W):
+    """Histogram of propensity scores by treatment group."""
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.hist(e_hat[W == 1], bins=30, alpha=0.6, label="Treated", density=True)
+    ax.hist(e_hat[W == 0], bins=30, alpha=0.6, label="Control", density=True)
+    ax.axvline(0.1, color="red", linestyle="--", label="Trim threshold")
+    ax.axvline(0.9, color="red", linestyle="--")
+    ax.set_xlabel("Estimated Propensity Score")
+    ax.set_ylabel("Density")
+    ax.legend()
+    ax.set_title("Overlap Diagnostic")
+    plt.tight_layout()
+    return fig
+```
+
+### Resource Links
+
+#### Original Paper & Data
+
+- [Imbens & Wooldridge IRP Lecture Notes (2008)](https://www.nber.org/papers/w14251) — NBER Working Paper version of the broader survey
+- [Lalonde (1986) original paper](https://doi.org/10.2307/1806062) — *American Economic Review*
+- [Dehejia & Wahba (1999)](https://doi.org/10.1080/01621459.1999.10473858) — *JASA*
+
+#### Code Implementations
+
+- [EconML — Microsoft Research](https://github.com/py-why/EconML) — doubly robust learners, DML, and more
+- [DoWhy — Microsoft Research](https://github.com/py-why/dowhy) — causal graph + estimation pipeline
+- [causalinference (Python)](https://github.com/laurencium/causalinference) — lightweight propensity score matching and IPW
+
+#### Related Notebooks & Tutorials
+
+- [Causal Inference for the Brave and True](https://matheusfacure.github.io/python-causality-handbook/) — free online book with Python notebooks
+- [Lalonde dataset on Kaggle](https://www.kaggle.com/datasets) — search "Lalonde NSW" for cleaned versions
+- [Scott Cunningham's Mixtape (Stata/R/Python)](https://mixtape.scunning.com/) — textbook covering these exact methods

@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Sean Lewis">
+<meta name="dcterms.date" content="2026-02-15">
+<meta name="description" content="A deep dive into the Abadie-Athey-Imbens-Wooldridge paper that asks a question most data scientists never think to ask: where does your uncertainty actually come from? The answer changes everything about how you report standard errors.">
+
+<title>You Have the Whole Population — Why Are You Still Computing Standard Errors? – Sean Lewis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Sean Lewis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../projects.html"> 
+<span class="menu-text">Projects</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/seanlewis08"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/selew/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-hook" id="toc-the-hook" class="nav-link active" data-scroll-target="#the-hook">The Hook</a></li>
+  <li><a href="#the-argument" id="toc-the-argument" class="nav-link" data-scroll-target="#the-argument">The Argument</a></li>
+  <li><a href="#the-lineage" id="toc-the-lineage" class="nav-link" data-scroll-target="#the-lineage">The Lineage</a>
+  <ul class="collapse">
+  <li><a href="#where-the-seminal-meets-the-transducer" id="toc-where-the-seminal-meets-the-transducer" class="nav-link" data-scroll-target="#where-the-seminal-meets-the-transducer">Where the Seminal Meets the Transducer</a></li>
+  </ul></li>
+  <li><a href="#the-deep-dive" id="toc-the-deep-dive" class="nav-link" data-scroll-target="#the-deep-dive">The Deep Dive</a>
+  <ul class="collapse">
+  <li><a href="#the-setup" id="toc-the-setup" class="nav-link" data-scroll-target="#the-setup">The Setup</a></li>
+  <li><a href="#the-key-result-variance-decomposition" id="toc-the-key-result-variance-decomposition" class="nav-link" data-scroll-target="#the-key-result-variance-decomposition">The Key Result: Variance Decomposition</a></li>
+  <li><a href="#when-does-this-matter-in-practice" id="toc-when-does-this-matter-in-practice" class="nav-link" data-scroll-target="#when-does-this-matter-in-practice">When Does This Matter in Practice?</a></li>
+  <li><a href="#cluster-robust-standard-errors" id="toc-cluster-robust-standard-errors" class="nav-link" data-scroll-target="#cluster-robust-standard-errors">Cluster-Robust Standard Errors</a></li>
+  <li><a href="#rubber-ducking-the-jargon" id="toc-rubber-ducking-the-jargon" class="nav-link" data-scroll-target="#rubber-ducking-the-jargon">Rubber-Ducking the Jargon</a></li>
+  </ul></li>
+  <li><a href="#so-what" id="toc-so-what" class="nav-link" data-scroll-target="#so-what">So What?</a></li>
+  <li><a href="#reproduction-implementation" id="toc-reproduction-implementation" class="nav-link" data-scroll-target="#reproduction-implementation">Reproduction &amp; Implementation</a>
+  <ul class="collapse">
+  <li><a href="#environment-setup" id="toc-environment-setup" class="nav-link" data-scroll-target="#environment-setup">Environment Setup</a></li>
+  <li><a href="#pseudo-code-finite-population-corrected-standard-errors" id="toc-pseudo-code-finite-population-corrected-standard-errors" class="nav-link" data-scroll-target="#pseudo-code-finite-population-corrected-standard-errors">Pseudo-Code: Finite Population Corrected Standard Errors</a></li>
+  <li><a href="#cluster-level-finite-population-correction" id="toc-cluster-level-finite-population-correction" class="nav-link" data-scroll-target="#cluster-level-finite-population-correction">Cluster-Level Finite Population Correction</a></li>
+  <li><a href="#resource-links" id="toc-resource-links" class="nav-link" data-scroll-target="#resource-links">Resource Links</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">You Have the Whole Population — Why Are You Still Computing Standard Errors?</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">Causal Inference</div>
+    <div class="quarto-category">Econometrics</div>
+    <div class="quarto-category">Statistics</div>
+    <div class="quarto-category">Paper Review</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    A deep dive into the Abadie-Athey-Imbens-Wooldridge paper that asks a question most data scientists never think to ask: where does your uncertainty actually come from? The answer changes everything about how you report standard errors.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Sean Lewis </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">February 15, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="the-hook" class="level2">
+<h2 class="anchored" data-anchor-id="the-hook">The Hook</h2>
+<p>You run a regression on data from all 50 U.S. states. Or all visits to your website last month. Or every transaction in your company’s database. You fit the model, get coefficients, and report standard errors with p-values.</p>
+<p>Stop. <strong>Why are you computing standard errors at all?</strong></p>
+<p>Standard errors quantify <em>sampling uncertainty</em> — the idea that your sample is a random draw from some larger population, and a different draw would give different estimates. But you don’t have a sample. You have the <em>entire population</em>. There’s no “different draw.” The regression coefficient isn’t an estimate — it’s a <em>fact about the data you have</em>.</p>
+<p>And yet, every textbook, every stats package, and every empirical paper defaults to reporting standard errors as though sampling variability is the only game in town. We do it on autopilot.</p>
+<p>A landmark paper in <em>Econometrica</em> by <strong>Alberto Abadie, Susan Athey, Guido Imbens, and Jeffrey Wooldridge</strong> — four of the biggest names in modern econometrics — finally formalizes what’s going on. Their answer: sampling isn’t the only source of uncertainty. <strong>Design</strong> is another. And which one matters depends on what question you’re actually trying to answer.</p>
+<p>The implications are concrete: the standard errors you’re reporting may be <strong>too large</strong> (overstating uncertainty) or <strong>of the wrong kind</strong> (capturing the wrong source of variation). And the fix changes how you should think about inference in nearly every applied setting.</p>
+</section>
+<section id="the-argument" class="level2">
+<h2 class="anchored" data-anchor-id="the-argument">The Argument</h2>
+<p>The paper’s logic unfolds in three clean steps.</p>
+<p><strong>Step 1: There are two distinct sources of uncertainty.</strong></p>
+<p><em>Sampling-based uncertainty</em> arises when your data is a random subset of a larger population. You observe 1,000 of 10,000 customers. Different samples give different estimates — standard errors capture that variation.</p>
+<p><em>Design-based uncertainty</em> arises when some variable in your data (typically a treatment) was randomly assigned. Even if you observe the entire population, randomness in who got treated and who didn’t means the estimated treatment effect has uncertainty — not because of sampling, but because a different random assignment would give a different estimate.</p>
+<p><strong>Step 2: Most applied settings mix both — and the mixture matters.</strong></p>
+<p>Define <span class="math inline">\(\rho\)</span> as the sampling fraction (what share of the population you observe). When <span class="math inline">\(\rho\)</span> is small (a thin sample), sampling uncertainty dominates and conventional standard errors are approximately correct. When <span class="math inline">\(\rho = 1\)</span> (the full population), there’s zero sampling uncertainty — but if you’re estimating a <em>causal effect</em> with random treatment assignment, design-based uncertainty remains.</p>
+<p>The key formula decomposes total variance into:</p>
+<p><span class="math display">\[V = (1 - \rho) \cdot V_{\text{sampling}} + V_{\text{design}}\]</span></p>
+<p>When <span class="math inline">\(\rho \to 1\)</span>, the sampling term vanishes. What’s left depends entirely on whether your estimand is <strong>descriptive</strong> (a population summary) or <strong>causal</strong> (a treatment effect).</p>
+<p><strong>Step 3: The punchline.</strong></p>
+<p>For <strong>descriptive estimands</strong> (population regression coefficients, correlations, average outcomes), if you have the full population, there’s no uncertainty. Period. Your standard errors should be zero. The conventional EHW (Eicker-Huber-White) robust standard errors are <em>overstating</em> your uncertainty — sometimes dramatically.</p>
+<p>For <strong>causal estimands</strong> (treatment effects under random assignment), uncertainty persists even with the full population, but the <em>form</em> of the standard errors changes. Conventional standard errors may still be conservative (too large), and the correct design-based variance has a specific structure that depends on treatment effect heterogeneity.</p>
+<p>The practical takeaway: <strong>you’ve probably been reporting inflated standard errors</strong> whenever your data covers most or all of the population of interest.</p>
+</section>
+<section id="the-lineage" class="level2">
+<h2 class="anchored" data-anchor-id="the-lineage">The Lineage</h2>
+<p>This paper resolves a tension that’s been simmering in statistics for decades.</p>
+<p><strong>The Neyman tradition (1923)</strong> — Jerzy Neyman’s original framework for randomized experiments derived standard errors from the <em>randomization distribution</em> — the variation that arises from different possible treatment assignments, not from sampling. This is “design-based” inference in its purest form. It dominated agricultural experiments and survey sampling for most of the 20th century.</p>
+<p><strong>The superpopulation tradition (1960s-onward)</strong> — As regression became the workhorse of empirical social science, the dominant framework shifted to assuming the data is an i.i.d. sample from an infinite “superpopulation.” This is convenient mathematically — it justifies OLS standard errors, heteroskedasticity-robust (EHW) standard errors, and cluster-robust standard errors through central limit theorems. But it requires believing in a population that, in many applications, is hard to articulate. What is the “superpopulation” that the 50 U.S. states are drawn from?</p>
+<p><strong>The finite population gap</strong> — Researchers noticed the tension: reporting sampling-based standard errors on census-level data feels wrong, but there was no clean formal framework for what to do instead. Some practitioners quietly set standard errors to zero for population-level descriptive analyses, but without theoretical backing. Others just kept reporting EHW standard errors because that’s what referees expected.</p>
+<p><strong>Abadie et al.&nbsp;(2020)</strong> fills this gap by building a unified framework where both sampling and design uncertainty coexist, deriving the correct variance formulas for each case, and showing how standard estimators relate to the correct ones.</p>
+<p>The paper was enormously influential (earlier versions circulated as “Finite Population Causal Standard Errors” since 2014), and it changed how a generation of applied economists think about reporting inference.</p>
+<section id="where-the-seminal-meets-the-transducer" class="level3">
+<h3 class="anchored" data-anchor-id="where-the-seminal-meets-the-transducer">Where the Seminal Meets the Transducer</h3>
+<p>The <em>seminal</em> contribution is the conceptual framework itself — the decomposition of uncertainty into sampling and design components, and the formal proof that EHW standard errors are conservative. This is the part that changes how you think.</p>
+<p>The <em>transducer</em> sections (less central for practitioners) are the detailed proofs for the vector-valued case and some of the more technical asymptotic refinements. These are important for the econometric theory audience but not needed to apply the ideas.</p>
+</section>
+</section>
+<section id="the-deep-dive" class="level2">
+<h2 class="anchored" data-anchor-id="the-deep-dive">The Deep Dive</h2>
+<section id="the-setup" class="level3">
+<h3 class="anchored" data-anchor-id="the-setup">The Setup</h3>
+<p>Consider a finite population of <span class="math inline">\(N\)</span> units indexed <span class="math inline">\(i = 1, \ldots, N\)</span>. Each unit has potential outcomes <span class="math inline">\(Y_i(0)\)</span> and <span class="math inline">\(Y_i(1)\)</span> (what would happen without and with treatment), covariates <span class="math inline">\(X_i\)</span>, and a treatment indicator <span class="math inline">\(W_i \in \{0, 1\}\)</span>.</p>
+<p>Two layers of randomness:</p>
+<ol type="1">
+<li><strong>Sampling</strong>: We observe a random subset <span class="math inline">\(S\)</span> of size <span class="math inline">\(n\)</span> from the population (<span class="math inline">\(\rho = n/N\)</span>)</li>
+<li><strong>Assignment</strong>: Treatment <span class="math inline">\(W_i\)</span> is randomly assigned within the population</li>
+</ol>
+<p>The observed outcome is <span class="math inline">\(Y_i = Y_i(W_i)\)</span>. We want to estimate the slope coefficient <span class="math inline">\(\beta\)</span> in a regression of <span class="math inline">\(Y\)</span> on <span class="math inline">\(W\)</span> (and possibly <span class="math inline">\(X\)</span>).</p>
+</section>
+<section id="the-key-result-variance-decomposition" class="level3">
+<h3 class="anchored" data-anchor-id="the-key-result-variance-decomposition">The Key Result: Variance Decomposition</h3>
+<pre><code>┌─────────────────────────────────────────────────────┐
+│              TOTAL VARIANCE OF β̂                     │
+│                                                      │
+│   V(β̂) = V_sampling + V_design                      │
+│                                                      │
+│   ┌─────────────────────┐  ┌──────────────────────┐ │
+│   │   V_sampling         │  │   V_design            │ │
+│   │                      │  │                       │ │
+│   │ Scales as (1 - ρ)   │  │ Present even when     │ │
+│   │                      │  │ ρ = 1 (full pop.)    │ │
+│   │ → 0 as ρ → 1        │  │                       │ │
+│   │                      │  │ Depends on treatment  │ │
+│   │ Captured by EHW SEs  │  │ effect heterogeneity │ │
+│   │ (but overstated)     │  │ τᵢ = Y(1) - Y(0)    │ │
+│   └─────────────────────┘  └──────────────────────┘ │
+└─────────────────────────────────────────────────────┘</code></pre>
+<p>The design-based variance has a beautiful structure. Define <span class="math inline">\(\tau_i = Y_i(1) - Y_i(0)\)</span> as unit <span class="math inline">\(i\)</span>’s individual treatment effect. The design-based variance of the estimated average treatment effect depends on the <em>variance of <span class="math inline">\(\tau_i\)</span></em> across units. If the treatment effect is the same for everyone (<span class="math inline">\(\tau_i = \tau\)</span> for all <span class="math inline">\(i\)</span>), the design-based variance is <strong>zero</strong> — even though treatment was randomly assigned.</p>
+<p>This makes intuitive sense: if everyone responds identically to treatment, it doesn’t matter <em>who</em> got treated. Any randomization gives the same answer.</p>
+</section>
+<section id="when-does-this-matter-in-practice" class="level3">
+<h3 class="anchored" data-anchor-id="when-does-this-matter-in-practice">When Does This Matter in Practice?</h3>
+<p>The paper works through the implications for common scenarios:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Scenario</th>
+<th><span class="math inline">\(\rho\)</span></th>
+<th>Estimand</th>
+<th>Conventional SEs</th>
+<th>Correct SEs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Survey sample, descriptive</td>
+<td>Small</td>
+<td>Population mean</td>
+<td>≈ Correct</td>
+<td>Standard</td>
+</tr>
+<tr class="even">
+<td>Survey sample, causal (RCT)</td>
+<td>Small</td>
+<td>ATE</td>
+<td>≈ Correct</td>
+<td>Standard</td>
+</tr>
+<tr class="odd">
+<td>Full population, descriptive</td>
+<td>1</td>
+<td>Population coefficient</td>
+<td><strong>Too large</strong></td>
+<td><strong>Zero</strong></td>
+</tr>
+<tr class="even">
+<td>Full population, causal (RCT)</td>
+<td>1</td>
+<td>ATE</td>
+<td><strong>Too large</strong></td>
+<td>Design-based</td>
+</tr>
+<tr class="odd">
+<td>Large fraction, descriptive</td>
+<td>~0.8</td>
+<td>Population coefficient</td>
+<td><strong>Too large</strong></td>
+<td>Shrunk by <span class="math inline">\((1-\rho)\)</span></td>
+</tr>
+<tr class="even">
+<td>Large fraction, causal</td>
+<td>~0.8</td>
+<td>ATE</td>
+<td><strong>Mildly too large</strong></td>
+<td>Adjusted</td>
+</tr>
+</tbody>
+</table>
+<p>The “full population, descriptive” case is the extreme eye-opener. If you regress state-level GDP on state-level policy variables for all 50 states, and your research question is descriptive (“what is the association between X and Y in these 50 states?”), then your coefficient has <em>zero uncertainty</em>. There’s no population to generalize to — you computed an exact property of the data.</p>
+</section>
+<section id="cluster-robust-standard-errors" class="level3">
+<h3 class="anchored" data-anchor-id="cluster-robust-standard-errors">Cluster-Robust Standard Errors</h3>
+<p>The paper extends the framework to clustered settings — where units are grouped (students within schools, employees within firms) and treatment is assigned at the cluster level. The same logic applies: cluster-robust standard errors, which are already conservative in many settings, become even more conservative when the sampling fraction of clusters is large.</p>
+<p>The authors derive the adjustment: replace the standard cluster-robust variance with a version scaled by <span class="math inline">\((1 - \rho_c)\)</span> where <span class="math inline">\(\rho_c\)</span> is the fraction of clusters in the sample. With all clusters observed, the sampling component again vanishes.</p>
+</section>
+<section id="rubber-ducking-the-jargon" class="level3">
+<h3 class="anchored" data-anchor-id="rubber-ducking-the-jargon">Rubber-Ducking the Jargon</h3>
+<p><strong>EHW (Eicker-Huber-White) standard errors</strong> — The “robust” standard errors that every stats package computes. They handle heteroskedasticity (non-constant error variance) but are derived under the assumption of random sampling from an infinite population. This paper shows they remain <em>valid</em> (conservative) but can be <em>inefficient</em> (too wide) when <span class="math inline">\(\rho\)</span> is large.</p>
+<p><strong>Superpopulation</strong> — An imaginary infinite population your sample is supposedly drawn from. For many datasets (all countries, all states, all employees of a company), defining this superpopulation requires philosophical contortions. The design-based framework avoids this problem.</p>
+<p><strong>Finite population correction (FPC)</strong> — The <span class="math inline">\((1 - \rho)\)</span> factor. Well-known in survey statistics since the 1950s but largely ignored in regression analysis. This paper formally integrates FPC into the regression framework.</p>
+<p><strong>Neyman variance</strong> — The variance of a treatment effect estimator that arises purely from random assignment, not sampling. Named for Jerzy Neyman, who derived it in 1923 for agricultural experiments.</p>
+</section>
+</section>
+<section id="so-what" class="level2">
+<h2 class="anchored" data-anchor-id="so-what">So What?</h2>
+<p>This paper should change your default behavior as a data scientist in three concrete ways:</p>
+<p>First, <strong>ask yourself what your estimand is</strong> before reporting standard errors. If it’s descriptive and you have the full population, you might not need standard errors at all. The coefficient is just a fact.</p>
+<p>Second, <strong>ask yourself where your uncertainty comes from.</strong> If you’re estimating a treatment effect from a randomized experiment with full population data, your uncertainty is design-based. The standard EHW formula is valid but conservative — you’re paying a precision penalty for no reason.</p>
+<p>Third, <strong>consider the sampling fraction.</strong> Even when <span class="math inline">\(\rho &lt; 1\)</span>, if it’s large (say, you have 80% of the relevant population), your conventional standard errors are inflated by a factor related to <span class="math inline">\(1/(1 - \rho)\)</span>. A simple finite population correction can meaningfully tighten your confidence intervals.</p>
+<p>The deeper lesson is philosophical: uncertainty isn’t a property of your estimator. It’s a property of the <em>question you’re asking</em> and the <em>process that generated your data</em>. Getting that right isn’t a technicality — it determines whether your confidence intervals mean anything at all.</p>
+<hr>
+<p><em>Paper: <a href="https://doi.org/10.3982/ECTA12675">“Sampling-Based versus Design-Based Uncertainty in Regression Analysis”</a> by Alberto Abadie, Susan Athey, Guido W. Imbens, and Jeffrey M. Wooldridge. Econometrica, Vol. 88, No.&nbsp;1, January 2020, pp.&nbsp;265-296.</em></p>
+<hr>
+</section>
+<section id="reproduction-implementation" class="level2">
+<h2 class="anchored" data-anchor-id="reproduction-implementation">Reproduction &amp; Implementation</h2>
+<section id="environment-setup" class="level3">
+<h3 class="anchored" data-anchor-id="environment-setup">Environment Setup</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Core dependencies</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>pip install numpy<span class="op">&gt;=</span><span class="fl">1.24.0</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>pip install pandas<span class="op">&gt;=</span><span class="fl">2.0.0</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>pip install statsmodels<span class="op">&gt;=</span><span class="fl">0.14.0</span>     <span class="co"># OLS, EHW standard errors</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>pip install scipy<span class="op">&gt;=</span><span class="fl">1.11.0</span>           <span class="co"># Statistical distributions</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>pip install linearmodels<span class="op">&gt;=</span><span class="fl">5.0</span>       <span class="co"># Panel data / IV estimation</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>pip install matplotlib<span class="op">&gt;=</span><span class="fl">3.7.0</span>       <span class="co"># Visualization</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="pseudo-code-finite-population-corrected-standard-errors" class="level3">
+<h3 class="anchored" data-anchor-id="pseudo-code-finite-population-corrected-standard-errors">Pseudo-Code: Finite Population Corrected Standard Errors</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.api <span class="im">as</span> sm</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> ehw_standard_errors(X, y):</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">    Standard Eicker-Huber-White heteroskedasticity-robust SEs.</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">    (What statsmodels gives you with cov_type='HC1')</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    model <span class="op">=</span> sm.OLS(y, sm.add_constant(X)).fit(cov_type<span class="op">=</span><span class="st">'HC1'</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> model.bse, model.cov_params()</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> finite_population_corrected_se(X, y, rho, estimand<span class="op">=</span><span class="st">'descriptive'</span>):</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="co">    Adjust standard errors for finite population sampling.</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters:</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="co">        X:        (n, k) regressor matrix</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="co">        y:        (n,)   outcome vector</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="co">        rho:      float, sampling fraction n/N (0 &lt; rho &lt;= 1)</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="co">        estimand: 'descriptive' or 'causal'</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns:</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="co">        Corrected standard errors</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    model <span class="op">=</span> sm.OLS(y, sm.add_constant(X)).fit(cov_type<span class="op">=</span><span class="st">'HC1'</span>)</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    V_ehw <span class="op">=</span> model.cov_params()     <span class="co"># EHW variance-covariance matrix</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> estimand <span class="op">==</span> <span class="st">'descriptive'</span>:</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>        <span class="co"># For descriptive estimands, sampling variance scales by (1 - rho)</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>        <span class="co"># When rho = 1, variance is exactly 0</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>        V_corrected <span class="op">=</span> (<span class="dv">1</span> <span class="op">-</span> rho) <span class="op">*</span> V_ehw</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>        corrected_se <span class="op">=</span> np.sqrt(np.diag(V_corrected))</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> corrected_se</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> estimand <span class="op">==</span> <span class="st">'causal'</span>:</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>        <span class="co"># For causal estimands, we need to decompose:</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>        <span class="co">#   V_total = (1 - rho) * V_sampling + V_design</span></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>        <span class="co">#</span></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>        <span class="co"># V_design depends on treatment effect heterogeneity.</span></span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Under constant treatment effects: V_design = 0</span></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Under heterogeneous effects: V_design &gt; 0</span></span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>        <span class="co">#</span></span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Conservative approach: just apply FPC to sampling component</span></span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>        <span class="co"># This is a lower bound on the correction</span></span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>        V_corrected <span class="op">=</span> (<span class="dv">1</span> <span class="op">-</span> rho) <span class="op">*</span> V_ehw</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Note: True design-based variance requires knowing or estimating</span></span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>        <span class="co"># treatment effect heterogeneity (see Neyman variance below)</span></span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>        corrected_se <span class="op">=</span> np.sqrt(np.diag(V_corrected))</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> corrected_se</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> neyman_variance_ate(Y, W):</span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a><span class="co">    Design-based (Neyman) variance for the difference-in-means</span></span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a><span class="co">    estimator of the Average Treatment Effect under complete</span></span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a><span class="co">    random assignment.</span></span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a><span class="co">    This is the correct variance when rho = 1 (full population).</span></span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters:</span></span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a><span class="co">        Y: (N,) observed outcomes</span></span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a><span class="co">        W: (N,) binary treatment indicator (0 or 1)</span></span>
+<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a>    Y1 <span class="op">=</span> Y[W <span class="op">==</span> <span class="dv">1</span>]   <span class="co"># treated outcomes</span></span>
+<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>    Y0 <span class="op">=</span> Y[W <span class="op">==</span> <span class="dv">0</span>]   <span class="co"># control outcomes</span></span>
+<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a>    n1 <span class="op">=</span> <span class="bu">len</span>(Y1)</span>
+<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a>    n0 <span class="op">=</span> <span class="bu">len</span>(Y0)</span>
+<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a>    N  <span class="op">=</span> n1 <span class="op">+</span> n0</span>
+<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a>    s1_sq <span class="op">=</span> np.var(Y1, ddof<span class="op">=</span><span class="dv">1</span>)   <span class="co"># sample variance, treated</span></span>
+<span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a>    s0_sq <span class="op">=</span> np.var(Y0, ddof<span class="op">=</span><span class="dv">1</span>)   <span class="co"># sample variance, control</span></span>
+<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Neyman variance (conservative — ignores covariance of</span></span>
+<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a>    <span class="co"># potential outcomes, which is unobservable)</span></span>
+<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a>    V_neyman <span class="op">=</span> s1_sq <span class="op">/</span> n1 <span class="op">+</span> s0_sq <span class="op">/</span> n0</span>
+<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Note: This is an upper bound. The exact design-based</span></span>
+<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a>    <span class="co"># variance also subtracts Var(tau_i)/N, but tau_i is</span></span>
+<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a>    <span class="co"># unobservable (fundamental problem of causal inference)</span></span>
+<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> V_neyman</span>
+<span id="cb3-83"><a href="#cb3-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a><span class="co"># ---- DEMONSTRATION ----</span></span>
+<span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-87"><a href="#cb3-87" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> demo_fpc_impact():</span>
+<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb3-89"><a href="#cb3-89" aria-hidden="true" tabindex="-1"></a><span class="co">    Show how conventional SEs compare to FPC-adjusted SEs</span></span>
+<span id="cb3-90"><a href="#cb3-90" aria-hidden="true" tabindex="-1"></a><span class="co">    across different sampling fractions.</span></span>
+<span id="cb3-91"><a href="#cb3-91" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb3-92"><a href="#cb3-92" aria-hidden="true" tabindex="-1"></a>    np.random.seed(<span class="dv">42</span>)</span>
+<span id="cb3-93"><a href="#cb3-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-94"><a href="#cb3-94" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Generate a "population" of N=1000</span></span>
+<span id="cb3-95"><a href="#cb3-95" aria-hidden="true" tabindex="-1"></a>    N <span class="op">=</span> <span class="dv">1000</span></span>
+<span id="cb3-96"><a href="#cb3-96" aria-hidden="true" tabindex="-1"></a>    X_pop <span class="op">=</span> np.random.randn(N)</span>
+<span id="cb3-97"><a href="#cb3-97" aria-hidden="true" tabindex="-1"></a>    Y_pop <span class="op">=</span> <span class="fl">2.0</span> <span class="op">+</span> <span class="fl">3.0</span> <span class="op">*</span> X_pop <span class="op">+</span> np.random.randn(N)  <span class="co"># true beta = 3.0</span></span>
+<span id="cb3-98"><a href="#cb3-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-99"><a href="#cb3-99" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'rho'</span><span class="sc">:&gt;6}</span><span class="ss"> | </span><span class="sc">{</span><span class="st">'EHW SE'</span><span class="sc">:&gt;10}</span><span class="ss"> | </span><span class="sc">{</span><span class="st">'FPC SE'</span><span class="sc">:&gt;10}</span><span class="ss"> | </span><span class="sc">{</span><span class="st">'Ratio'</span><span class="sc">:&gt;8}</span><span class="ss">"</span>)</span>
+<span id="cb3-100"><a href="#cb3-100" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"-"</span> <span class="op">*</span> <span class="dv">42</span>)</span>
+<span id="cb3-101"><a href="#cb3-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-102"><a href="#cb3-102" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> rho <span class="kw">in</span> [<span class="fl">0.01</span>, <span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">0.5</span>, <span class="fl">0.8</span>, <span class="fl">0.95</span>, <span class="fl">1.0</span>]:</span>
+<span id="cb3-103"><a href="#cb3-103" aria-hidden="true" tabindex="-1"></a>        n <span class="op">=</span> <span class="bu">max</span>(<span class="bu">int</span>(rho <span class="op">*</span> N), <span class="dv">20</span>)</span>
+<span id="cb3-104"><a href="#cb3-104" aria-hidden="true" tabindex="-1"></a>        idx <span class="op">=</span> np.random.choice(N, n, replace<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb3-105"><a href="#cb3-105" aria-hidden="true" tabindex="-1"></a>        X_sample <span class="op">=</span> X_pop[idx]</span>
+<span id="cb3-106"><a href="#cb3-106" aria-hidden="true" tabindex="-1"></a>        Y_sample <span class="op">=</span> Y_pop[idx]</span>
+<span id="cb3-107"><a href="#cb3-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-108"><a href="#cb3-108" aria-hidden="true" tabindex="-1"></a>        ehw_se, _ <span class="op">=</span> ehw_standard_errors(X_sample, Y_sample)</span>
+<span id="cb3-109"><a href="#cb3-109" aria-hidden="true" tabindex="-1"></a>        fpc_se <span class="op">=</span> finite_population_corrected_se(</span>
+<span id="cb3-110"><a href="#cb3-110" aria-hidden="true" tabindex="-1"></a>            X_sample, Y_sample, rho<span class="op">=</span>rho, estimand<span class="op">=</span><span class="st">'descriptive'</span></span>
+<span id="cb3-111"><a href="#cb3-111" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb3-112"><a href="#cb3-112" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-113"><a href="#cb3-113" aria-hidden="true" tabindex="-1"></a>        ratio <span class="op">=</span> fpc_se[<span class="dv">1</span>] <span class="op">/</span> ehw_se[<span class="dv">1</span>] <span class="cf">if</span> ehw_se[<span class="dv">1</span>] <span class="op">&gt;</span> <span class="dv">0</span> <span class="cf">else</span> <span class="dv">0</span></span>
+<span id="cb3-114"><a href="#cb3-114" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>rho<span class="sc">:&gt;6.2f}</span><span class="ss"> | </span><span class="sc">{</span>ehw_se[<span class="dv">1</span>]<span class="sc">:&gt;10.4f}</span><span class="ss"> | </span><span class="sc">{</span>fpc_se[<span class="dv">1</span>]<span class="sc">:&gt;10.4f}</span><span class="ss"> | </span><span class="sc">{</span>ratio<span class="sc">:&gt;8.3f}</span><span class="ss">"</span>)</span>
+<span id="cb3-115"><a href="#cb3-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-116"><a href="#cb3-116" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Expected output: as rho increases, FPC SE shrinks relative to EHW SE</span></span>
+<span id="cb3-117"><a href="#cb3-117" aria-hidden="true" tabindex="-1"></a>    <span class="co"># At rho=1.0, FPC SE = 0 (descriptive estimand, full population)</span></span>
+<span id="cb3-118"><a href="#cb3-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-119"><a href="#cb3-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-120"><a href="#cb3-120" aria-hidden="true" tabindex="-1"></a><span class="co"># Run demonstration</span></span>
+<span id="cb3-121"><a href="#cb3-121" aria-hidden="true" tabindex="-1"></a>demo_fpc_impact()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="cluster-level-finite-population-correction" class="level3">
+<h3 class="anchored" data-anchor-id="cluster-level-finite-population-correction">Cluster-Level Finite Population Correction</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> cluster_robust_se_fpc(X, y, cluster_ids, rho_clusters):</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Cluster-robust SEs with finite population correction at</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">    the cluster level.</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters:</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co">        X:             (n, k) regressors</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co">        y:             (n,)   outcomes</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co">        cluster_ids:   (n,)   cluster membership</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co">        rho_clusters:  float, fraction of clusters in sample (G_s / G)</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    model <span class="op">=</span> sm.OLS(y, sm.add_constant(X)).fit(</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>        cov_type<span class="op">=</span><span class="st">'cluster'</span>,</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>        cov_kwds<span class="op">=</span>{<span class="st">'groups'</span>: cluster_ids}</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    V_cluster <span class="op">=</span> model.cov_params()</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Apply FPC at the cluster level</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    V_corrected <span class="op">=</span> (<span class="dv">1</span> <span class="op">-</span> rho_clusters) <span class="op">*</span> V_cluster</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>    corrected_se <span class="op">=</span> np.sqrt(np.diag(V_corrected))</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> corrected_se, model.bse  <span class="co"># corrected, conventional</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="resource-links" class="level3">
+<h3 class="anchored" data-anchor-id="resource-links">Resource Links</h3>
+<section id="official-repository" class="level4">
+<h4 class="anchored" data-anchor-id="official-repository">Official Repository</h4>
+<p>No official code repository was released with this paper.</p>
+</section>
+<section id="community-implementations" class="level4">
+<h4 class="anchored" data-anchor-id="community-implementations">Community Implementations</h4>
+<ul>
+<li><strong>causal-inference-book</strong> (Hernán &amp; Robins, related methods): <a href="https://github.com/jrfiedler/causal-inference-book">github.com/jrfiedler/causal-inference-book</a></li>
+<li><strong>statsmodels</strong> (EHW / cluster-robust SEs): <a href="https://github.com/statsmodels/statsmodels">github.com/statsmodels/statsmodels</a></li>
+<li><strong>randomizr</strong> (R package for design-based inference): <a href="https://github.com/DeclareDesign/randomizr">github.com/DeclareDesign/randomizr</a></li>
+<li><strong>DeclareDesign</strong> (R framework for design-based research): <a href="https://github.com/DeclareDesign/DeclareDesign">github.com/DeclareDesign/DeclareDesign</a></li>
+</ul>
+</section>
+<section id="further-reading" class="level4">
+<h4 class="anchored" data-anchor-id="further-reading">Further Reading</h4>
+<ul>
+<li><a href="https://economics.mit.edu/sites/default/files/publications/ECTA12675.pdf">Paper PDF (MIT)</a> — Free access to the full paper</li>
+<li><a href="https://mixtape.scunning.com/">Causal Inference: The Mixtape</a> — Scott Cunningham, accessible treatment of design-based inference</li>
+<li><a href="https://www.mostlyharmless.net/">Mostly Harmless Econometrics</a> — Angrist &amp; Pischke, the applied econometrics bible</li>
+<li><a href="https://doi.org/10.1093/qje/qjac038">Abadie et al.&nbsp;(2023) “When Should You Adjust Standard Errors for Clustering?”</a> — Follow-up paper by the same authors on cluster-level inference</li>
+<li><a href="https://www.cambridge.org/core/books/causal-inference-for-statistics-social-and-biomedical-sciences/71126BE90C58F0A431FE9B2DD07938AB">Imbens &amp; Rubin (2015) “Causal Inference for Statistics, Social, and Biomedical Sciences”</a> — Comprehensive treatment of design-based causal inference</li>
+</ul>
+
+
+</section>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<script src="https://utteranc.es/client.js" repo="seanlewis08/blogComments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+<script src="animations.js"></script>
+
+
+
+
+</body></html>

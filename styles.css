@@ -1,97 +1,70 @@
-/* ═══════════════════════════════════════════════
-   Sean Lewis — Dark Seafoam Theme
-   One Piece Grand Line Edition
-   Inspired by budget_app showcase design
-   ═══════════════════════════════════════════════ */
+/* Sean Lewis — Bold & Expressive Portfolio */
 
-/* --- Font Import --- */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
-/* --- CSS Variables (matching budget app palette) --- */
 :root {
-  --bg-primary: #0d1117;
-  --bg-secondary: #121820;
-  --bg-card: #161d27;
-  --bg-card-hover: #1c2533;
-  --text-primary: #d8dee9;
-  --text-secondary: #8899aa;
-  --text-muted: #5a6b7d;
-  --accent: #2dd4a8;
-  --accent-bright: #5ce0b8;
-  --accent-light: #8aecd0;
-  --accent-glow: rgba(45, 212, 168, 0.2);
-  --cyan: #06b6d4;
-  --border: #1e2a38;
-  --border-light: #2a3848;
-  --white: #ffffff;
+  --bg: #0f0f1a;
+  --bg-card: #1a1a2e;
+  --bg-card-hover: #222240;
+  --text: #e8e6f0;
+  --text-dim: #9896a8;
+  --text-muted: #6b6980;
+  --seafoam: #2dd4a8;
+  --seafoam-bright: #5ce0b8;
+  --coral: #ff6b6b;
+  --purple: #a78bfa;
+  --border: #2a2a42;
+  --border-hover: #3d3d5c;
   --radius: 12px;
-  --radius-lg: 16px;
 }
 
-/* ─── Reset & Global ─── */
+/* ── Base ── */
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: var(--bg-primary) !important;
-  color: var(--text-primary) !important;
-  line-height: 1.6;
+  font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
+  color: var(--text);
+  letter-spacing: -0.03em;
 }
 
 h1 { font-weight: 800; }
 
-a {
-  color: var(--accent);
-  transition: color 0.2s;
-}
-a:hover {
-  color: var(--accent-light);
-}
+a { color: var(--seafoam); transition: color 0.2s; }
+a:hover { color: var(--seafoam-bright); }
 
-p { color: var(--text-secondary); }
+p { color: var(--text-dim); }
 
 html { scroll-behavior: smooth; }
 
-/* ─── Navbar ─── */
-.navbar {
-  background: rgba(13, 17, 23, 0.85) !important;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border) !important;
-  padding: 0.5rem 1.5rem;
-  position: relative;
-  z-index: 100;
+::selection {
+  background: rgba(45, 212, 168, 0.3);
+  color: #fff;
 }
 
-/* Animated wave underline on navbar */
-.navbar::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  width: 200%;
-  height: 3px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 12' preserveAspectRatio='none'%3E%3Cpath d='M0,6 C100,2 200,10 300,6 C400,2 500,10 600,6 C700,2 800,10 900,6 C1000,2 1100,10 1200,6' stroke='%232dd4a8' stroke-width='2' fill='none' opacity='0.5'/%3E%3C/svg%3E");
-  background-size: 300px 3px;
-  animation: wave1 6s linear infinite;
-  z-index: 10;
+/* ── Navbar ── */
+.navbar {
+  background: rgba(15, 15, 26, 0.92) !important;
+  border-bottom: 1px solid var(--border) !important;
+  padding: 0.5rem 1.5rem;
 }
 
 .navbar-brand, .navbar-title {
-  color: var(--white) !important;
+  color: #fff !important;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 1.2rem;
   font-weight: 800;
   letter-spacing: -0.03em;
 }
 
 .navbar-nav .nav-link {
-  color: var(--text-secondary) !important;
+  color: var(--text-dim) !important;
   font-weight: 500;
   font-size: 0.9rem;
   padding: 0.4rem 0.9rem !important;
@@ -100,252 +73,18 @@ html { scroll-behavior: smooth; }
 }
 
 .navbar-nav .nav-link:hover {
-  color: var(--text-primary) !important;
+  color: var(--text) !important;
   background: rgba(45, 212, 168, 0.08);
 }
 
-.navbar-nav .nav-link.active {
-  color: var(--accent) !important;
-}
+.navbar-nav .nav-link.active { color: var(--seafoam) !important; }
+.navbar .bi { font-size: 1.1rem; }
 
-.navbar .bi {
-  font-size: 1.1rem;
-}
-
-/* ═══════════════════════════════════════
-   WAVE & OCEAN KEYFRAMES
-   One Piece Grand Line Theme
-   ═══════════════════════════════════════ */
-
-@keyframes wave1 {
-  0% { transform: translateX(0) translateZ(0) scaleY(1); }
-  50% { transform: translateX(-25%) translateZ(0) scaleY(0.55); }
-  100% { transform: translateX(-50%) translateZ(0) scaleY(1); }
-}
-
-@keyframes wave2 {
-  0% { transform: translateX(0) translateZ(0) scaleY(1); }
-  50% { transform: translateX(25%) translateZ(0) scaleY(0.45); }
-  100% { transform: translateX(50%) translateZ(0) scaleY(1); }
-}
-
-@keyframes oceanGradient {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 20px rgba(45, 212, 168, 0.3), 0 0 40px rgba(45, 212, 168, 0.1); }
-  50% { box-shadow: 0 0 35px rgba(45, 212, 168, 0.5), 0 0 70px rgba(45, 212, 168, 0.2); }
-}
-
-@keyframes compassSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes sparkle {
-  0%, 100% { opacity: 0; transform: scale(0); }
-  50% { opacity: 1; transform: scale(1); }
-}
-
+/* ── Animations ── */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(30px); }
+  from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
-@keyframes fadeInScale {
-  from { opacity: 0; transform: scale(0.8); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-/* ═══════════════════════════════════════
-   ABOUT PAGE — HERO SECTION
-   Big glow + ocean waves + dramatic entrance
-   ═══════════════════════════════════════ */
-
-/* Dark ocean background with shifting gradient */
-.quarto-about-jolla {
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(
-    180deg,
-    var(--bg-primary) 0%,
-    #0a1420 40%,
-    #0d1a28 70%,
-    #0f1e2f 100%
-  );
-  background-size: 200% 200%;
-  animation: oceanGradient 15s ease-in-out infinite;
-  min-height: 100vh;
-}
-
-/* === THE BIG GLOW (like budget app hero-glow) — follows mouse === */
-.quarto-about-jolla::before {
-  content: '';
-  position: absolute;
-  top: var(--glow-y, -100px);
-  left: var(--glow-x, 50%);
-  transform: translateX(-50%);
-  width: 900px;
-  height: 700px;
-  background: radial-gradient(ellipse, rgba(45, 212, 168, 0.15) 0%, rgba(6, 182, 212, 0.08) 40%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-  transition: top 0.3s ease-out, left 0.3s ease-out;
-  animation: float 8s ease-in-out infinite;
-}
-
-/* === OCEAN WAVES at bottom === */
-.quarto-about-jolla::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 200%;
-  height: 100px;
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,60 C200,100 400,20 600,60 C800,100 1000,20 1200,60 L1200,120 L0,120 Z' fill='%232dd4a8' fill-opacity='0.06'/%3E%3C/svg%3E"),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,80 C150,40 350,100 600,60 C850,20 1050,90 1200,50 L1200,120 L0,120 Z' fill='%2306b6d4' fill-opacity='0.04'/%3E%3C/svg%3E");
-  background-size: 600px 100px, 500px 100px;
-  animation: wave1 8s linear infinite;
-  z-index: 0;
-  pointer-events: none;
-}
-
-/* Content z-index layering */
-.quarto-about-jolla .about-entity {
-  position: relative;
-  z-index: 1;
-  padding: 3rem 1rem;
-}
-
-.quarto-about-jolla .about-contents {
-  position: relative;
-  z-index: 1;
-}
-
-/* === HEADSHOT — dramatic entrance + glow ring === */
-.about-entity .about-image {
-  border-radius: 50%;
-  border: 3px solid rgba(45, 212, 168, 0.4);
-  box-shadow: 0 0 30px rgba(45, 212, 168, 0.2), 0 0 60px rgba(45, 212, 168, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  animation: fadeInScale 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both,
-             pulseGlow 4s ease-in-out 2s infinite;
-}
-
-.about-entity .about-image:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 50px rgba(45, 212, 168, 0.4), 0 0 90px rgba(45, 212, 168, 0.15);
-}
-
-/* === Title & heading colors for dark bg === */
-.about-entity .about-heading,
-.quarto-about-jolla .about-entity h2 {
-  color: var(--text-primary) !important;
-  animation: fadeInUp 0.6s ease-out 0.4s both;
-}
-
-/* === Gradient text on title === */
-.quarto-about-jolla .about-entity .about-heading {
-  background: linear-gradient(135deg, #5ce0b8, #8aecd0, #7eb8e0);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-size: 2rem;
-}
-
-/* === Social link buttons — dark card style like budget app === */
-.about-entity .about-link {
-  background: var(--bg-card) !important;
-  color: var(--text-primary) !important;
-  border: 1px solid var(--border-light);
-  border-radius: 10px;
-  padding: 0.5rem 1.3rem;
-  font-weight: 600;
-  font-size: 0.85rem;
-  transition: all 0.2s;
-  text-decoration: none;
-  opacity: 0;
-  animation: fadeInUp 0.5s ease-out both;
-}
-
-.about-entity .about-links a:nth-child(1) { animation-delay: 0.7s; }
-.about-entity .about-links a:nth-child(2) { animation-delay: 0.85s; }
-
-.about-entity .about-link:hover {
-  border-color: var(--accent);
-  background: var(--bg-card-hover) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px var(--accent-glow);
-}
-
-/* === Straw Hat (injected via JS into .quarto-about-jolla) === */
-.straw-hat {
-  position: absolute;
-  bottom: 30px;
-  right: 30px;
-  z-index: 2;
-  pointer-events: none;
-  opacity: 0.6;
-  transform: rotate(12deg) perspective(300px) rotateX(8deg);
-  transition: opacity 0.4s, transform 0.4s;
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4))
-          drop-shadow(0 1px 4px rgba(212, 163, 71, 0.2));
-}
-
-.quarto-about-jolla:hover .straw-hat {
-  opacity: 0.9;
-  transform: rotate(8deg) perspective(300px) rotateX(5deg) translateY(-4px);
-  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.5))
-          drop-shadow(0 2px 8px rgba(212, 163, 71, 0.3));
-}
-
-/* === Bio text styling === */
-.quarto-about-jolla .about-contents p {
-  color: var(--text-secondary);
-  line-height: 1.7;
-}
-
-.quarto-about-jolla .about-contents blockquote {
-  border-left: 3px solid var(--accent) !important;
-  background: rgba(45, 212, 168, 0.05);
-  border-radius: 0 var(--radius) var(--radius) 0;
-  padding: 1rem 1.5rem;
-  margin: 1.5rem 0;
-}
-
-.quarto-about-jolla .about-contents blockquote p {
-  color: var(--text-secondary);
-}
-
-/* === Typing subtitle === */
-.typing-subtitle {
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--accent-light);
-  display: inline-block;
-  background: rgba(45, 212, 168, 0.08);
-  border: 1px solid rgba(45, 212, 168, 0.15);
-  padding: 0.35rem 1rem;
-  border-radius: 20px;
-  margin: 0 auto 1.5rem;
-  letter-spacing: 0.02em;
-  opacity: 0;
-  animation: fadeInUp 0.6s ease-out 0.5s both;
-}
-
-/* ═══════════════════════════════════════
-   SCROLL-TRIGGERED ANIMATIONS
-   (JS adds .animate-in, removes on scroll)
-   ═══════════════════════════════════════ */
 
 .animate-in {
   opacity: 0;
@@ -358,96 +97,184 @@ html { scroll-behavior: smooth; }
   transform: translateY(0);
 }
 
-/* ═══════════════════════════════════════
-   PAGE CONTENT — dark backgrounds
-   ═══════════════════════════════════════ */
-
-#quarto-content {
-  background: var(--bg-primary) !important;
+/* ── About Page (jolla template) ── */
+.quarto-about-jolla {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+  min-height: 100vh;
 }
 
-main.content {
-  color: var(--text-primary);
+/* Gradient orb background — static, no mouse tracking */
+.quarto-about-jolla::before {
+  content: '';
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 600px;
+  background: radial-gradient(ellipse,
+    rgba(45, 212, 168, 0.12) 0%,
+    rgba(167, 139, 250, 0.06) 50%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
 }
 
-/* Title banners (Blog, Projects pages) */
+.quarto-about-jolla .about-entity,
+.quarto-about-jolla .about-contents {
+  position: relative;
+  z-index: 1;
+}
+
+.quarto-about-jolla .about-entity {
+  padding: 3rem 1rem;
+}
+
+/* Headshot */
+.about-entity .about-image {
+  border-radius: 50%;
+  border: 3px solid rgba(45, 212, 168, 0.35);
+  box-shadow: 0 0 30px rgba(45, 212, 168, 0.15);
+  transition: transform 0.3s, box-shadow 0.3s;
+  animation: fadeInUp 0.7s ease-out 0.1s both;
+}
+
+.about-entity .about-image:hover {
+  transform: scale(1.04);
+  box-shadow: 0 0 50px rgba(45, 212, 168, 0.25);
+}
+
+/* Name — gradient text */
+.quarto-about-jolla .about-entity .about-heading {
+  background: linear-gradient(135deg, var(--seafoam), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  animation: fadeInUp 0.6s ease-out 0.25s both;
+}
+
+/* Subtitle badge */
+.typing-subtitle {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--coral);
+  display: inline-block;
+  background: rgba(255, 107, 107, 0.08);
+  border: 1px solid rgba(255, 107, 107, 0.2);
+  padding: 0.35rem 1rem;
+  border-radius: 20px;
+  margin: 0 auto 1.5rem;
+  animation: fadeInUp 0.6s ease-out 0.4s both;
+}
+
+/* Social buttons */
+.about-entity .about-link {
+  background: var(--bg-card) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.5rem 1.3rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  text-decoration: none;
+  opacity: 0;
+  animation: fadeInUp 0.5s ease-out both;
+}
+
+.about-entity .about-links a:nth-child(1) { animation-delay: 0.55s; }
+.about-entity .about-links a:nth-child(2) { animation-delay: 0.65s; }
+
+.about-entity .about-link:hover {
+  border-color: var(--seafoam);
+  background: var(--bg-card-hover) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(45, 212, 168, 0.15);
+}
+
+/* Bio */
+.quarto-about-jolla .about-contents p {
+  color: var(--text-dim);
+  line-height: 1.75;
+}
+
+.quarto-about-jolla .about-contents blockquote {
+  border-left: 3px solid var(--coral) !important;
+  background: rgba(255, 107, 107, 0.04);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.quarto-about-jolla .about-contents blockquote p {
+  color: var(--text-dim);
+}
+
+/* ── Page Content ── */
+#quarto-content { background: var(--bg) !important; }
+main.content { color: var(--text); }
+
 .quarto-title > h1,
 .quarto-title .title {
   font-size: clamp(2rem, 5vw, 2.8rem);
-  font-weight: 800;
-  color: var(--text-primary) !important;
+  color: var(--text) !important;
   letter-spacing: -0.03em;
 }
 
 .quarto-title-block .quarto-title-banner {
-  background: var(--bg-secondary) !important;
+  background: #14142a !important;
   border-bottom: 1px solid var(--border);
 }
 
 .quarto-title-block .quarto-title-banner h1,
 .quarto-title-block .quarto-title-banner .title {
-  color: var(--text-primary) !important;
+  color: var(--text) !important;
 }
 
-/* ═══════════════════════════════════════
-   BLOG LISTING — dark card style
-   ═══════════════════════════════════════ */
-
+/* ── Blog Listing ── */
 .quarto-listing { margin-top: 1.5rem; }
 
 div.quarto-post {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
   padding: 1.5rem;
   margin-bottom: 1rem;
-  transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 
 div.quarto-post:hover {
-  border-color: var(--border-light);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  border-color: var(--border-hover);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
-div.quarto-post .listing-title {
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-div.quarto-post .listing-title a {
-  color: var(--text-primary);
-  text-decoration: none;
-}
-
-div.quarto-post .listing-title a:hover {
-  color: var(--accent);
-}
-
-div.quarto-post .listing-description {
-  color: var(--text-secondary);
-}
+div.quarto-post .listing-title { font-weight: 700; color: var(--text); }
+div.quarto-post .listing-title a { color: var(--text); text-decoration: none; }
+div.quarto-post .listing-title a:hover { color: var(--seafoam); }
+div.quarto-post .listing-description { color: var(--text-dim); }
 
 div.quarto-post .listing-categories .listing-category {
-  background: rgba(45, 212, 168, 0.1);
-  color: var(--accent-light);
-  border: 1px solid rgba(45, 212, 168, 0.2);
+  background: rgba(255, 107, 107, 0.1);
+  color: var(--coral);
+  border: 1px solid rgba(255, 107, 107, 0.2);
   border-radius: 6px;
   padding: 0.15rem 0.6rem;
   font-size: 0.75rem;
   font-weight: 500;
 }
 
-/* ═══════════════════════════════════════
-   PROJECT CARDS — matching budget app cards
-   ═══════════════════════════════════════ */
-
+/* ── Project Cards ── */
 .project-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
   padding: 2rem;
-  transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
   position: relative;
   overflow: hidden;
 }
@@ -455,36 +282,25 @@ div.quarto-post .listing-categories .listing-category {
 .project-card::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 0; left: 0; right: 0;
   height: 3px;
-  background: linear-gradient(90deg, var(--accent), var(--cyan));
+  background: linear-gradient(90deg, var(--seafoam), var(--purple));
 }
 
 .project-card:hover {
-  border-color: var(--border-light);
+  border-color: var(--border-hover);
   transform: translateY(-3px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
-.project-card h3 {
-  font-size: 1.3rem;
-  margin-bottom: 0.6rem;
-  color: var(--text-primary);
-}
-
-.project-card p {
-  color: var(--text-secondary);
-  line-height: 1.6;
-  font-size: 0.95rem;
-}
+.project-card h3 { font-size: 1.3rem; margin-bottom: 0.6rem; }
+.project-card p { color: var(--text-dim); line-height: 1.65; font-size: 0.95rem; }
 
 .project-card .tech-tag {
   display: inline-block;
-  background: rgba(45, 212, 168, 0.1);
-  color: var(--accent-light);
-  border: 1px solid rgba(45, 212, 168, 0.2);
+  background: rgba(167, 139, 250, 0.1);
+  color: var(--purple);
+  border: 1px solid rgba(167, 139, 250, 0.2);
   border-radius: 6px;
   padding: 0.15rem 0.6rem;
   font-size: 0.75rem;
@@ -497,8 +313,8 @@ div.quarto-post .listing-categories .listing-category {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--accent);
-  color: var(--bg-primary);
+  background: var(--seafoam);
+  color: var(--bg);
   border: none;
   border-radius: 10px;
   padding: 0.55rem 1.3rem;
@@ -510,71 +326,45 @@ div.quarto-post .listing-categories .listing-category {
 }
 
 .project-card .btn-project:hover {
-  background: #4ad4a6;
+  background: var(--seafoam-bright);
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px var(--accent-glow);
-  color: var(--bg-primary);
+  box-shadow: 0 4px 16px rgba(45, 212, 168, 0.2);
+  color: var(--bg);
 }
 
-/* ═══════════════════════════════════════
-   SECTION HEADERS
-   ═══════════════════════════════════════ */
-
-.projects-header {
-  text-align: center;
-  margin-bottom: 2.5rem;
-}
-
+/* ── Section Headers ── */
+.projects-header { text-align: center; margin-bottom: 2.5rem; }
 .projects-header h2 {
   font-size: clamp(1.6rem, 4vw, 2.2rem);
-  font-weight: 700;
-  color: var(--text-primary);
   margin-bottom: 0.5rem;
-  letter-spacing: -0.02em;
 }
-
-.projects-header p {
-  color: var(--text-secondary);
-  font-size: 1rem;
-  max-width: 500px;
-  margin: 0 auto;
-}
-
+.projects-header p { color: var(--text-dim); max-width: 500px; margin: 0 auto; }
 .projects-header .accent-line {
-  width: 50px;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent), var(--cyan));
+  width: 50px; height: 3px;
+  background: linear-gradient(90deg, var(--seafoam), var(--coral));
   border-radius: 2px;
   margin: 0.8rem auto;
 }
 
-/* ═══════════════════════════════════════
-   CODE BLOCKS
-   ═══════════════════════════════════════ */
-
+/* ── Code Blocks ── */
 pre.sourceCode {
-  background: var(--bg-secondary) !important;
+  background: #14142a !important;
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
 
-pre.sourceCode code {
-  font-size: 0.85rem;
-}
+pre.sourceCode code { font-size: 0.85rem; }
 
 code {
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.85em;
-  background: rgba(45, 212, 168, 0.1);
-  color: var(--accent-light);
+  background: rgba(167, 139, 250, 0.1);
+  color: var(--purple);
   padding: 2px 6px;
   border-radius: 4px;
 }
 
-/* ═══════════════════════════════════════
-   TABLE OF CONTENTS
-   ═══════════════════════════════════════ */
-
+/* ── Table of Contents ── */
 nav#TOC a {
   color: var(--text-muted);
   border-left: 2px solid transparent;
@@ -583,115 +373,33 @@ nav#TOC a {
 
 nav#TOC a:hover,
 nav#TOC a.active {
-  color: var(--accent);
-  border-left-color: var(--accent);
+  color: var(--seafoam);
+  border-left-color: var(--seafoam);
 }
 
-/* ═══════════════════════════════════════
-   FOOTER
-   ═══════════════════════════════════════ */
-
+/* ── Footer ── */
 .nav-footer {
-  background: var(--bg-primary) !important;
+  background: var(--bg) !important;
   border-top: 1px solid var(--border) !important;
   color: var(--text-muted);
-  position: relative;
-  overflow: hidden;
 }
 
-/* Wave on footer top */
-.nav-footer::before {
-  content: '';
-  position: absolute;
-  top: -1px;
-  left: 0;
-  width: 200%;
-  height: 3px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 12' preserveAspectRatio='none'%3E%3Cpath d='M0,6 C100,2 200,10 300,6 C400,2 500,10 600,6 C700,2 800,10 900,6 C1000,2 1100,10 1200,6' stroke='%232dd4a8' stroke-width='2' fill='none' opacity='0.4'/%3E%3C/svg%3E");
-  background-size: 300px 3px;
-  animation: wave2 8s linear infinite;
-  z-index: 10;
-}
+.nav-footer a { color: var(--text-muted) !important; transition: color 0.2s; }
+.nav-footer a:hover { color: var(--text) !important; }
 
-.nav-footer a {
-  color: var(--text-muted) !important;
-  transition: color 0.2s;
-}
-
-.nav-footer a:hover {
-  color: var(--text-primary) !important;
-}
-
-/* ═══════════════════════════════════════
-   SELECTION
-   ═══════════════════════════════════════ */
-
-::selection {
-  background: rgba(45, 212, 168, 0.3);
-  color: var(--white);
-}
-
-/* ═══════════════════════════════════════
-   OCEAN SPARKLE PARTICLES (CSS-only)
-   ═══════════════════════════════════════ */
-
-.quarto-about-jolla .about-entity .about-links {
-  position: relative;
-}
-
-.quarto-about-jolla .about-entity .about-links::before {
-  content: '';
-  position: absolute;
-  top: -100px;
-  right: 15%;
-  width: 6px;
-  height: 6px;
-  background: var(--accent);
-  border-radius: 50%;
-  animation: sparkle 3s ease-in-out 2s infinite;
-  pointer-events: none;
-}
-
-/* ═══════════════════════════════════════
-   ACCESSIBILITY
-   ═══════════════════════════════════════ */
-
+/* ── Accessibility ── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  .animate-in {
-    opacity: 1;
-    transform: none;
-  }
+  .animate-in { opacity: 1; transform: none; }
 }
 
-/* ═══════════════════════════════════════
-   RESPONSIVE
-   ═══════════════════════════════════════ */
-
+/* ── Responsive ── */
 @media (max-width: 768px) {
-  .project-card {
-    padding: 1.5rem;
-  }
-
-  .straw-hat {
-    display: none;
-  }
-
-  .quarto-about-jolla::before {
-    width: 500px;
-    height: 400px;
-  }
-
-  .quarto-about-jolla::after {
-    height: 60px;
-    background-size: 400px 60px;
-  }
-
-  .typing-subtitle {
-    font-size: 0.85rem;
-  }
+  .project-card { padding: 1.5rem; }
+  .quarto-about-jolla::before { width: 400px; height: 350px; }
+  .typing-subtitle { font-size: 0.85rem; }
 }

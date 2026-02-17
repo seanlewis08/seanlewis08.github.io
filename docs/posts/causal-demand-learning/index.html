@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Sean Lewis">
+<meta name="dcterms.date" content="2026-02-14">
+<meta name="description" content="A deep dive into DCMOML — a new framework that fixes the hidden confounding problem in multi-task demand learning. When historical prices reflect human decisions, standard meta-learners learn the policy, not the demand curve.">
+
+<title>Your Pricing Model Is Learning the Manager, Not the Market — How to Fix Multi-Task Demand Estimation – Sean Lewis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Sean Lewis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../projects.html"> 
+<span class="menu-text">Projects</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/seanlewis08"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/selew/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-hook" id="toc-the-hook" class="nav-link active" data-scroll-target="#the-hook">The Hook</a></li>
+  <li><a href="#the-argument" id="toc-the-argument" class="nav-link" data-scroll-target="#the-argument">The Argument</a>
+  <ul class="collapse">
+  <li><a href="#why-standard-approaches-fail" id="toc-why-standard-approaches-fail" class="nav-link" data-scroll-target="#why-standard-approaches-fail">Why Standard Approaches Fail</a></li>
+  <li><a href="#the-fix-dcmoml" id="toc-the-fix-dcmoml" class="nav-link" data-scroll-target="#the-fix-dcmoml">The Fix: DCMOML</a></li>
+  </ul></li>
+  <li><a href="#the-lineage" id="toc-the-lineage" class="nav-link" data-scroll-target="#the-lineage">The Lineage</a></li>
+  <li><a href="#the-deep-dive" id="toc-the-deep-dive" class="nav-link" data-scroll-target="#the-deep-dive">The Deep Dive</a>
+  <ul class="collapse">
+  <li><a href="#the-architecture" id="toc-the-architecture" class="nav-link" data-scroll-target="#the-architecture">The Architecture</a></li>
+  <li><a href="#the-results" id="toc-the-results" class="nav-link" data-scroll-target="#the-results">The Results</a></li>
+  <li><a href="#rubber-ducking-the-jargon" id="toc-rubber-ducking-the-jargon" class="nav-link" data-scroll-target="#rubber-ducking-the-jargon">Rubber-Ducking the Jargon</a></li>
+  </ul></li>
+  <li><a href="#so-what" id="toc-so-what" class="nav-link" data-scroll-target="#so-what">So What?</a></li>
+  <li><a href="#reproduction-implementation" id="toc-reproduction-implementation" class="nav-link" data-scroll-target="#reproduction-implementation">Reproduction &amp; Implementation</a>
+  <ul class="collapse">
+  <li><a href="#environment-setup" id="toc-environment-setup" class="nav-link" data-scroll-target="#environment-setup">Environment Setup</a></li>
+  <li><a href="#pseudo-code-dcmoml-training-loop" id="toc-pseudo-code-dcmoml-training-loop" class="nav-link" data-scroll-target="#pseudo-code-dcmoml-training-loop">Pseudo-Code: DCMOML Training Loop</a></li>
+  <li><a href="#core-identification-logic-theorem-1-intuition" id="toc-core-identification-logic-theorem-1-intuition" class="nav-link" data-scroll-target="#core-identification-logic-theorem-1-intuition">Core Identification Logic (Theorem 1 Intuition)</a></li>
+  <li><a href="#resource-links" id="toc-resource-links" class="nav-link" data-scroll-target="#resource-links">Resource Links</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Your Pricing Model Is Learning the Manager, Not the Market — How to Fix Multi-Task Demand Estimation</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">Causal Inference</div>
+    <div class="quarto-category">Pricing</div>
+    <div class="quarto-category">Meta-Learning</div>
+    <div class="quarto-category">Econometrics</div>
+    <div class="quarto-category">Paper Review</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    A deep dive into DCMOML — a new framework that fixes the hidden confounding problem in multi-task demand learning. When historical prices reflect human decisions, standard meta-learners learn the policy, not the demand curve.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Sean Lewis </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">February 14, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="the-hook" class="level2">
+<h2 class="anchored" data-anchor-id="the-hook">The Hook</h2>
+<p>Imagine you’re a data scientist at a retail chain with 10,000 products across 500 stores. You want to estimate how price affects demand for each product-store combination. The problem: each combination has maybe 3-5 historical price points. Way too few to estimate anything individually.</p>
+<p>The obvious solution is <strong>multi-task learning</strong> — pool information across similar product-store pairs, learn shared structure, and let the model borrow strength where individual data is thin. This is textbook. Everyone does it.</p>
+<p>Here’s the catch that almost nobody talks about: <strong>the prices in your historical data aren’t random.</strong> They were set by category managers, pricing algorithms, or markdown rules that <em>responded to information you can’t observe</em> — supplier negotiations, competitive intelligence, inventory pressure, gut feel. Those unobserved factors also affect demand. Which means your prices are <strong>endogenous</strong> — correlated with the error term in your demand equation.</p>
+<p>And here’s the punchline: when you pool endogenous data across tasks in a meta-learner, the bias doesn’t wash out. <strong>It compounds.</strong> Your model learns the <em>policy that generated the prices</em>, not the <em>causal relationship between price and demand</em>. The more data you add, the more confidently wrong you get.</p>
+<p>A new paper by Varun Gupta (University of Utah) and Vijay Kamble (University of Illinois Chicago), <strong>“Causal Identification in Multi-Task Demand Learning with Confounding”</strong>, cracks this problem open. They prove exactly <em>why</em> standard approaches fail, and propose a deceptively simple fix called <strong>DCMOML</strong> — Decision-Conditioned Masked-Outcome Meta-Learning — that achieves causal identification without instruments, without randomized experiments, and without knowing the confounding structure.</p>
+</section>
+<section id="the-argument" class="level2">
+<h2 class="anchored" data-anchor-id="the-argument">The Argument</h2>
+<section id="why-standard-approaches-fail" class="level3">
+<h3 class="anchored" data-anchor-id="why-standard-approaches-fail">Why Standard Approaches Fail</h3>
+<p>To understand the contribution, you need to see the trap clearly.</p>
+<p>In a standard linear demand model, demand for task <span class="math inline">\(i\)</span> at price <span class="math inline">\(p\)</span> is:</p>
+<p><span class="math display">\[D_i(p) = \alpha_i + \theta_i \cdot p + \epsilon\]</span></p>
+<p>where <span class="math inline">\(\theta_i\)</span> is the <strong>causal price elasticity</strong> you want to learn, <span class="math inline">\(\alpha_i\)</span> is a task-specific intercept, and <span class="math inline">\(\epsilon\)</span> is noise. The parameters <span class="math inline">\((\alpha_i, \theta_i)\)</span> vary across tasks but are drawn from some shared distribution conditioned on observable covariates <span class="math inline">\(X_i\)</span>.</p>
+<p>The problem is that the manager setting the price <em>knows something about</em> <span class="math inline">\(\alpha_i\)</span> (and maybe <span class="math inline">\(\theta_i\)</span>) that you don’t observe. If a store has high baseline demand (high <span class="math inline">\(\alpha_i\)</span>), the manager might set a higher price. This creates a spurious positive correlation between price and demand <em>through the manager’s decision</em>, masking the true negative causal effect of price on demand.</p>
+<p><strong>Pooled regression</strong> (throwing all data into one big regression) treats this confounding as if it were signal. It learns a biased average elasticity.</p>
+<p><strong>Standard meta-learning</strong> (e.g., MAML, neural processes, or even simple mixed-effects models) is subtler but equally doomed. The meta-learner sees that tasks with higher prices tend to have higher demand (because managers price high when they know demand is high). It learns to <em>predict</em> demand by implicitly reconstructing the manager’s information — which is exactly the confounding you needed to remove.</p>
+<p>The authors call this <strong>confounding by latent fundamentals</strong> and prove that under this setting, both pooled regression and meta-learners converge to the wrong answer, even with infinite data.</p>
+</section>
+<section id="the-fix-dcmoml" class="level3">
+<h3 class="anchored" data-anchor-id="the-fix-dcmoml">The Fix: DCMOML</h3>
+<p>The key insight behind DCMOML is a two-part trick:</p>
+<p><strong>Part 1 — Condition on the full price history.</strong> If you show the model <em>all</em> the prices that were set for a given task, you’re effectively revealing the manager’s information set. Conditioning on the price sequence absorbs the confounding — similar in spirit to how controlling for a confounder in regression removes bias.</p>
+<p><strong>Part 2 — But mask the demand outcomes at critical points.</strong> Here’s the problem with Part 1 alone: if the model sees both the prices <em>and</em> the demands at those prices, it can trivially predict the demand at the query price by just looking it up. It doesn’t need to learn the causal relationship at all — it can memorize.</p>
+<p>So DCMOML picks <strong>two</strong> candidate query price points, reveals their prices to the model but <strong>hides their demand outcomes</strong>, and then randomly designates one as the actual query. Because the model can’t distinguish which masked point is the query, it’s forced to learn a function that generalizes — and the authors prove this function converges to the <strong>causal conditional mean</strong> <span class="math inline">\(E[\theta_i | X_i]\)</span>.</p>
+<p>This is elegant because it requires no instrumental variables, no randomized experiments, and no structural assumptions about the confounding mechanism. The only assumption (Assumption 1 in the paper) is that the <em>final</em> price in each task’s history doesn’t causally depend on the demand observed at the <em>penultimate</em> distinct price point. This is satisfied whenever prices are set non-adaptively (common in retail markdown schedules) or when the firm uses a simple two-point experimentation scheme.</p>
+</section>
+</section>
+<section id="the-lineage" class="level2">
+<h2 class="anchored" data-anchor-id="the-lineage">The Lineage</h2>
+<p>This paper sits at the intersection of three research threads that have been running in parallel:</p>
+<p><strong>Causal inference in pricing / demand estimation</strong> — The endogeneity problem in demand estimation is ancient (it goes back to the simultaneous equations problem in econometrics from the 1940s-50s). The classical fix is instrumental variables (IV): find something that shifts prices but doesn’t directly affect demand. But good instruments are hard to find in practice, especially at the granular product-store level. Recent work has explored panel data methods, shift-share instruments, and synthetic control, but all require structural assumptions that may not hold.</p>
+<p><strong>Meta-learning and multi-task learning</strong> — The machine learning community has built increasingly sophisticated methods for borrowing strength across related tasks: MAML, neural processes, multi-output GPs, hypernetworks. But almost all of this literature assumes the training data within each task is generated by the same process the model will face at test time — i.e., no distribution shift from endogenous data collection. The authors show this assumption is silently violated in pricing contexts.</p>
+<p><strong>Online learning and dynamic pricing</strong> — There’s a rich operations research literature on pricing algorithms that learn demand curves while simultaneously setting prices (explore/exploit). These algorithms handle endogeneity by <em>controlling</em> the price-setting process. But DCMOML solves a different problem: learning from <em>historical</em> data where someone else set the prices, and you have no ability to run new experiments.</p>
+<p>The tension the paper resolves: the ML community has the multi-task learning tools but ignores endogeneity. The econometrics community understands endogeneity but doesn’t leverage multi-task structure. DCMOML bridges the gap.</p>
+</section>
+<section id="the-deep-dive" class="level2">
+<h2 class="anchored" data-anchor-id="the-deep-dive">The Deep Dive</h2>
+<section id="the-architecture" class="level3">
+<h3 class="anchored" data-anchor-id="the-architecture">The Architecture</h3>
+<p>Here’s the DCMOML process flow:</p>
+<pre><code>┌──────────────────────────────────────────────────────────┐
+│                  TRAINING: Task i                         │
+│                                                          │
+│  Historical data: {(p₁, d₁), (p₂, d₂), ..., (pₜ, dₜ)} │
+│  Covariates: Xᵢ                                         │
+└────────────────────────┬─────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────┐
+│          STEP 1: Select Two Candidate Query Points       │
+│                                                          │
+│  Pick two distinct price points from the history:        │
+│    pⱼ and pₖ  (the last two distinct prices)            │
+│                                                          │
+│  Randomly assign one as the QUERY, one as the DECOY     │
+└────────────────────────┬─────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────┐
+│       STEP 2: Build the Context Set (What Model Sees)    │
+│                                                          │
+│  ✅ Covariates Xᵢ                                       │
+│  ✅ Full price sequence: (p₁, p₂, ..., pₜ)             │
+│  ✅ Demand at NON-masked prices: (d₁, ..., dₜ₋₂)       │
+│  ✅ Prices at masked points: pⱼ, pₖ (revealed)         │
+│  ❌ Demands at masked points: dⱼ, dₖ (HIDDEN)          │
+│                                                          │
+│  Query input: one of {pⱼ, pₖ} chosen at random         │
+└────────────────────────┬─────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────┐
+│         STEP 3: Meta-Learner Predicts Demand             │
+│                                                          │
+│  Model must predict d(query_price) using:                │
+│   - The context set above                                │
+│   - It CANNOT distinguish query from decoy               │
+│   - Forced to learn generalizable price → demand map     │
+│                                                          │
+│  Loss = MSE( predicted_demand, true_demand )             │
+└────────────────────────┬─────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────┐
+│              RESULT: Causal Identification                │
+│                                                          │
+│  Theorem 1: Optimal predictor converges to               │
+│    E[Θᵢ | Xᵢ] · p + E[αᵢ | Xᵢ]                        │
+│                                                          │
+│  → The TRUE causal conditional mean, not the             │
+│    policy-confounded estimate                            │
+└──────────────────────────────────────────────────────────┘</code></pre>
+<p>The critical subtlety: <strong>masking two points and randomizing the query</strong> is what makes this work. If you only masked one point, the model would know exactly which price is the query and could exploit the correlation between that price and the latent demand fundamentals. With two masked points and random assignment, the model faces genuine uncertainty — and the only way to minimize loss under that uncertainty is to learn the causal relationship.</p>
+</section>
+<section id="the-results" class="level3">
+<h3 class="anchored" data-anchor-id="the-results">The Results</h3>
+<section id="synthetic-experiments" class="level4">
+<h4 class="anchored" data-anchor-id="synthetic-experiments">Synthetic Experiments</h4>
+<p>The authors test under controlled confounding with known ground-truth elasticities. They vary the <strong>confounding strength</strong> <span class="math inline">\(\gamma\)</span> from 0 (no confounding) to 4 (severe confounding):</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Method</th>
+<th><span class="math inline">\(\gamma = 0\)</span></th>
+<th><span class="math inline">\(\gamma = 1\)</span></th>
+<th><span class="math inline">\(\gamma = 2\)</span></th>
+<th><span class="math inline">\(\gamma = 4\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>DCMOML</strong></td>
+<td>~0.03</td>
+<td>~0.08</td>
+<td>~0.10</td>
+<td>~0.14</td>
+</tr>
+<tr class="even">
+<td>Pooled OLS</td>
+<td>~0.03</td>
+<td>~0.45</td>
+<td>~0.82</td>
+<td>~1.55</td>
+</tr>
+<tr class="odd">
+<td>Standard Meta-Learner</td>
+<td>~0.04</td>
+<td>~0.38</td>
+<td>~0.70</td>
+<td>~1.35</td>
+</tr>
+<tr class="even">
+<td>Meta-Learner (price-only context)</td>
+<td>~0.04</td>
+<td>~0.15</td>
+<td>~0.22</td>
+<td>~0.45</td>
+</tr>
+<tr class="odd">
+<td>IV (2SLS)</td>
+<td>~0.10</td>
+<td>~0.10</td>
+<td>~0.10</td>
+<td>~0.10</td>
+</tr>
+</tbody>
+</table>
+<p><em>(Values are approximate RMSE on causal parameter recovery from the paper’s Figure 2)</em></p>
+<p>The pattern is stark: as confounding increases, every standard method’s error explodes. DCMOML stays flat and low — comparable to IV estimation but <strong>without requiring an instrument</strong>. The standard meta-learner is actually <em>worse</em> than doing nothing clever (pooled OLS) at high confounding levels, because it more efficiently learns the wrong thing.</p>
+</section>
+<section id="real-data-uk-online-retail" class="level4">
+<h4 class="anchored" data-anchor-id="real-data-uk-online-retail">Real Data: UK Online Retail</h4>
+<p>On real transaction data from a UK online retailer (4,000+ products):</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>Static-Top3 RMSE</th>
+<th>Exposure-Sequence RMSE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>DCMOML</strong></td>
+<td><strong>0.534</strong></td>
+<td><strong>0.609</strong></td>
+</tr>
+<tr class="even">
+<td>Standard Meta-Learner</td>
+<td>0.541</td>
+<td>0.625</td>
+</tr>
+<tr class="odd">
+<td>Pooled OLS</td>
+<td>0.582</td>
+<td>0.653</td>
+</tr>
+<tr class="even">
+<td>MAML</td>
+<td>0.559</td>
+<td>0.637</td>
+</tr>
+</tbody>
+</table>
+<p>DCMOML achieves the lowest holdout RMSE on both evaluation protocols. The gains are modest in absolute terms (as expected with real data where confounding strength is unknown), but consistently in the right direction.</p>
+</section>
+</section>
+<section id="rubber-ducking-the-jargon" class="level3">
+<h3 class="anchored" data-anchor-id="rubber-ducking-the-jargon">Rubber-Ducking the Jargon</h3>
+<p>A few terms that might trip up readers outside econometrics:</p>
+<p><strong>Endogeneity</strong> — When your independent variable (price) is correlated with the error term (unobserved demand factors). In plain English: the thing you’re trying to study is tangled up with stuff you can’t see, and that tangle biases your estimates.</p>
+<p><strong>Confounding by latent fundamentals</strong> — The specific flavor of endogeneity in this paper. The “fundamentals” are task-level parameters <span class="math inline">\((\alpha_i, \theta_i)\)</span> that drive both demand <em>and</em> the manager’s pricing decisions. “Latent” means you don’t observe them directly. The manager acts on private information about these fundamentals, creating a spurious association in the data.</p>
+<p><strong>Instrumental variable (IV)</strong> — The classical econometric fix. Find a variable that affects price but has no direct effect on demand (a “valid instrument”). Classic examples: shipping costs, input costs, weather disruptions to supply. The problem: at the product-store level, good instruments are rare. DCMOML sidesteps the need for instruments entirely.</p>
+<p><strong>Causal identification</strong> — Proving that your estimation strategy recovers the <em>true causal effect</em>, not a confounded correlation. DCMOML achieves identification through its masking and randomization scheme, not through instruments or structural assumptions.</p>
+<p><strong>Meta-learning</strong> — Learning to learn. In this context: training a model on many tasks (product-store pairs) so it can quickly adapt to a new task with minimal data. The paper uses neural network-based meta-learners (specifically, architectures resembling conditional neural processes).</p>
+</section>
+</section>
+<section id="so-what" class="level2">
+<h2 class="anchored" data-anchor-id="so-what">So What?</h2>
+<p>This paper matters for anyone doing pricing analytics at scale. The dirty secret of most enterprise pricing models is that they’re trained on endogenous historical data and nobody checks whether the estimated elasticities are causal or confounded. Teams report elasticities, build optimization models on top of them, and make pricing decisions — all potentially based on estimates that reflect the <em>old policy</em>, not the <em>market</em>.</p>
+<p>DCMOML offers a practical fix that doesn’t require running expensive randomized pricing experiments or hunting for instrumental variables. You just need the historical price-demand data you already have, plus a meta-learning architecture with a specific masking scheme.</p>
+<p>The assumption cost is low: the last price in each task’s history can’t depend on demand observed at the second-to-last distinct price. For most retail settings with scheduled markdowns or periodic price reviews, this holds naturally.</p>
+<p>If you’re building demand estimation systems and you’ve been hand-waving away endogeneity, this paper is the wake-up call — and the solution — in one package.</p>
+<hr>
+<p><em>Paper: <a href="https://arxiv.org/abs/2602.09969">“Causal Identification in Multi-Task Demand Learning with Confounding”</a> by Varun Gupta and Vijay Kamble. arXiv:2602.09969, February 2026.</em></p>
+<hr>
+</section>
+<section id="reproduction-implementation" class="level2">
+<h2 class="anchored" data-anchor-id="reproduction-implementation">Reproduction &amp; Implementation</h2>
+<section id="environment-setup" class="level3">
+<h3 class="anchored" data-anchor-id="environment-setup">Environment Setup</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Core dependencies</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>pip install torch<span class="op">&gt;=</span><span class="fl">2.0.0</span>          <span class="co"># Neural network meta-learner</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>pip install numpy<span class="op">&gt;=</span><span class="fl">1.24.0</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>pip install pandas<span class="op">&gt;=</span><span class="fl">2.0.0</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>pip install scikit<span class="op">-</span>learn<span class="op">&gt;=</span><span class="fl">1.3.0</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>pip install matplotlib<span class="op">&gt;=</span><span class="fl">3.7.0</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>pip install statsmodels<span class="op">&gt;=</span><span class="fl">0.14.0</span>   <span class="co"># For IV/2SLS baselines</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>pip install linearmodels<span class="op">&gt;=</span><span class="fl">5.0</span>     <span class="co"># Panel IV estimation</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Optional: for real-data experiments</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>pip install openpyxl              <span class="co"># Reading UK Online Retail Excel data</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="pseudo-code-dcmoml-training-loop" class="level3">
+<h3 class="anchored" data-anchor-id="pseudo-code-dcmoml-training-loop">Pseudo-Code: DCMOML Training Loop</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> MetaLearner(nn.Module):</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">    A conditional neural process-style meta-learner.</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co">    Takes a context set and a query price, predicts query demand.</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, covariate_dim, hidden_dim<span class="op">=</span><span class="dv">128</span>):</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Encoder: processes each context point (price, demand) pair</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        <span class="co"># plus covariates into a fixed-dim representation</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.context_encoder <span class="op">=</span> nn.Sequential(</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>            nn.Linear(covariate_dim <span class="op">+</span> <span class="dv">2</span>, hidden_dim),  <span class="co"># +2 for (price, demand)</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>            nn.ReLU(),</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>            nn.Linear(hidden_dim, hidden_dim)</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Price-only encoder for masked points (price visible, demand hidden)</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.price_encoder <span class="op">=</span> nn.Sequential(</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>            nn.Linear(covariate_dim <span class="op">+</span> <span class="dv">1</span>, hidden_dim),  <span class="co"># +1 for price only</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>            nn.ReLU(),</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>            nn.Linear(hidden_dim, hidden_dim)</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Decoder: context representation + query price → predicted demand</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.decoder <span class="op">=</span> nn.Sequential(</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>            nn.Linear(hidden_dim <span class="op">+</span> <span class="dv">1</span>, hidden_dim),     <span class="co"># +1 for query price</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>            nn.ReLU(),</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>            nn.Linear(hidden_dim, <span class="dv">1</span>)</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, X_i, context_prices, context_demands,</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>                masked_prices, query_price):</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a><span class="co">        X_i:              (batch, covariate_dim) task covariates</span></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a><span class="co">        context_prices:   (batch, n_context) prices with observed demands</span></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a><span class="co">        context_demands:  (batch, n_context) corresponding demands</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a><span class="co">        masked_prices:    (batch, 2) the two masked price points</span></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a><span class="co">        query_price:      (batch, 1) which masked point is the query</span></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a><span class="co">        """</span></span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Encode observed context points</span></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>        ctx <span class="op">=</span> torch.cat([</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>            X_i.unsqueeze(<span class="dv">1</span>).expand(<span class="op">-</span><span class="dv">1</span>, context_prices.size(<span class="dv">1</span>), <span class="op">-</span><span class="dv">1</span>),</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>            context_prices.unsqueeze(<span class="op">-</span><span class="dv">1</span>),</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>            context_demands.unsqueeze(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>        ], dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>        ctx_repr <span class="op">=</span> <span class="va">self</span>.context_encoder(ctx).mean(dim<span class="op">=</span><span class="dv">1</span>)  <span class="co"># aggregate</span></span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Encode masked price points (NO demand info)</span></span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>        masked <span class="op">=</span> torch.cat([</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>            X_i.unsqueeze(<span class="dv">1</span>).expand(<span class="op">-</span><span class="dv">1</span>, <span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>),</span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>            masked_prices.unsqueeze(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>        ], dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>        masked_repr <span class="op">=</span> <span class="va">self</span>.price_encoder(masked).mean(dim<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Combine representations</span></span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>        combined <span class="op">=</span> ctx_repr <span class="op">+</span> masked_repr  <span class="co"># or concat</span></span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Decode: predict demand at query price</span></span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>        decoder_input <span class="op">=</span> torch.cat([combined, query_price], dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.decoder(decoder_input).squeeze(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> dcmoml_train_step(model, optimizer, task_batch):</span>
+<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a><span class="co">    One training step of DCMOML.</span></span>
+<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a><span class="co">    task_batch: list of tasks, each with:</span></span>
+<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a><span class="co">      - X_i: covariates</span></span>
+<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a><span class="co">      - prices: full price sequence [p1, ..., pT]</span></span>
+<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a><span class="co">      - demands: full demand sequence [d1, ..., dT]</span></span>
+<span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a>    model.train()</span>
+<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a>    total_loss <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> task <span class="kw">in</span> task_batch:</span>
+<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a>        X_i <span class="op">=</span> task[<span class="st">'covariates'</span>]</span>
+<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a>        prices <span class="op">=</span> task[<span class="st">'prices'</span>]     <span class="co"># shape (T,)</span></span>
+<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a>        demands <span class="op">=</span> task[<span class="st">'demands'</span>]   <span class="co"># shape (T,)</span></span>
+<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a>        <span class="co"># ---- DCMOML MASKING SCHEME ----</span></span>
+<span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-83"><a href="#cb3-83" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Find last two DISTINCT price points</span></span>
+<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a>        distinct_prices <span class="op">=</span> []</span>
+<span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a>        seen <span class="op">=</span> <span class="bu">set</span>()</span>
+<span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> p, d <span class="kw">in</span> <span class="bu">reversed</span>(<span class="bu">list</span>(<span class="bu">zip</span>(prices, demands))):</span>
+<span id="cb3-87"><a href="#cb3-87" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> p.item() <span class="kw">not</span> <span class="kw">in</span> seen:</span>
+<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a>                distinct_prices.append((p, d))</span>
+<span id="cb3-89"><a href="#cb3-89" aria-hidden="true" tabindex="-1"></a>                seen.add(p.item())</span>
+<span id="cb3-90"><a href="#cb3-90" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="bu">len</span>(distinct_prices) <span class="op">==</span> <span class="dv">2</span>:</span>
+<span id="cb3-91"><a href="#cb3-91" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span></span>
+<span id="cb3-92"><a href="#cb3-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-93"><a href="#cb3-93" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(distinct_prices) <span class="op">&lt;</span> <span class="dv">2</span>:</span>
+<span id="cb3-94"><a href="#cb3-94" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span>  <span class="co"># Need at least 2 distinct prices</span></span>
+<span id="cb3-95"><a href="#cb3-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-96"><a href="#cb3-96" aria-hidden="true" tabindex="-1"></a>        (p_j, d_j), (p_k, d_k) <span class="op">=</span> distinct_prices</span>
+<span id="cb3-97"><a href="#cb3-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-98"><a href="#cb3-98" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Context = everything EXCEPT the two masked points' demands</span></span>
+<span id="cb3-99"><a href="#cb3-99" aria-hidden="true" tabindex="-1"></a>        mask <span class="op">=</span> <span class="op">~</span>((prices <span class="op">==</span> p_j) <span class="op">|</span> (prices <span class="op">==</span> p_k))</span>
+<span id="cb3-100"><a href="#cb3-100" aria-hidden="true" tabindex="-1"></a>        context_prices <span class="op">=</span> prices[mask]</span>
+<span id="cb3-101"><a href="#cb3-101" aria-hidden="true" tabindex="-1"></a>        context_demands <span class="op">=</span> demands[mask]</span>
+<span id="cb3-102"><a href="#cb3-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-103"><a href="#cb3-103" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Masked prices (revealed) but demands (hidden)</span></span>
+<span id="cb3-104"><a href="#cb3-104" aria-hidden="true" tabindex="-1"></a>        masked_prices <span class="op">=</span> torch.stack([p_j, p_k])</span>
+<span id="cb3-105"><a href="#cb3-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-106"><a href="#cb3-106" aria-hidden="true" tabindex="-1"></a>        <span class="co"># RANDOMLY assign query vs decoy</span></span>
+<span id="cb3-107"><a href="#cb3-107" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> np.random.rand() <span class="op">&gt;</span> <span class="fl">0.5</span>:</span>
+<span id="cb3-108"><a href="#cb3-108" aria-hidden="true" tabindex="-1"></a>            query_price <span class="op">=</span> p_j.unsqueeze(<span class="dv">0</span>)</span>
+<span id="cb3-109"><a href="#cb3-109" aria-hidden="true" tabindex="-1"></a>            query_demand <span class="op">=</span> d_j</span>
+<span id="cb3-110"><a href="#cb3-110" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb3-111"><a href="#cb3-111" aria-hidden="true" tabindex="-1"></a>            query_price <span class="op">=</span> p_k.unsqueeze(<span class="dv">0</span>)</span>
+<span id="cb3-112"><a href="#cb3-112" aria-hidden="true" tabindex="-1"></a>            query_demand <span class="op">=</span> d_k</span>
+<span id="cb3-113"><a href="#cb3-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-114"><a href="#cb3-114" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Forward pass</span></span>
+<span id="cb3-115"><a href="#cb3-115" aria-hidden="true" tabindex="-1"></a>        pred <span class="op">=</span> model(</span>
+<span id="cb3-116"><a href="#cb3-116" aria-hidden="true" tabindex="-1"></a>            X_i.unsqueeze(<span class="dv">0</span>),</span>
+<span id="cb3-117"><a href="#cb3-117" aria-hidden="true" tabindex="-1"></a>            context_prices.unsqueeze(<span class="dv">0</span>),</span>
+<span id="cb3-118"><a href="#cb3-118" aria-hidden="true" tabindex="-1"></a>            context_demands.unsqueeze(<span class="dv">0</span>),</span>
+<span id="cb3-119"><a href="#cb3-119" aria-hidden="true" tabindex="-1"></a>            masked_prices.unsqueeze(<span class="dv">0</span>),</span>
+<span id="cb3-120"><a href="#cb3-120" aria-hidden="true" tabindex="-1"></a>            query_price.unsqueeze(<span class="dv">0</span>)</span>
+<span id="cb3-121"><a href="#cb3-121" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb3-122"><a href="#cb3-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-123"><a href="#cb3-123" aria-hidden="true" tabindex="-1"></a>        loss <span class="op">=</span> (pred <span class="op">-</span> query_demand) <span class="op">**</span> <span class="dv">2</span></span>
+<span id="cb3-124"><a href="#cb3-124" aria-hidden="true" tabindex="-1"></a>        total_loss <span class="op">+=</span> loss</span>
+<span id="cb3-125"><a href="#cb3-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-126"><a href="#cb3-126" aria-hidden="true" tabindex="-1"></a>    optimizer.zero_grad()</span>
+<span id="cb3-127"><a href="#cb3-127" aria-hidden="true" tabindex="-1"></a>    total_loss.backward()</span>
+<span id="cb3-128"><a href="#cb3-128" aria-hidden="true" tabindex="-1"></a>    optimizer.step()</span>
+<span id="cb3-129"><a href="#cb3-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-130"><a href="#cb3-130" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> total_loss.item()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="core-identification-logic-theorem-1-intuition" class="level3">
+<h3 class="anchored" data-anchor-id="core-identification-logic-theorem-1-intuition">Core Identification Logic (Theorem 1 Intuition)</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># WHY masking + randomization = causal identification:</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Without masking:</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   Model sees (p_query, d_query) in context → trivially memorizes</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co">#   Learns: f(context, p) = lookup(p in context)</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">#   Result: BIASED (reflects policy, not causal effect)</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co"># With masking but NO randomization:</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co">#   Model knows which masked point is query</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co">#   Can exploit: E[d | p_query, manager_chose_p_query] ≠ E[d | p] (causal)</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co">#   Result: STILL BIASED (information leakage about which point is query)</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co"># With masking AND randomization (DCMOML):</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co">#   Model sees two masked prices {p_j, p_k}, doesn't know which is query</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="co">#   Optimal strategy: predict E[d | X_i, all_prices, p_query]</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="co">#   Because query is random: this equals the CAUSAL conditional mean</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="co">#   Result: IDENTIFIED ✓</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="co"># The full price history conditions out the latent fundamentals,</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="co"># and the randomization prevents the model from exploiting residual</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="co"># information about which point is actually being queried.</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="resource-links" class="level3">
+<h3 class="anchored" data-anchor-id="resource-links">Resource Links</h3>
+<section id="official-repository" class="level4">
+<h4 class="anchored" data-anchor-id="official-repository">Official Repository</h4>
+<p>No official code repository has been released as of February 2026.</p>
+</section>
+<section id="related-implementations-baselines" class="level4">
+<h4 class="anchored" data-anchor-id="related-implementations-baselines">Related Implementations &amp; Baselines</h4>
+<ul>
+<li><strong>Conditional Neural Processes</strong> (meta-learning backbone): <a href="https://github.com/deepmind/neural-processes">github.com/deepmind/neural-processes</a></li>
+<li><strong>MAML</strong> (baseline meta-learner): <a href="https://github.com/cbfinn/maml">github.com/cbfinn/maml</a></li>
+<li><strong>linearmodels</strong> (IV/2SLS estimation): <a href="https://github.com/bashtage/linearmodels">github.com/bashtage/linearmodels</a></li>
+<li><strong>EconML</strong> (causal ML library by Microsoft): <a href="https://github.com/py-why/EconML">github.com/py-why/EconML</a></li>
+<li><strong>DoWhy</strong> (causal inference framework): <a href="https://github.com/py-why/dowhy">github.com/py-why/dowhy</a></li>
+</ul>
+</section>
+<section id="datasets" class="level4">
+<h4 class="anchored" data-anchor-id="datasets">Datasets</h4>
+<ul>
+<li><strong>UK Online Retail Dataset</strong> (used in paper): <a href="https://archive.ics.uci.edu/dataset/352/online+retail">UCI ML Repository</a></li>
+</ul>
+</section>
+<section id="further-reading" class="level4">
+<h4 class="anchored" data-anchor-id="further-reading">Further Reading</h4>
+<ul>
+<li><a href="https://mixtape.scunning.com/">Causal Inference: The Mixtape</a> — Scott Cunningham’s accessible intro to causal inference and IV estimation</li>
+<li><a href="https://arxiv.org/abs/1810.03548">Meta-Learning: A Survey</a> — Hospedales et al., comprehensive meta-learning overview</li>
+<li><a href="https://arxiv.org/abs/1608.00060">Double/Debiased Machine Learning</a> — Chernozhukov et al., the DML framework for causal ML</li>
+<li><a href="https://arxiv.org/abs/1902.07832">Dynamic Pricing and Learning</a> — den Boer, survey of online pricing algorithms</li>
+<li><a href="https://arxiv.org/abs/1807.01622">Neural Processes</a> — Garnelo et al., the architecture family DCMOML builds on</li>
+</ul>
+
+
+</section>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<script src="https://utteranc.es/client.js" repo="seanlewis08/blogComments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+<script src="animations.js"></script>
+
+
+
+
+</body></html>

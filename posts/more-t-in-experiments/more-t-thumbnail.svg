@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" width="800" height="420">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#161b22"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2dd4a8"/>
+      <stop offset="100%" stop-color="#7eb8e0"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="420" fill="url(#bg)"/>
+
+  <text x="400" y="42" text-anchor="middle" fill="url(#accent)" font-family="sans-serif" font-size="22" font-weight="bold">The Case for More T</text>
+  <text x="400" y="68" text-anchor="middle" fill="#8b949e" font-family="sans-serif" font-size="12">More Survey Rounds Beat More Sample Size</text>
+
+  <!-- Timeline showing designs -->
+  <!-- Design A: 1 baseline + 1 followup -->
+  <text x="80" y="110" fill="#8b949e" font-family="monospace" font-size="10">Design A:</text>
+  <line x1="180" y1="107" x2="700" y2="107" stroke="#30363d" stroke-width="1"/>
+  <circle cx="250" cy="107" r="8" fill="#7eb8e0" stroke="#7eb8e0" stroke-width="1.5"/>
+  <text x="250" y="111" text-anchor="middle" fill="#0d1117" font-family="monospace" font-size="8" font-weight="bold">B</text>
+  <circle cx="600" cy="107" r="8" fill="#2dd4a8" stroke="#2dd4a8" stroke-width="1.5"/>
+  <text x="600" y="111" text-anchor="middle" fill="#0d1117" font-family="monospace" font-size="8" font-weight="bold">F</text>
+  <text x="720" y="111" fill="#f97583" font-family="monospace" font-size="10">MDE = 1.00</text>
+
+  <!-- Design B: 0 baseline + 4 followup -->
+  <text x="80" y="155" fill="#8b949e" font-family="monospace" font-size="10">Design B:</text>
+  <line x1="180" y1="152" x2="700" y2="152" stroke="#30363d" stroke-width="1"/>
+  <circle cx="350" cy="152" r="8" fill="#2dd4a8" stroke="#2dd4a8" stroke-width="1.5"/>
+  <text x="350" y="156" text-anchor="middle" fill="#0d1117" font-family="monospace" font-size="8" font-weight="bold">F</text>
+  <circle cx="450" cy="152" r="8" fill="#2dd4a8" stroke="#2dd4a8" stroke-width="1.5"/>
+  <text x="450" y="156" text-anchor="middle" fill="#0d1117" font-family="monospace" font-size="8" font-weight="bold">F</text>
+  <circle cx="550" cy="152" r="8" fill="#2dd4a8" stroke="#2dd4a8" stroke-width="1.5"/>
+  <text x="550" y="156" text-anchor="middle" fill="#0d1117" font-family="monospace" font-size="8" font-weight="bold">F</text>
+  <circle cx="650" cy="152" r="8" fill="#2dd4a8" stroke="#2dd4a8" stroke-width="1.5"/>
+  <text x="650" y="156" text-anchor="middle" fill="#0d1117" font-family="monospace" font-size="8" font-weight="bold">F</text>
+  <text x="720" y="156" fill="#2dd4a8" font-family="monospace" font-size="10">MDE = 0.71</text>
+
+  <!-- Design C: 1 baseline + 4 followup -->
+  <text x="80" y="200" fill="#8b949e" font-family="monospace" font-size="10">Design C:</text>
+  <line x1="180" y1="197" x2="700" y2="197" stroke="#30363d" stroke-width="1"/>
+  <circle cx="250" cy="197" r="8" fill="#7eb8e0" stroke="#7eb8e0" stroke-width="1.5"/>
+  <text x="250" y="201" text-anchor="middle" fill="#0d1117" font-family="monospace" font-size="8" font-weight="bold">B</text>
+  <circle cx="400" cy="197" r="8" fill="#2dd4a8" stroke="#2dd4a8" stroke-width="1.5"/>
+  <text x="400" y="201" text-anchor="middle" fill="#0d1117" font-family="monospace" font-size="8" font-weight="bold">F</text>
+  <circle cx="500" cy="197" r="8" fill="#2dd4a8" stroke="#2dd4a8" stroke-width="1.5"/>
+  <text x="500" y="201" text-anchor="middle" fill="#0d1117" font-family="monospace" font-size="8" font-weight="bold">F</text>
+  <circle cx="600" cy="197" r="8" fill="#2dd4a8" stroke="#2dd4a8" stroke-width="1.5"/>
+  <text x="600" y="201" text-anchor="middle" fill="#0d1117" font-family="monospace" font-size="8" font-weight="bold">F</text>
+  <circle cx="650" cy="197" r="8" fill="#2dd4a8" stroke="#2dd4a8" stroke-width="1.5"/>
+  <text x="650" y="201" text-anchor="middle" fill="#0d1117" font-family="monospace" font-size="8" font-weight="bold">F</text>
+  <text x="720" y="201" fill="#2dd4a8" font-family="monospace" font-size="10">MDE = 0.70</text>
+
+  <!-- Treatment line -->
+  <line x1="350" y1="88" x2="350" y2="215" stroke="#e6db74" stroke-width="1" stroke-dasharray="4,3" opacity="0.5"/>
+  <text x="350" y="83" text-anchor="middle" fill="#e6db74" font-family="sans-serif" font-size="8" opacity="0.7">Treatment</text>
+
+  <!-- Legend -->
+  <circle cx="200" cy="235" r="6" fill="#7eb8e0"/>
+  <text x="212" y="239" fill="#8b949e" font-family="sans-serif" font-size="9">Baseline</text>
+  <circle cx="290" cy="235" r="6" fill="#2dd4a8"/>
+  <text x="302" y="239" fill="#8b949e" font-family="sans-serif" font-size="9">Follow-up</text>
+
+  <!-- Bar chart: autocorrelation matters -->
+  <rect x="80" y="260" width="640" height="130" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1" opacity="0.5"/>
+  <text x="400" y="282" text-anchor="middle" fill="#8b949e" font-family="sans-serif" font-size="11">Autocorrelation of Common Outcomes</text>
+
+  <text x="160" y="310" text-anchor="end" fill="#6e7681" font-family="sans-serif" font-size="9">Business profits</text>
+  <rect x="170" y="298" width="80" height="14" rx="3" fill="#f97583" opacity="0.6"/>
+  <text x="255" y="310" fill="#f97583" font-family="monospace" font-size="8">ρ ≈ 0.20</text>
+
+  <text x="160" y="332" text-anchor="end" fill="#6e7681" font-family="sans-serif" font-size="9">HH expenditure</text>
+  <rect x="170" y="320" width="170" height="14" rx="3" fill="#e6db74" opacity="0.5"/>
+  <text x="345" y="332" fill="#e6db74" font-family="monospace" font-size="8">ρ ≈ 0.40</text>
+
+  <text x="160" y="354" text-anchor="end" fill="#6e7681" font-family="sans-serif" font-size="9">Test scores</text>
+  <rect x="170" y="342" width="300" height="14" rx="3" fill="#2dd4a8" opacity="0.5"/>
+  <text x="475" y="354" fill="#2dd4a8" font-family="monospace" font-size="8">ρ ≈ 0.70</text>
+
+  <text x="400" y="380" text-anchor="middle" fill="#6e7681" font-family="sans-serif" font-size="9">Lower ρ → more value from additional follow-up rounds</text>
+
+  <rect x="100" y="408" width="600" height="2" rx="1" fill="url(#accent)" opacity="0.3"/>
+</svg>
