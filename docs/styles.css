@@ -287,19 +287,23 @@ html { scroll-behavior: smooth; }
   box-shadow: 0 4px 20px var(--accent-glow);
 }
 
-/* === Log Pose compass (top-right) === */
+/* === Straw Hat (top-right corner) === */
 .quarto-about-jolla .about-entity::after {
   content: '';
   position: absolute;
-  top: 30px;
-  right: 40px;
-  width: 60px;
-  height: 60px;
-  border: 2px solid rgba(45, 212, 168, 0.15);
-  border-top-color: rgba(45, 212, 168, 0.5);
-  border-radius: 50%;
-  animation: compassSpin 25s linear infinite;
+  top: 25px;
+  right: 35px;
+  width: 70px;
+  height: 50px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 85'%3E%3C!-- brim --%3E%3Cellipse cx='60' cy='68' rx='58' ry='15' fill='%23d4a347' opacity='0.85'/%3E%3Cellipse cx='60' cy='68' rx='58' ry='15' fill='none' stroke='%23b8882e' stroke-width='1.5' opacity='0.6'/%3E%3C!-- dome --%3E%3Cpath d='M28,68 Q28,22 60,18 Q92,22 92,68' fill='%23e8b84a' opacity='0.85'/%3E%3Cpath d='M28,68 Q28,22 60,18 Q92,22 92,68' fill='none' stroke='%23c99530' stroke-width='1.5' opacity='0.5'/%3E%3C!-- red band --%3E%3Cpath d='M30,55 Q60,48 90,55 Q60,62 30,55 Z' fill='%23cc3333' opacity='0.8'/%3E%3C/svg%3E") no-repeat center/contain;
   pointer-events: none;
+  opacity: 0.5;
+  animation: float 5s ease-in-out infinite;
+  transition: opacity 0.3s;
+}
+
+.quarto-about-jolla .about-entity:hover::after {
+  opacity: 0.8;
 }
 
 /* === Bio text styling === */
