@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Sean Lewis">
+<meta name="dcterms.date" content="2026-02-19">
+<meta name="description" content="Unpacking claywren’s argument on LessWrong about why the classical economic case for human employment may not survive superhuman AI — and what the comparative advantage framework gets wrong.">
+
+<title>AI Job Loss and the Limits of Comparative Advantage – Sean Lewis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="../../site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="../../site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="../../site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Sean Lewis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../projects.html"> 
+<span class="menu-text">Projects</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/seanlewis08"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/selew/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-gist" id="toc-the-gist" class="nav-link active" data-scroll-target="#the-gist">The Gist</a></li>
+  <li><a href="#why-it-matters-now" id="toc-why-it-matters-now" class="nav-link" data-scroll-target="#why-it-matters-now">Why It Matters Now</a></li>
+  <li><a href="#the-argument-four-reasons-comparative-advantage-fails" id="toc-the-argument-four-reasons-comparative-advantage-fails" class="nav-link" data-scroll-target="#the-argument-four-reasons-comparative-advantage-fails">The Argument: Four Reasons Comparative Advantage Fails</a>
+  <ul class="collapse">
+  <li><a href="#comparative-advantage-doesnt-guarantee-adequate-wages" id="toc-comparative-advantage-doesnt-guarantee-adequate-wages" class="nav-link" data-scroll-target="#comparative-advantage-doesnt-guarantee-adequate-wages">1. Comparative Advantage Doesn’t Guarantee Adequate Wages</a></li>
+  <li><a href="#the-model-assumes-full-employment-which-is-the-question" id="toc-the-model-assumes-full-employment-which-is-the-question" class="nav-link" data-scroll-target="#the-model-assumes-full-employment-which-is-the-question">2. The Model Assumes Full Employment — Which Is the Question</a></li>
+  <li><a href="#speed-of-displacement-matters" id="toc-speed-of-displacement-matters" class="nav-link" data-scroll-target="#speed-of-displacement-matters">3. Speed of Displacement Matters</a></li>
+  <li><a href="#ai-breaks-the-fixed-endowment-assumption" id="toc-ai-breaks-the-fixed-endowment-assumption" class="nav-link" data-scroll-target="#ai-breaks-the-fixed-endowment-assumption">4. AI Breaks the “Fixed Endowment” Assumption</a></li>
+  </ul></li>
+  <li><a href="#the-lineage-where-this-fits" id="toc-the-lineage-where-this-fits" class="nav-link" data-scroll-target="#the-lineage-where-this-fits">The Lineage: Where This Fits</a></li>
+  <li><a href="#rubber-ducking-the-jargon" id="toc-rubber-ducking-the-jargon" class="nav-link" data-scroll-target="#rubber-ducking-the-jargon">Rubber-Ducking the Jargon</a></li>
+  <li><a href="#what-the-essay-gets-right-and-whats-missing" id="toc-what-the-essay-gets-right-and-whats-missing" class="nav-link" data-scroll-target="#what-the-essay-gets-right-and-whats-missing">What the Essay Gets Right — and What’s Missing</a></li>
+  <li><a href="#so-what" id="toc-so-what" class="nav-link" data-scroll-target="#so-what">So What?</a></li>
+  <li><a href="#reproduction-implementation" id="toc-reproduction-implementation" class="nav-link" data-scroll-target="#reproduction-implementation">Reproduction &amp; Implementation</a>
+  <ul class="collapse">
+  <li><a href="#environment-setup" id="toc-environment-setup" class="nav-link" data-scroll-target="#environment-setup">Environment Setup</a></li>
+  <li><a href="#core-model-when-does-comparative-advantage-fail" id="toc-core-model-when-does-comparative-advantage-fail" class="nav-link" data-scroll-target="#core-model-when-does-comparative-advantage-fail">Core Model: When Does Comparative Advantage Fail?</a></li>
+  <li><a href="#key-simulation-parameters-to-explore" id="toc-key-simulation-parameters-to-explore" class="nav-link" data-scroll-target="#key-simulation-parameters-to-explore">Key Simulation Parameters to Explore</a></li>
+  <li><a href="#resource-links" id="toc-resource-links" class="nav-link" data-scroll-target="#resource-links">Resource Links</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">AI Job Loss and the Limits of Comparative Advantage</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">AI</div>
+    <div class="quarto-category">Economics</div>
+    <div class="quarto-category">Labor Markets</div>
+    <div class="quarto-category">Comparative Advantage</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Unpacking claywren’s argument on LessWrong about why the classical economic case for human employment may not survive superhuman AI — and what the comparative advantage framework gets wrong.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Sean Lewis </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">February 19, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="the-gist" class="level2">
+<h2 class="anchored" data-anchor-id="the-gist">The Gist</h2>
+<p>Classical economics has a reassuring answer to fears about automation: even if machines are better than humans at <em>everything</em>, trade is still mutually beneficial because of comparative advantage. A country (or person, or AI) should specialize in what it’s <em>relatively</em> best at, and everyone gains from exchange. This argument has been a reliable shield against automation anxiety for two centuries, from the Luddites through the Industrial Revolution to modern offshoring debates.</p>
+<p>In a February 2026 essay on LessWrong, claywren argues that this shield is about to break. The piece directly engages David Oks’ 2024 Noema essay “Don’t Fear the Robots,” which deployed comparative advantage as a formal argument that AI will not cause mass unemployment. Claywren’s response is sharp: the textbook model depends on assumptions that AI systems are poised to violate, and a more careful reading of the economics actually predicts severe labor displacement under realistic conditions.</p>
+</section>
+<section id="why-it-matters-now" class="level2">
+<h2 class="anchored" data-anchor-id="why-it-matters-now">Why It Matters Now</h2>
+<p>This isn’t an abstract debate. As frontier AI models approach and surpass human performance on an expanding set of cognitive tasks, the question of what happens to human workers is becoming urgent. The essay matters because it moves the conversation past vibes and into the actual economic logic — showing exactly <em>where</em> the standard reassurance breaks down, and under what conditions humans lose their role in the economy.</p>
+<p>For data scientists especially, this is personal. Many of the tasks AI is most rapidly absorbing — data analysis, code generation, report writing, model prototyping — sit squarely in our domain.</p>
+</section>
+<section id="the-argument-four-reasons-comparative-advantage-fails" class="level2">
+<h2 class="anchored" data-anchor-id="the-argument-four-reasons-comparative-advantage-fails">The Argument: Four Reasons Comparative Advantage Fails</h2>
+<p>Claywren identifies several specific failure modes in the comparative advantage argument when applied to AI:</p>
+<section id="comparative-advantage-doesnt-guarantee-adequate-wages" class="level3">
+<h3 class="anchored" data-anchor-id="comparative-advantage-doesnt-guarantee-adequate-wages">1. Comparative Advantage Doesn’t Guarantee Adequate Wages</h3>
+<p>The textbook theorem says trade is mutually beneficial — but “beneficial” doesn’t mean “livable.” Comparative advantage ensures that there exists <em>some</em> wage at which humans could be employed, but it says nothing about whether that wage is above subsistence. As AI gets better, the equilibrium wage for human labor can fall toward zero even while trade remains technically “efficient.”</p>
+<p>The analogy: horses once had a comparative advantage in transportation relative to early automobiles. Trade was “mutually beneficial” — but the equilibrium “wage” (value of a horse) eventually fell below the cost of feeding and stabling one. Horses didn’t get retrained; they got retired.</p>
+</section>
+<section id="the-model-assumes-full-employment-which-is-the-question" class="level3">
+<h3 class="anchored" data-anchor-id="the-model-assumes-full-employment-which-is-the-question">2. The Model Assumes Full Employment — Which Is the Question</h3>
+<p>Standard trade models assume flexible wages and instant reallocation of labor. If AI displaces radiologists, the model says they’ll seamlessly become yoga instructors or artisanal bakers. In reality, retraining is costly, slow, and often incomplete. The <em>transition dynamics</em> — the messy, painful, decade-long adjustment periods — are precisely what people are worried about, and the comparative advantage framework assumes them away.</p>
+</section>
+<section id="speed-of-displacement-matters" class="level3">
+<h3 class="anchored" data-anchor-id="speed-of-displacement-matters">3. Speed of Displacement Matters</h3>
+<p>Previous technological transitions unfolded over generations. The shift from agriculture to manufacturing took roughly a century, giving institutions and culture time to adapt. AI capabilities are improving on a timescale of <em>months</em>. Even if the long-run equilibrium is fine, the short run could involve sustained mass unemployment that existing social safety nets aren’t designed to handle.</p>
+</section>
+<section id="ai-breaks-the-fixed-endowment-assumption" class="level3">
+<h3 class="anchored" data-anchor-id="ai-breaks-the-fixed-endowment-assumption">4. AI Breaks the “Fixed Endowment” Assumption</h3>
+<p>Comparative advantage in trade theory works because each country has a fixed set of resources: land, climate, labor skills. The pattern of comparative advantage is stable, so specialization makes sense. But AI’s capabilities are expanding rapidly and unpredictably. A human who specializes in “what AI can’t do yet” may find that niche evaporating within a year. The target is moving too fast for meaningful specialization.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">flowchart TD
+    A["Classical Comparative Advantage&lt;br/&gt;(Ricardo, 1817)"] --&gt; B["Even if AI is better at everything,&lt;br/&gt;humans still have comparative advantage"]
+    B --&gt; C{"But does it guarantee&lt;br/&gt;livable wages?"}
+    C --&gt;|No| D["Wages can fall below&lt;br/&gt;subsistence level"]
+    B --&gt; E{"Does it handle&lt;br/&gt;transition costs?"}
+    E --&gt;|No| F["Retraining is slow, costly,&lt;br/&gt;often incomplete"]
+    B --&gt; G{"Is the speed of&lt;br/&gt;displacement survivable?"}
+    G --&gt;|Maybe not| H["AI improves in months,&lt;br/&gt;not generations"]
+    B --&gt; I{"Are human advantages&lt;br/&gt;stable?"}
+    I --&gt;|No| J["AI capabilities expand&lt;br/&gt;unpredictably"]
+    D --&gt; K["Comparative advantage&lt;br/&gt;is NECESSARY but NOT SUFFICIENT&lt;br/&gt;for human welfare"]
+    F --&gt; K
+    H --&gt; K
+    J --&gt; K
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="the-lineage-where-this-fits" class="level2">
+<h2 class="anchored" data-anchor-id="the-lineage-where-this-fits">The Lineage: Where This Fits</h2>
+<p>The comparative advantage argument traces directly to David Ricardo’s 1817 <em>Principles of Political Economy</em>, which showed that Portugal and England both benefit from trade even when Portugal is more efficient at producing both wine and cloth. For two centuries, this has been economists’ go-to response to protectionist fears.</p>
+<p>The modern AI application of this argument was formalized by several economists, but Oks’ 2024 Noema essay is the specific target here. Oks argued that comparative advantage is a mathematical theorem — not a conjecture — and that it proves AI cannot cause mass unemployment. Claywren’s essay sits in a growing counter-literature that includes Daron Acemoglu and Simon Johnson’s <em>Power and Progress</em> (2023), which documents how technology often concentrates wealth rather than distributing it, and Korinek and Suh’s 2024 work on “Scenarios for the Transition to AGI,” which models conditions under which AI automation leads to falling wages despite rising productivity.</p>
+<p>The horse analogy — central to claywren’s argument — has been developed by several thinkers, including Erik Brynjolfsson and Andrew McAfee in <em>The Second Machine Age</em> (2014) and more recently by economist Robin Hanson.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Position</th>
+<th>Key Claim</th>
+<th>Representative Work</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Optimist (standard)</strong></td>
+<td>Comparative advantage guarantees human employment</td>
+<td>Oks (2024), traditional trade theory</td>
+</tr>
+<tr class="even">
+<td><strong>Conditional optimist</strong></td>
+<td>True if transition is managed; policy needed</td>
+<td>Acemoglu &amp; Johnson (2023)</td>
+</tr>
+<tr class="odd">
+<td><strong>Structural pessimist</strong></td>
+<td>Wages may fall below subsistence; speed matters</td>
+<td>claywren (2026), Korinek &amp; Suh (2024)</td>
+</tr>
+<tr class="even">
+<td><strong>Radical pessimist</strong></td>
+<td>Humans become economically obsolete</td>
+<td>Hanson (horse analogy), Sutton</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="rubber-ducking-the-jargon" class="level2">
+<h2 class="anchored" data-anchor-id="rubber-ducking-the-jargon">Rubber-Ducking the Jargon</h2>
+<p><strong>Comparative advantage</strong>: You’re better off specializing in what you’re <em>least bad</em> at, even if someone else is better than you at everything. The classic example: a lawyer who’s also the world’s fastest typist should still hire a typist, because the lawyer’s time is worth more doing law.</p>
+<p><strong>Absolute advantage vs.&nbsp;comparative advantage</strong>: Absolute advantage means being <em>better</em> at something. Comparative advantage means having a <em>lower opportunity cost</em>. AI may have absolute advantage in every task, but comparative advantage asks: what do humans give up <em>least</em> to produce?</p>
+<p><strong>Transition dynamics</strong>: The messy period between the old equilibrium and the new one. Models that assume “frictionless adjustment” are skipping the part where millions of people lose their livelihoods.</p>
+<p><strong>Jevons paradox (implicit)</strong>: Making something more efficient can increase total demand for it. Claywren doesn’t name this explicitly, but it underlies the optimist’s hope — that AI making tasks cheaper will create so much new demand that human labor stays employed. The pessimist’s response: this only works if humans retain some complementary role.</p>
+</section>
+<section id="what-the-essay-gets-right-and-whats-missing" class="level2">
+<h2 class="anchored" data-anchor-id="what-the-essay-gets-right-and-whats-missing">What the Essay Gets Right — and What’s Missing</h2>
+<p><strong>Strongest points</strong>: The wage-floor argument is the most devastating critique of naive comparative-advantage optimism. The observation that comparative advantage is about the <em>existence</em> of mutually beneficial trade, not about the <em>distribution</em> of gains, is technically precise and underappreciated. The speed argument is also compelling — institutional adaptation operates on a fundamentally different timescale than AI capability growth.</p>
+<p><strong>What’s missing</strong>: The essay doesn’t engage deeply with the possibility that AI creates entirely new categories of demand — things we can’t currently imagine wanting, much the way the internet created demand for social media managers, app developers, and influencers. It also doesn’t address the political economy: redistribution through taxation and transfers (UBI, etc.) could, in principle, decouple wages from welfare. The essay frames this as a pure market outcome, but the actual outcome will be heavily policy-dependent.</p>
+<p>The essay also doesn’t quantify <em>when</em> the critical threshold hits. A more useful framing might ask: at what level of AI capability does the equilibrium human wage drop below some meaningful floor? That’s an empirical question, and the essay stays at the conceptual level.</p>
+</section>
+<section id="so-what" class="level2">
+<h2 class="anchored" data-anchor-id="so-what">So What?</h2>
+<p>If you’re a data scientist, software engineer, or knowledge worker reading this, the takeaway isn’t “you will be unemployed next year.” It’s that the standard economic reassurance — “don’t worry, comparative advantage!” — is weaker than it appears. The argument proves less than its advocates claim, and the conditions under which it fails are arguably the conditions we’re heading toward.</p>
+<p>The practical implications: build skills that are <em>complementary</em> to AI rather than <em>substitutable</em> by it. Domain expertise, judgment under ambiguity, stakeholder management, and the ability to frame the right questions are harder to automate than the ability to answer well-defined ones. But even that advice comes with the caveat that the target is moving, and what’s complementary today may be substitutable tomorrow.</p>
+<hr>
+</section>
+<section id="reproduction-implementation" class="level2">
+<h2 class="anchored" data-anchor-id="reproduction-implementation">Reproduction &amp; Implementation</h2>
+<p>This essay is conceptual rather than empirical, so “reproduction” here means formalizing the argument computationally and exploring the conditions under which comparative advantage fails to protect wages.</p>
+<section id="environment-setup" class="level3">
+<h3 class="anchored" data-anchor-id="environment-setup">Environment Setup</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Core libraries for modeling labor market dynamics</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>pip install numpy pandas matplotlib scipy</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Agent-based modeling (optional, for simulation)</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>pip install mesa  <span class="co"># Agent-based modeling framework</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Versions</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Python 3.10+</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># numpy &gt;= 1.24</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># pandas &gt;= 2.0</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co"># mesa &gt;= 2.0</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="core-model-when-does-comparative-advantage-fail" class="level3">
+<h3 class="anchored" data-anchor-id="core-model-when-does-comparative-advantage-fail">Core Model: When Does Comparative Advantage Fail?</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> equilibrium_wage(human_productivity, ai_productivity, subsistence_cost):</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">    Simple 2-good, 2-agent (human vs AI) comparative advantage model.</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">    Under standard trade theory, the human wage is bounded by</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">    the ratio of productivities. As AI improves across all tasks,</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">    the equilibrium wage can fall below subsistence.</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co">    ----------</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">    human_productivity : array, shape (n_tasks,)</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co">        Human output per unit time for each task</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">    ai_productivity : array, shape (n_tasks,)</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">        AI output per unit time for each task</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co">    subsistence_cost : float</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co">        Minimum wage needed for human survival</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="co">    -------</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="co">    wage : float — equilibrium wage for human labor</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="co">    comparative_adv_task : int — task humans specialize in</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="co">    viable : bool — whether wage &gt;= subsistence</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Comparative advantage: humans specialize where their</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    <span class="co"># relative disadvantage is smallest</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    relative_productivity <span class="op">=</span> human_productivity <span class="op">/</span> ai_productivity</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    comparative_adv_task <span class="op">=</span> np.argmax(relative_productivity)</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># In the simple model, the wage is proportional to productivity</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>    <span class="co"># in the task of comparative advantage, scaled by AI's</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    <span class="co"># willingness to trade</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>    best_ratio <span class="op">=</span> relative_productivity[comparative_adv_task]</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Wage approaches zero as AI dominates all tasks</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>    <span class="co"># (all ratios approach zero)</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>    wage <span class="op">=</span> best_ratio <span class="op">*</span> ai_productivity[comparative_adv_task]</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>    viable <span class="op">=</span> wage <span class="op">&gt;=</span> subsistence_cost</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> wage, comparative_adv_task, viable</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Simulation: AI improving over time ---</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">42</span>)</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>n_tasks <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>human_prod <span class="op">=</span> np.random.uniform(<span class="dv">1</span>, <span class="dv">5</span>, n_tasks)  <span class="co"># Fixed</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>subsistence <span class="op">=</span> <span class="fl">3.0</span></span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Year | Best Human Ratio | Wage  | Viable?"</span>)</span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"-----|-----------------|-------|--------"</span>)</span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> year <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">2025</span>, <span class="dv">2036</span>):</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>    <span class="co"># AI improves ~2x per year across all tasks</span></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>    ai_multiplier <span class="op">=</span> <span class="dv">2</span> <span class="op">**</span> (year <span class="op">-</span> <span class="dv">2025</span>)</span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>    ai_prod <span class="op">=</span> human_prod <span class="op">*</span> ai_multiplier <span class="op">*</span> np.random.uniform(<span class="fl">0.8</span>, <span class="fl">1.5</span>, n_tasks)</span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>    wage, task, viable <span class="op">=</span> equilibrium_wage(human_prod, ai_prod, subsistence)</span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>    ratio <span class="op">=</span> <span class="bu">max</span>(human_prod <span class="op">/</span> ai_prod)</span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>year<span class="sc">}</span><span class="ss"> | </span><span class="sc">{</span>ratio<span class="sc">:.4f}</span><span class="ss">          | </span><span class="sc">{</span>wage<span class="sc">:.2f}</span><span class="ss"> | </span><span class="sc">{</span><span class="st">'Yes'</span> <span class="cf">if</span> viable <span class="cf">else</span> <span class="st">'NO'</span><span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="key-simulation-parameters-to-explore" class="level3">
+<h3 class="anchored" data-anchor-id="key-simulation-parameters-to-explore">Key Simulation Parameters to Explore</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parameter</th>
+<th>What It Tests</th>
+<th>Range</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>AI improvement rate</td>
+<td>How fast capabilities grow</td>
+<td>1.2x–3x per year</td>
+</tr>
+<tr class="even">
+<td>Task heterogeneity</td>
+<td>Whether some niches persist</td>
+<td>Low (uniform) to high</td>
+</tr>
+<tr class="odd">
+<td>Retraining speed</td>
+<td>Transition cost</td>
+<td>0–10 years lag</td>
+</tr>
+<tr class="even">
+<td>New task creation rate</td>
+<td>Whether demand expands</td>
+<td>0–5 new tasks/year</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="resource-links" class="level3">
+<h3 class="anchored" data-anchor-id="resource-links">Resource Links</h3>
+<section id="source-essay" class="level4">
+<h4 class="anchored" data-anchor-id="source-essay">Source Essay</h4>
+<ul>
+<li><a href="https://www.lesswrong.com/">claywren, “Why I’m Worried About Job Loss + Thoughts on Comparative Advantage” (LessWrong, Feb 2026)</a></li>
+</ul>
+</section>
+<section id="key-references" class="level4">
+<h4 class="anchored" data-anchor-id="key-references">Key References</h4>
+<ul>
+<li><a href="https://www.noemamag.com/">David Oks, “Don’t Fear the Robots” (Noema, 2024)</a></li>
+<li><a href="https://www.hachettebookgroup.com/titles/daron-acemoglu/power-and-progress/9781541702530/">Acemoglu &amp; Johnson, <em>Power and Progress</em> (2023)</a></li>
+<li><a href="https://papers.ssrn.com/">Korinek &amp; Suh, “Scenarios for the Transition to AGI” (2024)</a></li>
+</ul>
+</section>
+<section id="related-implementations-reading" class="level4">
+<h4 class="anchored" data-anchor-id="related-implementations-reading">Related Implementations &amp; Reading</h4>
+<ul>
+<li><a href="https://github.com/projectmesa/mesa">MESA: Agent-Based Modeling in Python</a> — for simulating labor markets with heterogeneous agents</li>
+<li><a href="https://github.com/topics/comparative-advantage">Comparative Advantage Simulations (GitHub)</a> — community implementations of Ricardian models</li>
+<li><a href="https://ourworldindata.org/automation">Our World in Data: Automation &amp; Employment</a> — empirical data on historical automation transitions</li>
+</ul>
+
+
+</section>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<script src="https://utteranc.es/client.js" repo="seanlewis08/blogComments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+<script src="animations.js"></script>
+
+
+
+
+</body></html>

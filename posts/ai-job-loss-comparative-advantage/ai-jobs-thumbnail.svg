@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+  <rect width="800" height="450" fill="#faf6f1"/>
+
+  <!-- Grid lines -->
+  <g stroke="#e5e5e5" stroke-width="1">
+    <line x1="100" y1="60" x2="100" y2="370"/>
+    <line x1="100" y1="370" x2="720" y2="370"/>
+    <line x1="100" y1="290" x2="720" y2="290" stroke-dasharray="4,4" opacity="0.5"/>
+    <line x1="100" y1="210" x2="720" y2="210" stroke-dasharray="4,4" opacity="0.5"/>
+    <line x1="100" y1="130" x2="720" y2="130" stroke-dasharray="4,4" opacity="0.5"/>
+  </g>
+
+  <!-- Subsistence line -->
+  <line x1="100" y1="250" x2="720" y2="250" stroke="#d4563a" stroke-width="2" stroke-dasharray="8,4"/>
+  <text x="725" y="254" fill="#d4563a" font-family="system-ui, sans-serif" font-size="11" font-weight="500">Subsistence</text>
+
+  <!-- Human wage curve (declining) -->
+  <path d="M120,100 C200,110 280,140 360,200 C440,260 520,320 680,360" fill="none" stroke="#0d7c5f" stroke-width="3"/>
+  <text x="130" y="90" fill="#0d7c5f" font-family="system-ui, sans-serif" font-size="12" font-weight="600">Human equilibrium wage</text>
+
+  <!-- AI productivity curve (rising) -->
+  <path d="M120,340 C200,320 280,270 360,200 C440,130 520,90 680,70" fill="none" stroke="#6d5acd" stroke-width="3"/>
+  <text x="560" y="62" fill="#6d5acd" font-family="system-ui, sans-serif" font-size="12" font-weight="600">AI productivity</text>
+
+  <!-- Crossover point -->
+  <circle cx="360" cy="200" r="6" fill="#d4563a" stroke="#fff" stroke-width="2"/>
+  <text x="370" y="195" fill="#d4563a" font-family="system-ui, sans-serif" font-size="11" font-weight="600">Crossover</text>
+
+  <!-- Danger zone fill -->
+  <path d="M360,250 C440,260 520,320 680,360 L680,370 L360,370 Z" fill="#d4563a" opacity="0.08"/>
+  <text x="500" y="350" fill="#d4563a" font-family="system-ui, sans-serif" font-size="10" opacity="0.7">Below subsistence</text>
+
+  <!-- Y-axis label -->
+  <text x="30" y="220" fill="#8a8a8a" font-family="system-ui, sans-serif" font-size="11" transform="rotate(-90 30 220)">Value / Wage</text>
+
+  <!-- X-axis label -->
+  <text x="400" y="400" text-anchor="middle" fill="#8a8a8a" font-family="system-ui, sans-serif" font-size="12">AI Capability Level</text>
+
+  <!-- Title -->
+  <text x="400" y="435" text-anchor="middle" fill="#8a8a8a" font-family="system-ui, sans-serif" font-size="11">claywren (2026) · Comparative Advantage Under AI</text>
+</svg>
