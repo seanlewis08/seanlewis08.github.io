@@ -2,6 +2,7 @@
   {
     "listing": "/blog.html",
     "items": [
+      "/posts/evaluating-agents-md/index.html",
       "/posts/causal-forests/index.html",
       "/posts/ai-job-loss-comparative-advantage/index.html",
       "/posts/unconfoundedness-ate/index.html",

@@ -1,0 +1,254 @@
+---
+title: "Evaluating AGENTS.md: Do Repository-Level Context Files Actually Help Coding Agents?"
+date: "2026-02-21"
+categories: [AI Agents, Software Engineering, LLMs, Benchmarking]
+description: "Anthropic's empirical evaluation of AGENTS.md files — structured instructions that tell coding agents how to navigate a repository. The results: a 7.0% improvement on SWE-bench, but the story is more nuanced than the headline."
+image: agents-md-thumbnail.svg
+---
+
+## The Gist
+
+If you've used Claude Code, Cursor, or any LLM-based coding agent on a real repository, you've probably noticed the gap between what the model *can* do and what it *actually* does. The model is smart enough to fix the bug, but it doesn't know your repo's testing conventions, that you use `pytest` instead of `unittest`, or that changes to the API layer require updating the OpenAPI spec.
+
+**AGENTS.md** is a simple idea: put a markdown file at the root of your repository that tells the agent how things work here. Think of it as onboarding documentation, but for an AI. Anthropic's paper (Gloaguen et al., February 2025) asks the obvious question: does it actually help?
+
+The answer: **yes, but unevenly**. Across the SWE-bench Verified benchmark, AGENTS.md files improved Claude's resolve rate by **7.0 percentage points** (from 54.3% to 61.3%). But the gains were concentrated — some repositories saw massive improvements while others saw none or even slight regressions. The paper dissects *why*, and the findings have practical implications for anyone working with coding agents.
+
+## Why It Matters Now
+
+Coding agents are becoming a standard part of software development. But their effectiveness on real-world tasks is bottlenecked not by raw model capability but by *context* — the agent doesn't know things that any human developer on the team would know after a week of onboarding. AGENTS.md files are a zero-cost, lightweight intervention (just write a markdown file) that can meaningfully close this gap.
+
+The broader significance: this paper is one of the first rigorous empirical studies of how *structured context injection* affects agent performance on a standardized benchmark. It moves the conversation from "prompt engineering tips" to measurable, reproducible results.
+
+## The Setup: What Goes in an AGENTS.md?
+
+The paper had an Anthropic engineer spend approximately one hour per repository writing AGENTS.md files for 39 repos in SWE-bench Verified. Each file follows a common template covering:
+
+1. **Repository overview** — what the project is, its architecture
+2. **Development setup** — how to install dependencies, configure the environment
+3. **Testing conventions** — how to run tests, which framework is used, common patterns
+4. **Code style & conventions** — naming conventions, import ordering, formatting rules
+5. **Common pitfalls** — repo-specific gotchas that trip up newcomers
+
+The files average roughly 100–200 lines of markdown. They're written by examining the repo structure, existing documentation, CI configs, and contribution guides — information that *exists* in the repo but is scattered across dozens of files.
+
+```{mermaid}
+flowchart TD
+    A["Repository"] --> B["Engineer examines:<br/>README, CI config, CONTRIBUTING.md,<br/>test structure, code style"]
+    B --> C["Writes AGENTS.md<br/>(~1 hour per repo)"]
+    C --> D["AGENTS.md injected into<br/>agent's system prompt"]
+    D --> E["Agent attempts<br/>SWE-bench task"]
+    E --> F{"Resolve<br/>rate?"}
+    F -->|Baseline| G["54.3%<br/>(no AGENTS.md)"]
+    F -->|With AGENTS.md| H["61.3%<br/>(+7.0 pp)"]
+```
+
+## Key Results
+
+### The Headline Numbers
+
+| Configuration | Resolve Rate | Change |
+|---|---|---|
+| Baseline (no AGENTS.md) | 54.3% | — |
+| With AGENTS.md | 61.3% | **+7.0 pp** |
+
+A 7-point improvement on SWE-bench Verified is substantial — it's the kind of gain that would normally require a model generation jump or significant scaffolding changes. And it comes from just adding a text file.
+
+### Where It Helps Most
+
+The gains are not uniform across repositories. The paper breaks this down and finds:
+
+- **High-improvement repos**: Projects with complex, non-obvious testing conventions or unusual project structures benefited the most. If the repo has idiosyncratic patterns that an agent wouldn't guess from the code alone, AGENTS.md bridges the gap.
+- **Low/no-improvement repos**: Well-documented, conventionally structured projects (where the agent could already infer the right patterns) saw minimal gains. If your repo follows textbook Python packaging with standard pytest, the agent probably doesn't need extra help.
+- **Slight regressions**: A small number of repos saw marginally worse performance. The paper attributes this to cases where the AGENTS.md introduced irrelevant context that distracted the agent from the actual task.
+
+### What Content Matters Most
+
+The paper analyzes which *sections* of the AGENTS.md files drive the improvements:
+
+| Content Type | Impact |
+|---|---|
+| **Testing instructions** | Highest impact — knowing how to run and validate tests is critical |
+| **Repository structure** | High impact — helps agent navigate unfamiliar codebases |
+| **Code style conventions** | Moderate — prevents style-related test failures |
+| **Development setup** | Moderate — avoids environment configuration errors |
+| **General project overview** | Lower — helpful but less directly actionable |
+
+The testing section is the single most valuable piece of context. This makes intuitive sense: SWE-bench tasks are evaluated by whether the agent's patch passes the test suite. If the agent doesn't know how to *run* the tests — or writes tests in the wrong style — it fails even when the logic fix is correct.
+
+## The Lineage: Where This Fits
+
+This paper sits at the intersection of two rapidly developing areas:
+
+**From the coding agents side**: SWE-bench (Jimenez et al., 2024) established the first rigorous benchmark for evaluating coding agents on real GitHub issues. SWE-bench Verified refined this with human-validated test cases. The progression from raw model evaluation (HumanEval, MBPP) to agentic repository-level evaluation reflects the field's maturation — the bottleneck isn't "can the model write code?" but "can the model operate effectively in a real software project?"
+
+**From the prompt engineering / context injection side**: There's a growing literature on how context affects LLM performance — from retrieval-augmented generation (RAG) to system prompts to few-shot examples. AGENTS.md is essentially a curated, repository-specific form of context injection. The paper's contribution is showing that *human-authored, structured context* beats what the agent can infer on its own, even when all the underlying information is technically available in the repo.
+
+| Approach | Context Source | Structured? | Effort |
+|---|---|---|---|
+| Raw agent (baseline) | Agent explores repo itself | No | Zero |
+| RAG over repo | Automated retrieval | Semi | Low |
+| **AGENTS.md** | **Human-authored summary** | **Yes** | **~1hr/repo** |
+| Fine-tuning on repo | Model weights | No | High |
+
+The practical takeaway: a small amount of human curation (one hour of an engineer's time) produces gains that automated approaches struggle to match. The structured, opinionated nature of AGENTS.md — *this is how we do things here* — is more valuable than raw information retrieval.
+
+## Rubber-Ducking the Jargon
+
+**SWE-bench Verified**: A benchmark of 500 real GitHub issues from popular Python repositories. Each task gives the agent an issue description and asks it to produce a patch. Success is measured by whether the patch passes held-out tests. "Verified" means humans checked that the tests actually validate the fix.
+
+**Resolve rate**: The percentage of tasks where the agent's patch passes all tests. This is the primary metric.
+
+**System prompt injection**: The AGENTS.md content is prepended to the agent's context before it starts working on a task. The agent doesn't search for or discover the file — it's given to it upfront.
+
+**Percentage points (pp) vs. percent**: A 7.0 pp increase from 54.3% to 61.3% is *not* a 7% increase. In relative terms, it's a ~13% relative improvement. The paper correctly reports in percentage points.
+
+## What to Watch Out For
+
+1. **Benchmark-specific results**: SWE-bench tasks have a particular structure (GitHub issues in popular Python repos). The gains from AGENTS.md may be different for other languages, repo sizes, or task types.
+
+2. **The author effect**: The AGENTS.md files were written by an Anthropic engineer who understands how Claude processes context. Files written by someone less familiar with LLM behavior might be less effective. The paper acknowledges this but doesn't test it.
+
+3. **Cost of maintenance**: AGENTS.md files need updating as repositories evolve. The paper doesn't address the ongoing maintenance cost, which matters for real-world adoption.
+
+4. **Single model evaluation**: Results are reported for Claude. Generalization to other models (GPT-4, Gemini, open-source models) is not tested. The optimal AGENTS.md content might be model-dependent.
+
+5. **Potential ceiling effects**: The best-performing repos may already be near the upper bound of what's achievable with context alone. The remaining failures might require deeper reasoning capabilities that no amount of documentation can fix.
+
+## So What?
+
+If you maintain a repository that coding agents interact with, write an AGENTS.md file. It's one of the highest-ROI interventions available: roughly one hour of work for a measurable improvement in agent effectiveness. Prioritize the testing section — tell the agent exactly how to run tests, what framework you use, and any non-obvious patterns. Include repo structure and common pitfalls. Skip the generic boilerplate.
+
+More broadly, this paper suggests that the next frontier in coding agent performance isn't just better models — it's better context. The information the agent needs often already exists; it just needs to be organized in a way the agent can consume efficiently.
+
+---
+
+## Reproduction & Implementation
+
+### Environment Setup
+
+```bash
+# To reproduce the evaluation framework
+pip install swebench        # SWE-bench evaluation harness
+pip install anthropic       # Claude API client
+
+# For writing and testing your own AGENTS.md
+# No special dependencies — it's a markdown file
+
+# Versions
+# Python 3.10+
+# swebench >= 1.0
+# anthropic >= 0.40 (Claude API)
+```
+
+### Core Logic: AGENTS.md Template
+
+```markdown
+# AGENTS.md Template (based on paper's findings)
+
+## Repository Overview
+- What this project does (1-2 sentences)
+- Key architectural decisions
+- Primary language and framework versions
+
+## Development Setup
+- How to install dependencies
+- Required environment variables
+- Database/service dependencies
+
+## Testing (MOST IMPORTANT SECTION)
+- Test framework: pytest / unittest / other
+- How to run the full test suite: `pytest tests/`
+- How to run a single test: `pytest tests/test_foo.py::test_bar`
+- Test file naming convention: `test_*.py`
+- Common test fixtures and how to use them
+- Tests that require special setup (database, network)
+
+## Code Style & Conventions
+- Import ordering (stdlib, third-party, local)
+- Naming conventions (snake_case, camelCase)
+- Formatting tool: black / ruff / autopep8
+- Type hints: required / optional / style
+
+## Common Pitfalls
+- Files that must be updated together
+- Circular import risks
+- Performance-sensitive paths
+- Deprecated patterns to avoid
+```
+
+### Pseudo-Code: Evaluation Pipeline
+
+```python
+def evaluate_agents_md(repo, tasks, model="claude-sonnet"):
+    """
+    Evaluate impact of AGENTS.md on SWE-bench resolve rate.
+
+    Parameters
+    ----------
+    repo : str — repository name
+    tasks : list — SWE-bench task instances for this repo
+    model : str — model identifier
+
+    Returns
+    -------
+    baseline_rate : float — resolve rate without AGENTS.md
+    enhanced_rate : float — resolve rate with AGENTS.md
+    """
+    results_baseline = []
+    results_enhanced = []
+
+    for task in tasks:
+        issue_description = task["problem_statement"]
+        gold_patch = task["patch"]
+        test_spec = task["test_spec"]
+
+        # Baseline: agent works with no AGENTS.md
+        patch_baseline = run_agent(
+            model=model,
+            system_prompt="",  # No extra context
+            task=issue_description,
+            repo=repo
+        )
+        results_baseline.append(
+            evaluate_patch(patch_baseline, test_spec)
+        )
+
+        # Enhanced: agent gets AGENTS.md in system prompt
+        agents_md = read_file(f"{repo}/AGENTS.md")
+        patch_enhanced = run_agent(
+            model=model,
+            system_prompt=agents_md,
+            task=issue_description,
+            repo=repo
+        )
+        results_enhanced.append(
+            evaluate_patch(patch_enhanced, test_spec)
+        )
+
+    baseline_rate = sum(results_baseline) / len(tasks)
+    enhanced_rate = sum(results_enhanced) / len(tasks)
+
+    return baseline_rate, enhanced_rate
+```
+
+### Resource Links
+
+#### Original Paper
+
+- [Gloaguen et al. (2025), "Evaluating AGENTS.md"](https://www.anthropic.com/research/) — Anthropic Research
+
+#### Official Resources
+
+- [Claude Code Documentation](https://docs.anthropic.com/en/docs/claude-code) — includes AGENTS.md / CLAUDE.md guidance
+- [SWE-bench](https://github.com/princeton-nlp/SWE-bench) — the benchmark used for evaluation
+
+#### Community Implementations
+
+- [CLAUDE.md / AGENTS.md examples on GitHub](https://github.com/topics/agents-md) — community-contributed context files
+- [SWE-bench Leaderboard](https://www.swebench.com/) — current standings across models and approaches
+
+#### Related Reading
+
+- [Jimenez et al. (2024), "SWE-bench: Can Language Models Resolve Real-World GitHub Issues?"](https://arxiv.org/abs/2310.06770)
+- [Anthropic's Claude Code best practices](https://docs.anthropic.com/en/docs/claude-code/best-practices)
