@@ -31,6 +31,23 @@ A personal budgeting application to help track spending, set savings goals, and 
 
 :::
 
+::: {.project-card}
+
+### Popcorn Machine
+
+A sports analytics web app featuring box scores, game flow visualizations, and data-driven insights — powered by a Python data pipeline and a TypeScript/HTML frontend.
+
+[TypeScript]{.tech-tag}
+[Python]{.tech-tag}
+[Sports Analytics]{.tech-tag}
+[Data Pipeline]{.tech-tag}
+
+[View Project](https://seanlewis08.github.io/popcornmachine/#/){.btn-project}
+&nbsp;&nbsp;
+[Source Code](https://github.com/seanlewis08/popcornmachine){.btn-project}
+
+:::
+
 <br>
 
 *More projects coming soon — check back or follow along on [GitHub](https://github.com/seanlewis08).*
