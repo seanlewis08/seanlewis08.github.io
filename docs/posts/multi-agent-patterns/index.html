@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Sean Lewis">
+<meta name="dcterms.date" content="2026-03-04">
+<meta name="description" content="Suman Das catalogs the eight core multi-agent design patterns every AI developer needs — from sequential pipelines to evaluator-optimizer loops — with clear guidance on when to use each, which frameworks support them, and how production systems combine them.">
+
+<title>Multi-Agent AI Patterns: A Developer’s Field Guide – Sean Lewis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="../../site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="../../site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="../../site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Sean Lewis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../projects.html"> 
+<span class="menu-text">Projects</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/seanlewis08"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/selew/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-gist" id="toc-the-gist" class="nav-link active" data-scroll-target="#the-gist">The Gist</a></li>
+  <li><a href="#why-it-matters-now" id="toc-why-it-matters-now" class="nav-link" data-scroll-target="#why-it-matters-now">Why It Matters Now</a></li>
+  <li><a href="#the-eight-core-patterns" id="toc-the-eight-core-patterns" class="nav-link" data-scroll-target="#the-eight-core-patterns">The Eight Core Patterns</a>
+  <ul class="collapse">
+  <li><a href="#sequential-pipeline" id="toc-sequential-pipeline" class="nav-link" data-scroll-target="#sequential-pipeline">1. Sequential / Pipeline</a></li>
+  <li><a href="#orchestrator-worker-hierarchical" id="toc-orchestrator-worker-hierarchical" class="nav-link" data-scroll-target="#orchestrator-worker-hierarchical">2. Orchestrator-Worker (Hierarchical)</a></li>
+  <li><a href="#parallel-fan-out-fan-in" id="toc-parallel-fan-out-fan-in" class="nav-link" data-scroll-target="#parallel-fan-out-fan-in">3. Parallel / Fan-Out → Fan-In</a></li>
+  <li><a href="#reflection-self-critique" id="toc-reflection-self-critique" class="nav-link" data-scroll-target="#reflection-self-critique">4. Reflection / Self-Critique</a></li>
+  <li><a href="#router-dispatch" id="toc-router-dispatch" class="nav-link" data-scroll-target="#router-dispatch">5. Router / Dispatch</a></li>
+  <li><a href="#planning-execution" id="toc-planning-execution" class="nav-link" data-scroll-target="#planning-execution">6. Planning + Execution</a></li>
+  <li><a href="#handoff" id="toc-handoff" class="nav-link" data-scroll-target="#handoff">7. Handoff</a></li>
+  <li><a href="#evaluator-optimizer-loop" id="toc-evaluator-optimizer-loop" class="nav-link" data-scroll-target="#evaluator-optimizer-loop">8. Evaluator-Optimizer Loop</a></li>
+  </ul></li>
+  <li><a href="#bonus-emerging-patterns" id="toc-bonus-emerging-patterns" class="nav-link" data-scroll-target="#bonus-emerging-patterns">Bonus: Emerging Patterns</a></li>
+  <li><a href="#the-decision-framework" id="toc-the-decision-framework" class="nav-link" data-scroll-target="#the-decision-framework">The Decision Framework</a></li>
+  <li><a href="#combining-patterns" id="toc-combining-patterns" class="nav-link" data-scroll-target="#combining-patterns">Combining Patterns</a></li>
+  <li><a href="#rubber-ducking-the-jargon" id="toc-rubber-ducking-the-jargon" class="nav-link" data-scroll-target="#rubber-ducking-the-jargon">Rubber-Ducking the Jargon</a></li>
+  <li><a href="#what-to-watch-out-for" id="toc-what-to-watch-out-for" class="nav-link" data-scroll-target="#what-to-watch-out-for">What to Watch Out For</a></li>
+  <li><a href="#so-what" id="toc-so-what" class="nav-link" data-scroll-target="#so-what">So What?</a></li>
+  <li><a href="#reproduction-implementation" id="toc-reproduction-implementation" class="nav-link" data-scroll-target="#reproduction-implementation">Reproduction &amp; Implementation</a>
+  <ul class="collapse">
+  <li><a href="#environment-setup" id="toc-environment-setup" class="nav-link" data-scroll-target="#environment-setup">Environment Setup</a></li>
+  <li><a href="#pattern-selection-pseudo-code" id="toc-pattern-selection-pseudo-code" class="nav-link" data-scroll-target="#pattern-selection-pseudo-code">Pattern Selection Pseudo-Code</a></li>
+  <li><a href="#resources-links" id="toc-resources-links" class="nav-link" data-scroll-target="#resources-links">Resources &amp; Links</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Multi-Agent AI Patterns: A Developer’s Field Guide</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">AI Agents</div>
+    <div class="quarto-category">Design Patterns</div>
+    <div class="quarto-category">LLMs</div>
+    <div class="quarto-category">Software Architecture</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Suman Das catalogs the eight core multi-agent design patterns every AI developer needs — from sequential pipelines to evaluator-optimizer loops — with clear guidance on when to use each, which frameworks support them, and how production systems combine them.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Sean Lewis </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 4, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<blockquote class="blockquote">
+<p>📄 <strong><a href="../../papers-hosted/multi-agent-patterns.pdf" target="_blank">Read the Full Article</a></strong></p>
+</blockquote>
+<section id="the-gist" class="level2">
+<h2 class="anchored" data-anchor-id="the-gist">The Gist</h2>
+<p>We solved the monolith problem in software engineering decades ago — we broke systems into <strong>microservices</strong>, each doing one thing well, communicating through clean interfaces. The same evolution is now happening in AI. When a single agent tries to research, write, code, review, and deploy all at once, it loses context, hallucinates, and forgets what it said three steps ago. The fix is the same: <strong>decompose</strong>.</p>
+<p>Suman Das’s April 2026 article provides the most practical taxonomy I’ve seen of <strong>multi-agent design patterns</strong> — the architectural templates that define how multiple AI agents coordinate to solve problems that overwhelm any single agent. He identifies eight core patterns and three emerging ones, each with clear when-to-use / when-not-to-use guidance and framework support across LangGraph, CrewAI, AutoGen, Google ADK, and the Anthropic Agent SDK.</p>
+<p>The key insight isn’t <em>whether</em> to use multiple agents — it’s <strong>which pattern</strong> fits your problem and <strong>when</strong>. Das provides a decision framework: start simple, add complexity only when you need it.</p>
+</section>
+<section id="why-it-matters-now" class="level2">
+<h2 class="anchored" data-anchor-id="why-it-matters-now">Why It Matters Now</h2>
+<p>Every major AI framework now supports multi-agent orchestration, but the documentation tends to show you <em>how</em> to wire agents together without telling you <em>which wiring pattern</em> to choose. This article fills that gap. If you’re building anything beyond a single chatbot — a research pipeline, a code generation system, a customer support platform — you’re implicitly choosing one of these patterns whether you know it or not. Knowing the taxonomy means making that choice deliberately.</p>
+<p>The timing is also significant. As of early 2026, LangGraph, CrewAI, AutoGen, Google ADK, and the Anthropic Agent SDK have all matured their multi-agent APIs. The patterns Das describes aren’t theoretical — they map directly to production-ready framework primitives.</p>
+</section>
+<section id="the-eight-core-patterns" class="level2">
+<h2 class="anchored" data-anchor-id="the-eight-core-patterns">The Eight Core Patterns</h2>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">flowchart TD
+    A["🤖 Multi-Agent Patterns"] --&gt; B["1. Sequential / Pipeline"]
+    A --&gt; C["2. Orchestrator-Worker"]
+    A --&gt; D["3. Parallel Fan-Out → Fan-In"]
+    A --&gt; E["4. Reflection / Self-Critique"]
+    A --&gt; F["5. Router / Dispatch"]
+    A --&gt; G["6. Planning + Execution"]
+    A --&gt; H["7. Handoff"]
+    A --&gt; I["8. Evaluator-Optimizer Loop"]
+
+    style A fill:#f0ebe4,stroke:#0d7c5f,color:#1a1a1a
+    style B fill:#faf6f1,stroke:#0d7c5f,color:#1a1a1a
+    style C fill:#faf6f1,stroke:#0d7c5f,color:#1a1a1a
+    style D fill:#faf6f1,stroke:#0d7c5f,color:#1a1a1a
+    style E fill:#faf6f1,stroke:#0d7c5f,color:#1a1a1a
+    style F fill:#faf6f1,stroke:#0d7c5f,color:#1a1a1a
+    style G fill:#faf6f1,stroke:#0d7c5f,color:#1a1a1a
+    style H fill:#faf6f1,stroke:#0d7c5f,color:#1a1a1a
+    style I fill:#faf6f1,stroke:#0d7c5f,color:#1a1a1a
+</pre>
+</div>
+<p></p><figcaption> Multi-Agent Pattern Taxonomy</figcaption> </figure><p></p>
+</div>
+</div>
+</div>
+<section id="sequential-pipeline" class="level3">
+<h3 class="anchored" data-anchor-id="sequential-pipeline">1. Sequential / Pipeline</h3>
+<p>Agents in a straight line — each does its job and passes the result to the next. The assembly line of multi-agent systems.</p>
+<p><strong>When to use:</strong> Clear, ordered stages where each step has a distinct responsibility and you need auditability at every step.</p>
+<p><strong>When NOT to use:</strong> Stages are independent (use Parallel instead), or latency matters — this pattern is only as fast as the slowest agent.</p>
+<p><strong>Sample Use Case:</strong> A content publishing pipeline — Agent A extracts key points from raw research, Agent B transforms them into a blog draft, Agent C validates facts and grammar, Agent D generates the final summary and SEO metadata.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Sequential Pipeline with LangGraph</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> langgraph.graph <span class="im">import</span> StateGraph, END</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> extract_agent(state):</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Agent A: Extract key points from research."""</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    prompt <span class="op">=</span> <span class="ss">f"Extract the 5 key findings from: </span><span class="sc">{</span>state[<span class="st">'raw_research'</span>]<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    state[<span class="st">"key_points"</span>] <span class="op">=</span> llm.invoke(prompt)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> state</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> draft_agent(state):</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Agent B: Transform key points into a blog draft."""</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    prompt <span class="op">=</span> <span class="ss">f"Write a blog post based on these points: </span><span class="sc">{</span>state[<span class="st">'key_points'</span>]<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    state[<span class="st">"draft"</span>] <span class="op">=</span> llm.invoke(prompt)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> state</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> validate_agent(state):</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Agent C: Fact-check and grammar review."""</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    prompt <span class="op">=</span> <span class="ss">f"Review this draft for accuracy and grammar: </span><span class="sc">{</span>state[<span class="st">'draft'</span>]<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    state[<span class="st">"validated_draft"</span>] <span class="op">=</span> llm.invoke(prompt)</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> state</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> summarize_agent(state):</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Agent D: Generate summary and SEO metadata."""</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    prompt <span class="op">=</span> <span class="ss">f"Create a summary and SEO tags for: </span><span class="sc">{</span>state[<span class="st">'validated_draft'</span>]<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    state[<span class="st">"final_output"</span>] <span class="op">=</span> llm.invoke(prompt)</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> state</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Wire the pipeline</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>graph <span class="op">=</span> StateGraph(<span class="bu">dict</span>)</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>graph.add_node(<span class="st">"extract"</span>, extract_agent)</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>graph.add_node(<span class="st">"draft"</span>, draft_agent)</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>graph.add_node(<span class="st">"validate"</span>, validate_agent)</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>graph.add_node(<span class="st">"summarize"</span>, summarize_agent)</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>graph.add_edge(<span class="st">"extract"</span>, <span class="st">"draft"</span>)</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>graph.add_edge(<span class="st">"draft"</span>, <span class="st">"validate"</span>)</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>graph.add_edge(<span class="st">"validate"</span>, <span class="st">"summarize"</span>)</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>graph.add_edge(<span class="st">"summarize"</span>, END)</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>graph.set_entry_point(<span class="st">"extract"</span>)</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>pipeline <span class="op">=</span> graph.<span class="bu">compile</span>()</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> pipeline.invoke({<span class="st">"raw_research"</span>: <span class="st">"..."</span>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Framework</th>
+<th>Implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>LangGraph</td>
+<td>Native linear graph edges</td>
+</tr>
+<tr class="even">
+<td>CrewAI</td>
+<td><code>Process.sequential</code></td>
+</tr>
+<tr class="odd">
+<td>AutoGen</td>
+<td><code>initiate_chats</code> with sequential carryover</td>
+</tr>
+<tr class="even">
+<td>Google ADK</td>
+<td><code>SequentialAgent</code> (native workflow agent)</td>
+</tr>
+<tr class="odd">
+<td>Anthropic Agent SDK</td>
+<td>Claude chains steps through its reasoning loop</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="orchestrator-worker-hierarchical" class="level3">
+<h3 class="anchored" data-anchor-id="orchestrator-worker-hierarchical">2. Orchestrator-Worker (Hierarchical)</h3>
+<p>A <strong>smart manager agent</strong> that understands the big picture, <strong>dynamically decides</strong> what sub-tasks to create, delegates to specialists, monitors progress, and stitches results together. The key word is <em>dynamic</em> — the orchestrator reasons about the task and may change its plan mid-execution.</p>
+<p><strong>How is this different from Parallel Fan-Out?</strong> In Fan-Out, you know all sub-tasks upfront. Here, the orchestrator <strong>figures out</strong> the sub-tasks at runtime, may run some in sequence and others in parallel, and can reassign or retry if something fails.</p>
+<p><strong>When to use:</strong> Sub-tasks aren’t known upfront, workers may have dependencies on each other’s output, you need centralized coordination and adaptive replanning.</p>
+<p><strong>When NOT to use:</strong> The task is simple enough for a single agent, or all sub-tasks are independent and known upfront (use Parallel instead).</p>
+<p><strong>Sample Use Case:</strong> An e-commerce order system — the orchestrator delegates to Inventory, Payment, and Shipping agents. If Inventory reports “out of stock,” the orchestrator adapts by asking a Recommendation agent to suggest alternatives.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Orchestrator-Worker with CrewAI</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> crewai <span class="im">import</span> Agent, Task, Crew, Process</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>orchestrator <span class="op">=</span> Agent(</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    role<span class="op">=</span><span class="st">"Project Manager"</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    goal<span class="op">=</span><span class="st">"Coordinate the team to fulfill customer orders"</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    backstory<span class="op">=</span><span class="st">"Expert at breaking down complex orders and delegating."</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    llm<span class="op">=</span><span class="st">"gpt-4o"</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>inventory_agent <span class="op">=</span> Agent(</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    role<span class="op">=</span><span class="st">"Inventory Specialist"</span>,</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    goal<span class="op">=</span><span class="st">"Check stock availability and report status"</span>,</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    backstory<span class="op">=</span><span class="st">"Has access to the warehouse database."</span>,</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    tools<span class="op">=</span>[inventory_lookup_tool],</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    llm<span class="op">=</span><span class="st">"gpt-4o-mini"</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>payment_agent <span class="op">=</span> Agent(</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    role<span class="op">=</span><span class="st">"Payment Processor"</span>,</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    goal<span class="op">=</span><span class="st">"Process payments securely"</span>,</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    backstory<span class="op">=</span><span class="st">"Handles all payment gateway interactions."</span>,</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    tools<span class="op">=</span>[payment_tool],</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    llm<span class="op">=</span><span class="st">"gpt-4o-mini"</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>shipping_agent <span class="op">=</span> Agent(</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    role<span class="op">=</span><span class="st">"Shipping Coordinator"</span>,</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    goal<span class="op">=</span><span class="st">"Calculate delivery options and schedule dispatch"</span>,</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    backstory<span class="op">=</span><span class="st">"Manages logistics and carrier APIs."</span>,</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    tools<span class="op">=</span>[shipping_tool],</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>    llm<span class="op">=</span><span class="st">"gpt-4o-mini"</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="co"># CrewAI's hierarchical process lets the manager delegate dynamically</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>crew <span class="op">=</span> Crew(</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>    agents<span class="op">=</span>[inventory_agent, payment_agent, shipping_agent],</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>    tasks<span class="op">=</span>[Task(description<span class="op">=</span><span class="st">"Process order #</span><span class="sc">{order_id}</span><span class="st">"</span>, agent<span class="op">=</span>orchestrator)],</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>    process<span class="op">=</span>Process.hierarchical,</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>    manager_llm<span class="op">=</span><span class="st">"gpt-4o"</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> crew.kickoff()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Framework</th>
+<th>Implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>LangGraph</td>
+<td>Supervisor pattern with sub-graphs</td>
+</tr>
+<tr class="even">
+<td>CrewAI</td>
+<td><code>Process.hierarchical</code> with <code>manager_llm</code></td>
+</tr>
+<tr class="odd">
+<td>AutoGen</td>
+<td><code>GroupChat</code> with <code>GroupChatManager</code></td>
+</tr>
+<tr class="even">
+<td>Google ADK</td>
+<td><code>LlmAgent</code> with <code>sub_agents</code> and <code>transfer_to_agent</code></td>
+</tr>
+<tr class="odd">
+<td>Anthropic Agent SDK</td>
+<td>Parent agent spawns subagents via Agent tool</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="parallel-fan-out-fan-in" class="level3">
+<h3 class="anchored" data-anchor-id="parallel-fan-out-fan-in">3. Parallel / Fan-Out → Fan-In</h3>
+<p>The <strong>speed pattern</strong>. When independent sub-tasks don’t depend on each other, fire them all at once, then merge results. Unlike Orchestrator-Worker, there’s <strong>no smart manager</strong> — a simple splitter distributes pre-defined tasks, and a simple aggregator combines results.</p>
+<p><strong>When to use:</strong> All sub-tasks are known upfront and independent, latency is critical, you’re gathering data from multiple sources.</p>
+<p><strong>When NOT to use:</strong> Tasks have dependencies on each other, or you need dynamic task creation.</p>
+<p><strong>Sample Use Case:</strong> A competitive analysis tool — Agent 1 scrapes websites, Agent 2 pulls financial data, Agent 3 gathers social sentiment, Agent 4 searches news. None need each other’s output. Total time = slowest agent, not the sum of all four.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Parallel Fan-Out with Python asyncio + LangGraph Send API</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> asyncio</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> langchain_openai <span class="im">import</span> ChatOpenAI</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> ChatOpenAI(model<span class="op">=</span><span class="st">"gpt-4o-mini"</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> scrape_websites(query: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Agent 1: Scrape competitor websites."""</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="cf">await</span> llm.ainvoke(<span class="ss">f"Summarize competitor info for: </span><span class="sc">{</span>query<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> pull_financials(query: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Agent 2: Pull financial data from APIs."""</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="cf">await</span> llm.ainvoke(<span class="ss">f"Get financial summary for: </span><span class="sc">{</span>query<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> gather_sentiment(query: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Agent 3: Analyze social media sentiment."""</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="cf">await</span> llm.ainvoke(<span class="ss">f"Analyze social sentiment for: </span><span class="sc">{</span>query<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> search_news(query: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Agent 4: Search recent news articles."""</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="cf">await</span> llm.ainvoke(<span class="ss">f"Find recent news about: </span><span class="sc">{</span>query<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> competitive_analysis(query: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Fan-out to all agents, fan-in to aggregate."""</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Fan-out: all agents run concurrently</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    results <span class="op">=</span> <span class="cf">await</span> asyncio.gather(</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>        scrape_websites(query),</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>        pull_financials(query),</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>        gather_sentiment(query),</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>        search_news(query)</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Fan-in: aggregate results</span></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    combined <span class="op">=</span> <span class="st">"</span><span class="ch">\n\n</span><span class="st">"</span>.join([r.content <span class="cf">for</span> r <span class="kw">in</span> results])</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>    final <span class="op">=</span> <span class="cf">await</span> llm.ainvoke(</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"Synthesize this competitive analysis:</span><span class="ch">\n</span><span class="sc">{</span>combined<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> final.content</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>report <span class="op">=</span> asyncio.run(competitive_analysis(<span class="st">"Tesla Q1 2026"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Framework</th>
+<th>Implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>LangGraph</td>
+<td>Parallel branches with fan-in node, <code>Send</code> API</td>
+</tr>
+<tr class="even">
+<td>CrewAI</td>
+<td><code>async_execution=True</code> on tasks</td>
+</tr>
+<tr class="odd">
+<td>AutoGen</td>
+<td><code>a_initiate_chats</code> with concurrent execution</td>
+</tr>
+<tr class="even">
+<td>Google ADK</td>
+<td><code>ParallelAgent</code> (native workflow agent)</td>
+</tr>
+<tr class="odd">
+<td>Anthropic Agent SDK</td>
+<td>Multiple Agent tool calls in a single message</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="reflection-self-critique" class="level3">
+<h3 class="anchored" data-anchor-id="reflection-self-critique">4. Reflection / Self-Critique</h3>
+<p>One agent generates, another reviews, and they iterate until the output meets a quality bar. This gives your AI a <strong>built-in editor</strong>.</p>
+<p><strong>When to use:</strong> Code generation (write → test → fix cycles), content creation where first drafts aren’t good enough, any task with clear quality criteria.</p>
+<p><strong>When NOT to use:</strong> Real-time responses needed (iteration adds latency), first pass is usually correct, or no clear “good enough” criteria.</p>
+<p><strong>Sample Use Case:</strong> An automated code review system — the Generator writes a function, the Reviewer runs tests and checks for edge cases. If anything fails, feedback goes back. Repeat until all tests pass.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Reflection / Self-Critique Loop</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> langchain_openai <span class="im">import</span> ChatOpenAI</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>llm <span class="op">=</span> ChatOpenAI(model<span class="op">=</span><span class="st">"gpt-4o"</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>MAX_ITERATIONS <span class="op">=</span> <span class="dv">5</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> generate(task: <span class="bu">str</span>, feedback: <span class="bu">str</span> <span class="op">=</span> <span class="st">""</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Generator agent: produce or revise code."""</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    context <span class="op">=</span> <span class="ss">f"Previous feedback: </span><span class="sc">{</span>feedback<span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span> <span class="cf">if</span> feedback <span class="cf">else</span> <span class="st">""</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> llm.invoke(</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"</span><span class="sc">{</span>context<span class="sc">}</span><span class="ss">Write a Python function that: </span><span class="sc">{</span>task<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    ).content</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> review(code: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">dict</span>:</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Reviewer agent: evaluate code quality."""</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    response <span class="op">=</span> llm.invoke(</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"""Review this code. Return JSON with:</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="ss">        - "approved": true/false</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="ss">        - "score": 1-10</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="ss">        - "feedback": specific improvement suggestions</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="ss">        Code:</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="ss">        ```python</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="ss">        </span><span class="sc">{</span>code<span class="sc">}</span></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a><span class="ss">        ```"""</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    ).content</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> json.loads(response)</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> reflection_loop(task: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Run the generate-review loop until quality threshold."""</span></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    code <span class="op">=</span> generate(task)</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(MAX_ITERATIONS):</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>        review_result <span class="op">=</span> review(code)</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> review_result[<span class="st">"approved"</span>] <span class="kw">and</span> review_result[<span class="st">"score"</span>] <span class="op">&gt;=</span> <span class="dv">8</span>:</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"✅ Approved after </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss"> iteration(s)"</span>)</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> code</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"🔄 Iteration </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">: Score </span><span class="sc">{</span>review_result[<span class="st">'score'</span>]<span class="sc">}</span><span class="ss">/10"</span>)</span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>        code <span class="op">=</span> generate(task, feedback<span class="op">=</span>review_result[<span class="st">"feedback"</span>])</span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> code  <span class="co"># Return best effort after max iterations</span></span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>final_code <span class="op">=</span> reflection_loop(<span class="st">"sort a list using merge sort"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 42%">
+<col style="width: 57%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Framework</th>
+<th>Implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>LangGraph</td>
+<td>Cycles with conditional stop</td>
+</tr>
+<tr class="even">
+<td>CrewAI</td>
+<td><code>guardrail</code> for validation, <code>max_iter</code> for retries</td>
+</tr>
+<tr class="odd">
+<td>AutoGen</td>
+<td><code>register_nested_chats</code> for inner critic</td>
+</tr>
+<tr class="even">
+<td>Google ADK</td>
+<td><code>LoopAgent</code> with <code>max_iterations</code> and <code>escalate=True</code></td>
+</tr>
+<tr class="odd">
+<td>Anthropic Agent SDK</td>
+<td>Claude self-evaluates through its reasoning loop</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="router-dispatch" class="level3">
+<h3 class="anchored" data-anchor-id="router-dispatch">5. Router / Dispatch</h3>
+<p>A lightweight router classifies the input <strong>once</strong> and sends it to the best-fit specialist. That’s it — the router’s job is done. It’s a <strong>traffic cop</strong>, not a project manager.</p>
+<p><strong>How is this different from Orchestrator-Worker?</strong> The router makes <strong>one decision</strong> (which agent?) and steps aside. It doesn’t break tasks into sub-tasks, wait for results, or aggregate anything. Use Router when the task goes to <strong>one</strong> specialist. Use Orchestrator when the task needs to be <strong>split across multiple</strong> specialists.</p>
+<p><strong>When to use:</strong> Diverse input types each needing a single specialist, cost optimization (route simple queries to cheaper models), customer support and helpdesks.</p>
+<p><strong>When NOT to use:</strong> Task needs splitting across multiple agents, all queries need the same processing, or you only have one specialist.</p>
+<p><strong>Sample Use Case:</strong> A SaaS customer support system — the Router classifies tickets as billing, technical, or feature-request, and each goes <strong>entirely</strong> to the appropriate specialist.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Router / Dispatch Pattern</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> langchain_openai <span class="im">import</span> ChatOpenAI</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> enum <span class="im">import</span> Enum</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> TicketType(Enum):</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    BILLING <span class="op">=</span> <span class="st">"billing"</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    TECHNICAL <span class="op">=</span> <span class="st">"technical"</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    SALES <span class="op">=</span> <span class="st">"sales"</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Lightweight router — uses a small, fast model</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>router_llm <span class="op">=</span> ChatOpenAI(model<span class="op">=</span><span class="st">"gpt-4o-mini"</span>, temperature<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Specialist agents — can use different models/tools</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>billing_llm <span class="op">=</span> ChatOpenAI(model<span class="op">=</span><span class="st">"gpt-4o-mini"</span>)</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>technical_llm <span class="op">=</span> ChatOpenAI(model<span class="op">=</span><span class="st">"gpt-4o"</span>)  <span class="co"># Harder problems, better model</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>sales_llm <span class="op">=</span> ChatOpenAI(model<span class="op">=</span><span class="st">"gpt-4o-mini"</span>)</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> route(query: <span class="bu">str</span>) <span class="op">-&gt;</span> TicketType:</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Classify the query and return the ticket type."""</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    response <span class="op">=</span> router_llm.invoke(</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"""Classify this customer query into exactly one category:</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="ss">        - billing: payment, invoices, subscriptions, pricing</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="ss">        - technical: bugs, errors, how-to, integrations</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="ss">        - sales: upgrades, new features, enterprise plans</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="ss">        Query: </span><span class="sc">{</span>query<span class="sc">}</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="ss">        Category:"""</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    ).content.strip().lower()</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> TicketType(response)</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> dispatch(query: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Route to the appropriate specialist agent."""</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>    ticket_type <span class="op">=</span> route(query)</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>    agents <span class="op">=</span> {</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>        TicketType.BILLING: billing_llm,</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>        TicketType.TECHNICAL: technical_llm,</span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>        TicketType.SALES: sales_llm,</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>    specialist <span class="op">=</span> agents[ticket_type]</span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> specialist.invoke(</span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"You are a </span><span class="sc">{</span>ticket_type<span class="sc">.</span>value<span class="sc">}</span><span class="ss"> specialist. Help with: </span><span class="sc">{</span>query<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>    ).content</span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>answer <span class="op">=</span> dispatch(<span class="st">"My API keeps returning 429 errors"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 42%">
+<col style="width: 57%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Framework</th>
+<th>Implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>LangGraph</td>
+<td>Conditional edges with routing functions</td>
+</tr>
+<tr class="even">
+<td>CrewAI</td>
+<td><code>@router</code> decorator in Flows, <code>ConditionalTask</code></td>
+</tr>
+<tr class="odd">
+<td>AutoGen</td>
+<td>Custom <code>speaker_selection_method</code> in GroupChat</td>
+</tr>
+<tr class="even">
+<td>Google ADK</td>
+<td><code>LlmAgent</code> with <code>sub_agents</code> and routing instructions</td>
+</tr>
+<tr class="odd">
+<td>Anthropic Agent SDK</td>
+<td>LLM-driven dispatch via Agent tool descriptions</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="planning-execution" class="level3">
+<h3 class="anchored" data-anchor-id="planning-execution">6. Planning + Execution</h3>
+<p>Separate the <strong>thinking</strong> from the <strong>doing</strong>. A planner agent creates the full roadmap upfront, then executor agents carry out each step. The planner steps back and only re-engages if something fails and requires replanning.</p>
+<p><strong>How is this different from Orchestrator-Worker?</strong> The Orchestrator is a <strong>micromanager</strong> — involved at every step. Plan + Execute is more like an <strong>architect and builders</strong> — the architect draws the blueprint, hands it to builders, and only comes back if the foundation cracks. Planning and execution are <strong>clearly separated phases</strong>.</p>
+<p><strong>When to use:</strong> Complex multi-step goals, you need the ability to replan when intermediate results change the approach, research tasks and coding projects.</p>
+<p><strong>When NOT to use:</strong> Workflow is fixed (use Pipeline), need real-time decision-making at every step (use Orchestrator), or task is too simple to justify a planning step.</p>
+<p><strong>Sample Use Case:</strong> An automated research assistant — the Planner breaks down “write a market analysis report on EV batteries” into: (1) identify top 5 companies, (2) gather financial data, (3) analyze patents, (4) compare market share, (5) draft report. Executors handle each step. If Step 2 reveals a major company was missed, the Planner revises.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Planning + Execution Pattern</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> langchain_openai <span class="im">import</span> ChatOpenAI</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>planner_llm <span class="op">=</span> ChatOpenAI(model<span class="op">=</span><span class="st">"gpt-4o"</span>, temperature<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>executor_llm <span class="op">=</span> ChatOpenAI(model<span class="op">=</span><span class="st">"gpt-4o-mini"</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> create_plan(goal: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">list</span>[<span class="bu">dict</span>]:</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Planner agent: decompose goal into ordered steps."""</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    response <span class="op">=</span> planner_llm.invoke(</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"""Break this goal into 3-7 concrete steps.</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="ss">        Return JSON array of objects with "step" and "description".</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="ss">        Goal: </span><span class="sc">{</span>goal<span class="sc">}</span><span class="ss">"""</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    ).content</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> json.loads(response)</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> execute_step(step: <span class="bu">dict</span>, context: <span class="bu">str</span> <span class="op">=</span> <span class="st">""</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Executor agent: carry out a single step."""</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> executor_llm.invoke(</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"""Previous context: </span><span class="sc">{</span>context<span class="sc">}</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a><span class="ss">        Execute this step: </span><span class="sc">{</span>step[<span class="st">'description'</span>]<span class="sc">}</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a><span class="ss">        Be thorough and specific."""</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>    ).content</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> should_replan(step_result: <span class="bu">str</span>, remaining_steps: <span class="bu">list</span>) <span class="op">-&gt;</span> <span class="bu">bool</span>:</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Check if results require replanning."""</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>    response <span class="op">=</span> planner_llm.invoke(</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"""Given this result: </span><span class="sc">{</span>step_result<span class="sc">}</span></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a><span class="ss">        And remaining plan: </span><span class="sc">{</span>json<span class="sc">.</span>dumps(remaining_steps)<span class="sc">}</span></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a><span class="ss">        Should we replan? Reply YES or NO with brief reason."""</span></span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>    ).content</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="st">"YES"</span> <span class="kw">in</span> response.upper()</span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plan_and_execute(goal: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Full plan-and-execute loop with replanning."""</span></span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>    steps <span class="op">=</span> create_plan(goal)</span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>    context <span class="op">=</span> <span class="st">""</span></span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>    i <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> i <span class="op">&lt;</span> <span class="bu">len</span>(steps):</span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>        result <span class="op">=</span> execute_step(steps[i], context)</span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a>        context <span class="op">+=</span> <span class="ss">f"</span><span class="ch">\n</span><span class="ss">Step </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss"> result: </span><span class="sc">{</span>result<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> i <span class="op">&lt;</span> <span class="bu">len</span>(steps) <span class="op">-</span> <span class="dv">1</span> <span class="kw">and</span> should_replan(result, steps[i<span class="op">+</span><span class="dv">1</span>:]):</span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"🔄 Replanning after step </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a>            steps <span class="op">=</span> steps[:i<span class="op">+</span><span class="dv">1</span>] <span class="op">+</span> create_plan(</span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>                <span class="ss">f"Continue from: </span><span class="sc">{</span>context<span class="sc">}</span><span class="ch">\n</span><span class="ss">Original goal: </span><span class="sc">{</span>goal<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a>        i <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> context</span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a>report <span class="op">=</span> plan_and_execute(<span class="st">"Write a market analysis of EV batteries"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 42%">
+<col style="width: 57%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Framework</th>
+<th>Implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>LangGraph</td>
+<td>Plan-and-execute pattern (well-documented)</td>
+</tr>
+<tr class="even">
+<td>CrewAI</td>
+<td>Task <code>context</code> dependencies + Flows for planning</td>
+</tr>
+<tr class="odd">
+<td>AutoGen</td>
+<td>Planner + executor via two-agent or GroupChat</td>
+</tr>
+<tr class="even">
+<td>Google ADK</td>
+<td>Compose with <code>SequentialAgent</code> + <code>LoopAgent</code></td>
+</tr>
+<tr class="odd">
+<td>Anthropic Agent SDK</td>
+<td>Claude naturally plans and executes through its loop</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="handoff" class="level3">
+<h3 class="anchored" data-anchor-id="handoff">7. Handoff</h3>
+<p>Sometimes an agent knows it’s out of its depth. Instead of hallucinating, it <strong>hands off</strong> the conversation — with full context — to a more capable agent or a human.</p>
+<p><strong>When to use:</strong> Customer service with escalation tiers, multi-domain assistants where scope changes mid-conversation, human-in-the-loop workflows.</p>
+<p><strong>When NOT to use:</strong> A single agent can handle everything, or you prefer routing upfront rather than mid-conversation handoffs.</p>
+<p><strong>Sample Use Case:</strong> A healthcare triage bot — Agent A handles general wellness questions. When it detects symptoms needing medical advice, it hands off to Agent B (medically-trained, with access to clinical guidelines). If urgent, Agent B escalates to Agent C — a human doctor — with the full conversation history.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Handoff Pattern</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> dataclasses <span class="im">import</span> dataclass</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="at">@dataclass</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ConversationState:</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    messages: <span class="bu">list</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    current_agent: <span class="bu">str</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    metadata: <span class="bu">dict</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> general_agent(state: ConversationState) <span class="op">-&gt;</span> ConversationState:</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Agent A: Handle general queries, detect escalation needs."""</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    response <span class="op">=</span> llm.invoke(</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"""You are a general wellness assistant.</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="ss">        If the query involves symptoms, medications, or urgent health</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="ss">        concerns, respond with HANDOFF: medical_agent.</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="ss">        If you can handle it, respond normally.</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="ss">        Conversation: </span><span class="sc">{</span>state<span class="sc">.</span>messages<span class="sc">}</span><span class="ss">"""</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    ).content</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="st">"HANDOFF:"</span> <span class="kw">in</span> response:</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>        target <span class="op">=</span> response.split(<span class="st">"HANDOFF:"</span>)[<span class="dv">1</span>].strip()</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>        state.current_agent <span class="op">=</span> target</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>        state.messages.append({</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>            <span class="st">"role"</span>: <span class="st">"system"</span>,</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>            <span class="st">"content"</span>: <span class="ss">f"Handed off to </span><span class="sc">{</span>target<span class="sc">}</span><span class="ss"> with full context"</span></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>        })</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>        state.messages.append({<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: response})</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> state</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> medical_agent(state: ConversationState) <span class="op">-&gt;</span> ConversationState:</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Agent B: Specialized medical guidance with escalation."""</span></span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>    response <span class="op">=</span> llm.invoke(</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"""You are a medical advisor with access to clinical guidelines.</span></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a><span class="ss">        Review the FULL conversation history for context.</span></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a><span class="ss">        If the situation is urgent, respond with HANDOFF: human_doctor.</span></span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a><span class="ss">        Full history: </span><span class="sc">{</span>state<span class="sc">.</span>messages<span class="sc">}</span><span class="ss">"""</span></span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>    ).content</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="st">"HANDOFF:"</span> <span class="kw">in</span> response:</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>        state.current_agent <span class="op">=</span> <span class="st">"human_doctor"</span></span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>        state.messages.append({</span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>            <span class="st">"role"</span>: <span class="st">"system"</span>,</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>            <span class="st">"content"</span>: <span class="st">"Escalated to human doctor — urgent case"</span></span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>        })</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>        state.messages.append({<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: response})</span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> state</span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a><span class="co"># Dispatch loop</span></span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>agents <span class="op">=</span> {</span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>    <span class="st">"general"</span>: general_agent,</span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>    <span class="st">"medical_agent"</span>: medical_agent,</span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_conversation(query: <span class="bu">str</span>):</span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a>    state <span class="op">=</span> ConversationState(</span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a>        messages<span class="op">=</span>[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: query}],</span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a>        current_agent<span class="op">=</span><span class="st">"general"</span>,</span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a>        metadata<span class="op">=</span>{}</span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> state.current_agent <span class="kw">in</span> agents:</span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a>        state <span class="op">=</span> agents[state.current_agent](state)</span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> state</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 42%">
+<col style="width: 57%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Framework</th>
+<th>Implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>LangGraph</td>
+<td>Conditional edges with full state transfer</td>
+</tr>
+<tr class="even">
+<td>CrewAI</td>
+<td><code>allow_delegation=True</code> for autonomous delegation</td>
+</tr>
+<tr class="odd">
+<td>AutoGen</td>
+<td><code>register_hand_off</code> in Swarm pattern (v0.4+)</td>
+</tr>
+<tr class="even">
+<td>Google ADK</td>
+<td><code>transfer_to_agent</code> with session state context</td>
+</tr>
+<tr class="odd">
+<td>Anthropic Agent SDK</td>
+<td>Subagents return to parent (no direct peer handoff)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="evaluator-optimizer-loop" class="level3">
+<h3 class="anchored" data-anchor-id="evaluator-optimizer-loop">8. Evaluator-Optimizer Loop</h3>
+<p>Generate multiple candidates, score them, and use the feedback to generate better ones. It’s <strong>evolution in action</strong> — each iteration gets closer to optimal.</p>
+<p><strong>When to use:</strong> You can define a clear scoring function, prompt optimization, query refinement, code optimization where you can measure performance.</p>
+<p><strong>When NOT to use:</strong> No clear evaluation criteria, you need a single quick answer, or generation cost is too high for multiple candidates.</p>
+<p><strong>Sample Use Case:</strong> An ad copy optimizer — the Generator creates 10 variations, the Evaluator scores each on readability, brand alignment, and CTA strength. The top 3 go back to the Generator with feedback. Repeat for 3 rounds and pick the winner.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Evaluator-Optimizer Loop</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> langchain_openai <span class="im">import</span> ChatOpenAI</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>generator_llm <span class="op">=</span> ChatOpenAI(model<span class="op">=</span><span class="st">"gpt-4o"</span>, temperature<span class="op">=</span><span class="fl">0.9</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>evaluator_llm <span class="op">=</span> ChatOpenAI(model<span class="op">=</span><span class="st">"gpt-4o"</span>, temperature<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> generate_candidates(brief: <span class="bu">str</span>, n: <span class="bu">int</span> <span class="op">=</span> <span class="dv">5</span>, feedback: <span class="bu">str</span> <span class="op">=</span> <span class="st">""</span>) <span class="op">-&gt;</span> <span class="bu">list</span>:</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Generator: produce N candidate outputs."""</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    context <span class="op">=</span> <span class="ss">f"Previous feedback: </span><span class="sc">{</span>feedback<span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span> <span class="cf">if</span> feedback <span class="cf">else</span> <span class="st">""</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    response <span class="op">=</span> generator_llm.invoke(</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"""</span><span class="sc">{</span>context<span class="sc">}</span><span class="ss">Generate </span><span class="sc">{</span>n<span class="sc">}</span><span class="ss"> different ad copy variations for:</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="ss">        </span><span class="sc">{</span>brief<span class="sc">}</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="ss">        Return as JSON array of strings."""</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    ).content</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> json.loads(response)</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> evaluate(candidates: <span class="bu">list</span>, criteria: <span class="bu">dict</span>) <span class="op">-&gt;</span> <span class="bu">list</span>[<span class="bu">dict</span>]:</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Evaluator: score each candidate on multiple criteria."""</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    response <span class="op">=</span> evaluator_llm.invoke(</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"""Score each candidate on these criteria (1-10 each):</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="ss">        </span><span class="sc">{</span>json<span class="sc">.</span>dumps(criteria)<span class="sc">}</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a><span class="ss">        Candidates: </span><span class="sc">{</span>json<span class="sc">.</span>dumps(candidates)<span class="sc">}</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a><span class="ss">        Return JSON array of objects with "text", "scores", "total", "feedback"</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a><span class="ss">        Sorted by total score descending."""</span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>    ).content</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> json.loads(response)</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> evaluator_optimizer(brief: <span class="bu">str</span>, rounds: <span class="bu">int</span> <span class="op">=</span> <span class="dv">3</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Run the full eval-optimize loop."""</span></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>    criteria <span class="op">=</span> {</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>        <span class="st">"readability"</span>: <span class="st">"Clear, concise, easy to understand"</span>,</span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>        <span class="st">"brand_voice"</span>: <span class="st">"Matches professional but friendly tone"</span>,</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>        <span class="st">"cta_strength"</span>: <span class="st">"Compelling call to action"</span>,</span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>        <span class="st">"emotional_appeal"</span>: <span class="st">"Creates urgency or desire"</span></span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>    feedback <span class="op">=</span> <span class="st">""</span></span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>    best_candidate <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> round_num <span class="kw">in</span> <span class="bu">range</span>(rounds):</span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>        candidates <span class="op">=</span> generate_candidates(brief, n<span class="op">=</span><span class="dv">5</span>, feedback<span class="op">=</span>feedback)</span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>        scored <span class="op">=</span> evaluate(candidates, criteria)</span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>        best <span class="op">=</span> scored[<span class="dv">0</span>]</span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a>        best_candidate <span class="op">=</span> best[<span class="st">"text"</span>]</span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a>        feedback <span class="op">=</span> <span class="ss">f"Top scorer (</span><span class="sc">{</span>best[<span class="st">'total'</span>]<span class="sc">}</span><span class="ss">/40): </span><span class="sc">{</span>best[<span class="st">'text'</span>]<span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span></span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>        feedback <span class="op">+=</span> <span class="ss">f"Improve on: </span><span class="sc">{</span>best[<span class="st">'feedback'</span>]<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"Round </span><span class="sc">{</span>round_num<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">: Best score = </span><span class="sc">{</span>best[<span class="st">'total'</span>]<span class="sc">}</span><span class="ss">/40"</span>)</span>
+<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> best_candidate</span>
+<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a>winner <span class="op">=</span> evaluator_optimizer(<span class="st">"Launch ad for an AI-powered code review tool"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 42%">
+<col style="width: 57%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Framework</th>
+<th>Implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>LangGraph</td>
+<td>Cycles with scoring nodes and conditional exit</td>
+</tr>
+<tr class="even">
+<td>CrewAI</td>
+<td>Task output validation + <code>guardrail</code> + <code>max_iter</code></td>
+</tr>
+<tr class="odd">
+<td>AutoGen</td>
+<td><code>register_nested_chats</code> for evaluation before reply</td>
+</tr>
+<tr class="even">
+<td>Google ADK</td>
+<td><code>LoopAgent</code> with evaluator <code>LlmAgent</code></td>
+</tr>
+<tr class="odd">
+<td>Anthropic Agent SDK</td>
+<td>Custom scoring tool, Claude iterates through loop</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="bonus-emerging-patterns" class="level2">
+<h2 class="anchored" data-anchor-id="bonus-emerging-patterns">Bonus: Emerging Patterns</h2>
+<p>Three patterns that are powerful in specific scenarios but less commonly deployed in production today.</p>
+<p><strong>Debate / Adversarial:</strong> Set up agents on opposing sides and let them challenge each other. A judge agent listens to both and makes the final call. Best for <strong>high-stakes decisions</strong>, fact verification, and red-teaming. Sample use case: an investment system where a Bull agent argues for, a Bear agent argues against, and a Judge synthesizes.</p>
+<p><strong>Multi-Agent Group Chat:</strong> Multiple agents sit in a shared conversation, each contributing from their expertise. Best for <strong>brainstorming</strong> and simulating cross-functional team discussions. Expensive — every agent reads every message. AutoGen’s <code>GroupChat + GroupChatManager</code> has the best native support here.</p>
+<p><strong>Mixture of Agents (MoA):</strong> Use multiple <em>different</em> models to generate diverse responses, then refine and aggregate. Different models have different strengths — together, they’re better than any one alone. Best for <strong>maximum accuracy</strong> when cost and latency aren’t constraints. Sample use case: a legal contract review where Claude, GPT-4, and Gemini each analyze from different angles, and an aggregator synthesizes.</p>
+</section>
+<section id="the-decision-framework" class="level2">
+<h2 class="anchored" data-anchor-id="the-decision-framework">The Decision Framework</h2>
+<p>Das closes with a simple decision framework that maps your core need to the right pattern:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Need</th>
+<th>Pattern</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Can one agent handle it?</td>
+<td>Don’t use multi-agent. Keep it simple.</td>
+</tr>
+<tr class="even">
+<td>Specialization?</td>
+<td>Orchestrator-Worker or Router</td>
+</tr>
+<tr class="odd">
+<td>Speed?</td>
+<td>Parallel Fan-Out</td>
+</tr>
+<tr class="even">
+<td>Accuracy?</td>
+<td>Reflection, Debate, or Mixture of Agents</td>
+</tr>
+<tr class="odd">
+<td>Adaptability?</td>
+<td>Plan + Execute</td>
+</tr>
+<tr class="even">
+<td>Graceful escalation?</td>
+<td>Handoff</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="combining-patterns" class="level2">
+<h2 class="anchored" data-anchor-id="combining-patterns">Combining Patterns</h2>
+<p>In practice, production systems rarely use a single pattern in isolation. Das highlights common combinations: <strong>Router + Reflection</strong> (route to specialists, each with a quality loop), <strong>Orchestrator + Parallel + Reflection</strong> (decompose, fan out, each worker self-critiques, then aggregate), <strong>Plan + Execute + Debate</strong> (plan, execute, and use debate at critical decision points), and <strong>Router + Handoff + Human-in-the-Loop</strong> (classify, handle, escalate to humans if confidence is low).</p>
+</section>
+<section id="rubber-ducking-the-jargon" class="level2">
+<h2 class="anchored" data-anchor-id="rubber-ducking-the-jargon">Rubber-Ducking the Jargon</h2>
+<p><strong>Orchestrator:</strong> A manager agent that decomposes tasks, delegates to workers, monitors progress, and reassembles results. Unlike a simple splitter, it reasons and adapts.</p>
+<p><strong>Fan-Out / Fan-In:</strong> Scatter-gather. Fan-out = split a task into parallel sub-tasks. Fan-in = collect and merge results. Borrowed from distributed systems terminology.</p>
+<p><strong>Reflection:</strong> An agent loop where output is reviewed and iteratively improved. The “reviewer” can be the same agent with a different prompt, or a separate specialized agent.</p>
+<p><strong>Router / Dispatch:</strong> A classification step that sends each input to exactly one specialist. Makes one decision and exits — no coordination, no aggregation.</p>
+<p><strong>Handoff:</strong> Mid-conversation transfer from one agent to another, including full context/state. Distinguished from routing (which happens upfront) by occurring after an agent realizes it can’t complete the task.</p>
+<p><strong>Mixture of Agents (MoA):</strong> Ensemble approach using multiple different LLMs, inspired by “Mixture-of-Agents Enhances Large Language Model Capabilities” (2024). Each model contributes unique strengths.</p>
+</section>
+<section id="what-to-watch-out-for" class="level2">
+<h2 class="anchored" data-anchor-id="what-to-watch-out-for">What to Watch Out For</h2>
+<p>This is a <strong>practitioner’s taxonomy</strong>, not an academic one. Das is writing from production experience, not from a formal analysis of multi-agent theory. The patterns are presented as clean categories, but real systems are messy — and as the “Combining Patterns” section acknowledges, you’ll usually blend two or three.</p>
+<p>The framework comparisons are useful but will date quickly — all five frameworks are under active development. The article also doesn’t address cost analysis or failure modes in depth. Running multiple agents means multiplying API calls, and coordination failures (agents misunderstanding each other, infinite loops in reflection, routing errors) are real production concerns.</p>
+<p>Finally, the article is a <strong>Medium blog post</strong>, not a peer-reviewed paper. It’s well-sourced and practical, but treat it as an experienced engineer’s field guide rather than a formal reference.</p>
+</section>
+<section id="so-what" class="level2">
+<h2 class="anchored" data-anchor-id="so-what">So What?</h2>
+<p>If you’re building AI systems beyond a single chatbot, this taxonomy gives you the vocabulary and decision framework to choose your architecture deliberately. The practical takeaways: <strong>start with the simplest pattern that could work</strong> (often a single agent), escalate to Pipeline or Router when you need structure, and only reach for Orchestrator-Worker or Plan + Execute when you genuinely need dynamic coordination. The most common mistake is over-engineering — reaching for multi-agent when good tool use and a clean single-agent flow would suffice.</p>
+<p>The code examples for each pattern give you a starting template you can adapt to your framework of choice. And the decision framework on page 25 is worth printing out and sticking on your monitor.</p>
+</section>
+<section id="reproduction-implementation" class="level2">
+<h2 class="anchored" data-anchor-id="reproduction-implementation">Reproduction &amp; Implementation</h2>
+<section id="environment-setup" class="level3">
+<h3 class="anchored" data-anchor-id="environment-setup">Environment Setup</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Core dependencies</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install langchain langchain-openai langgraph</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Framework-specific (pick your stack)</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install crewai           <span class="co"># CrewAI</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install pyautogen        <span class="co"># AutoGen</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install google-adk       <span class="co"># Google ADK</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Set your API key</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">OPENAI_API_KEY</span><span class="op">=</span><span class="st">"sk-..."</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="pattern-selection-pseudo-code" class="level3">
+<h3 class="anchored" data-anchor-id="pattern-selection-pseudo-code">Pattern Selection Pseudo-Code</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> select_pattern(requirements: <span class="bu">dict</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Decision framework from the article."""</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> requirements.get(<span class="st">"single_agent_sufficient"</span>):</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="st">"No multi-agent needed"</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> requirements.get(<span class="st">"fixed_ordered_stages"</span>):</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="st">"Sequential / Pipeline"</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> requirements.get(<span class="st">"diverse_input_types"</span>):</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> requirements.get(<span class="st">"one_specialist_per_input"</span>):</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="st">"Router / Dispatch"</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> requirements.get(<span class="st">"independent_subtasks"</span>):</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> requirements.get(<span class="st">"latency_critical"</span>):</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="st">"Parallel Fan-Out → Fan-In"</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> requirements.get(<span class="st">"dynamic_decomposition"</span>):</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> requirements.get(<span class="st">"realtime_coordination"</span>):</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="st">"Orchestrator-Worker"</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="st">"Planning + Execution"</span></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> requirements.get(<span class="st">"quality_iteration"</span>):</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> requirements.get(<span class="st">"clear_scoring_function"</span>):</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="st">"Evaluator-Optimizer Loop"</span></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="st">"Reflection / Self-Critique"</span></span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> requirements.get(<span class="st">"escalation_tiers"</span>):</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="st">"Handoff"</span></span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> requirements.get(<span class="st">"high_stakes_decisions"</span>):</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="st">"Debate / Adversarial"</span></span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="st">"Start with single agent + good tools"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="resources-links" class="level3">
+<h3 class="anchored" data-anchor-id="resources-links">Resources &amp; Links</h3>
+<p><strong>Original Article:</strong></p>
+<ul>
+<li><a href="../../papers-hosted/multi-agent-patterns.pdf">Multi-Agent AI Patterns for Developers — Suman Das (Medium, Apr 2026)</a></li>
+</ul>
+<p><strong>Framework Documentation:</strong></p>
+<ul>
+<li><a href="https://langchain-ai.github.io/langgraph/">LangGraph</a></li>
+<li><a href="https://docs.crewai.com/">CrewAI</a></li>
+<li><a href="https://microsoft.github.io/autogen/">AutoGen</a></li>
+<li><a href="https://google.github.io/adk-docs/">Google ADK</a></li>
+<li><a href="https://platform.claude.com/docs/en/agent-sdk/overview">Anthropic Agent SDK</a></li>
+</ul>
+<p><strong>Pattern Deep Dives:</strong></p>
+<ul>
+<li><a href="https://langchain-ai.github.io/langgraph/concepts/multi_agent/">LangGraph Multi-Agent Patterns</a></li>
+<li><a href="https://google.github.io/adk-docs/agents/multi-agents/">Google ADK Multi-Agent Systems</a></li>
+<li><a href="https://microsoft.github.io/autogen/0.2/docs/tutorial/conversation-patterns/">AutoGen Conversation Patterns</a></li>
+<li><a href="https://www.anthropic.com/research/building-effective-agents">Anthropic: Building Effective Agents</a></li>
+</ul>
+<p><strong>Research Papers:</strong></p>
+<ul>
+<li><a href="https://arxiv.org/abs/2406.04692">Mixture-of-Agents Enhances LLM Capabilities (2024)</a></li>
+<li><a href="https://arxiv.org/abs/2303.11366">Reflexion: Language Agents with Verbal Reinforcement Learning</a></li>
+<li><a href="https://arxiv.org/abs/2303.17760">CAMEL: Communicative Agents for Mind Exploration</a></li>
+</ul>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<script src="https://utteranc.es/client.js" repo="seanlewis08/blogComments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+<script src="animations.js"></script>
+
+
+
+
+</body></html>

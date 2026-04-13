@@ -2,6 +2,7 @@
   {
     "listing": "/blog.html",
     "items": [
+      "/posts/multi-agent-patterns/index.html",
       "/posts/agentic-ai-alzheimers/index.html",
       "/posts/star-agents-data-optimization/index.html",
       "/posts/explainability-agentic-ai/index.html",
