@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+  <rect width="800" height="450" fill="#FA8072"/>
+
+  <!-- Title -->
+  <text x="400" y="45" text-anchor="middle" font-family="system-ui, sans-serif" font-size="22" font-weight="bold" fill="#1a1a1a">Multi-Agent AI Patterns</text>
+  <text x="400" y="70" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" fill="#0d7c5f" font-weight="600">Pick the right pattern for the right problem</text>
+
+  <!-- 8 Pattern boxes in 2 rows of 4 -->
+  <!-- Row 1 -->
+  <rect x="30" y="95" width="170" height="60" rx="8" fill="#ffffff" stroke="#0d7c5f" stroke-width="1.5"/>
+  <text x="115" y="118" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="bold" fill="#0d7c5f">1.</text>
+  <text x="115" y="133" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#1a1a1a">Sequential</text>
+  <text x="115" y="147" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">A → B → C → D</text>
+
+  <rect x="215" y="95" width="170" height="60" rx="8" fill="#ffffff" stroke="#0d7c5f" stroke-width="1.5"/>
+  <text x="300" y="118" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="bold" fill="#0d7c5f">2.</text>
+  <text x="300" y="133" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#1a1a1a">Orchestrator-Worker</text>
+  <text x="300" y="147" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">Manager delegates dynamically</text>
+
+  <rect x="400" y="95" width="170" height="60" rx="8" fill="#ffffff" stroke="#0d7c5f" stroke-width="1.5"/>
+  <text x="485" y="118" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="bold" fill="#0d7c5f">3.</text>
+  <text x="485" y="133" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#1a1a1a">Parallel Fan-Out</text>
+  <text x="485" y="147" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">Concurrent independent tasks</text>
+
+  <rect x="585" y="95" width="185" height="60" rx="8" fill="#ffffff" stroke="#0d7c5f" stroke-width="1.5"/>
+  <text x="677" y="118" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="bold" fill="#0d7c5f">4.</text>
+  <text x="677" y="133" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#1a1a1a">Reflection</text>
+  <text x="677" y="147" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">Generate → Review → Iterate</text>
+
+  <!-- Row 2 -->
+  <rect x="30" y="170" width="170" height="60" rx="8" fill="#ffffff" stroke="#6d5acd" stroke-width="1.5"/>
+  <text x="115" y="193" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="bold" fill="#6d5acd">5.</text>
+  <text x="115" y="208" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#1a1a1a">Router / Dispatch</text>
+  <text x="115" y="222" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">Classify → Route to specialist</text>
+
+  <rect x="215" y="170" width="170" height="60" rx="8" fill="#ffffff" stroke="#6d5acd" stroke-width="1.5"/>
+  <text x="300" y="193" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="bold" fill="#6d5acd">6.</text>
+  <text x="300" y="208" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#1a1a1a">Plan + Execute</text>
+  <text x="300" y="222" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">Architect → Builders → Replan</text>
+
+  <rect x="400" y="170" width="170" height="60" rx="8" fill="#ffffff" stroke="#6d5acd" stroke-width="1.5"/>
+  <text x="485" y="193" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="bold" fill="#6d5acd">7.</text>
+  <text x="485" y="208" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#1a1a1a">Handoff</text>
+  <text x="485" y="222" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">Escalate with full context</text>
+
+  <rect x="585" y="170" width="185" height="60" rx="8" fill="#ffffff" stroke="#6d5acd" stroke-width="1.5"/>
+  <text x="677" y="193" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="bold" fill="#6d5acd">8.</text>
+  <text x="677" y="208" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#1a1a1a">Eval-Optimizer</text>
+  <text x="677" y="222" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">Generate → Score → Improve</text>
+
+  <!-- Decision Framework -->
+  <rect x="60" y="260" width="680" height="140" rx="10" fill="#ffffff" stroke="#e5e5e5" stroke-width="1"/>
+  <text x="400" y="285" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="bold" fill="#1a1a1a">Decision Framework</text>
+
+  <text x="100" y="310" font-family="system-ui, sans-serif" font-size="11" fill="#4a4a4a">Need specialization?</text>
+  <text x="310" y="310" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#0d7c5f">→ Orchestrator or Router</text>
+
+  <text x="100" y="330" font-family="system-ui, sans-serif" font-size="11" fill="#4a4a4a">Need speed?</text>
+  <text x="310" y="330" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#0d7c5f">→ Parallel Fan-Out</text>
+
+  <text x="100" y="350" font-family="system-ui, sans-serif" font-size="11" fill="#4a4a4a">Need accuracy?</text>
+  <text x="310" y="350" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#0d7c5f">→ Reflection or Debate</text>
+
+  <text x="100" y="370" font-family="system-ui, sans-serif" font-size="11" fill="#4a4a4a">Need adaptability?</text>
+  <text x="310" y="370" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#0d7c5f">→ Plan + Execute</text>
+
+  <text x="100" y="390" font-family="system-ui, sans-serif" font-size="11" fill="#4a4a4a">Need escalation?</text>
+  <text x="310" y="390" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#0d7c5f">→ Handoff</text>
+
+  <text x="510" y="310" font-family="system-ui, sans-serif" font-size="28" font-weight="bold" fill="#0d7c5f">8</text>
+  <text x="540" y="310" font-family="system-ui, sans-serif" font-size="13" fill="#1a1a1a">Core Patterns</text>
+  <text x="510" y="345" font-family="system-ui, sans-serif" font-size="28" font-weight="bold" fill="#6d5acd">5</text>
+  <text x="540" y="345" font-family="system-ui, sans-serif" font-size="13" fill="#1a1a1a">Frameworks</text>
+  <text x="510" y="380" font-family="system-ui, sans-serif" font-size="28" font-weight="bold" fill="#d4563a">3</text>
+  <text x="540" y="380" font-family="system-ui, sans-serif" font-size="13" fill="#1a1a1a">Emerging Patterns</text>
+
+  <!-- Footer -->
+  <text x="400" y="430" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#8a8a8a">Suman Das (Apr 2026) · Medium · Developer's Field Guide</text>
+</svg>
