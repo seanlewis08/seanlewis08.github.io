@@ -6,6 +6,8 @@ description: "Huang et al.'s ICLR 2024 benchmark puts LLM agents to the test on 
 image: mlagentbench-thumbnail.svg
 ---
 
+> 📄 **[Read the Full Paper](/papers-hosted/mlagentbench.pdf){target="_blank"}**
+
 ## The Gist
 
 MLAgentBench (Huang et al., ICLR 2024) is the first comprehensive benchmark for evaluating AI agents on machine learning research tasks. The benchmark consists of 15 real ML problems spanning two categories:
@@ -208,7 +210,7 @@ class MLResearchAgent:
 
 ### Key Resources
 
-- **Paper**: [MLAgentBench on ICLR 2024](https://openreview.net/forum?id=...)
+- **Paper**: [MLAgentBench on ICLR 2024](/papers-hosted/mlagentbench.pdf)
 - **GitHub**: [geekan/MLAgentBench](https://github.com/geekan/MLAgentBench)
 - **Blog post**: Original announcement and analysis
 - **Tasks**: 15 full task definitions with starter code and datasets

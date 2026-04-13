@@ -1,0 +1,358 @@
+---
+title: "From Features to Actions: Rethinking Explainability for AI Agents"
+date: "2026-03-01"
+categories: [AI Agents, Explainability, XAI, LLMs]
+description: "Chaduvula et al. from the Vector Institute and Mayo Clinic argue that traditional XAI tools (SHAP, LIME) break down for agentic AI systems. Their Minimal Explanation Packet framework and TAU-bench evaluation reveal that state tracking consistency — not individual feature importance — is the strongest predictor of agent failure."
+image: xai-agents-thumbnail.svg
+---
+
+> 📄 **[Read the Full Paper](/papers-hosted/explainability-agentic-ai.pdf){target="_blank"}**
+
+## The Gist
+
+Traditional explainable AI (XAI) tools like SHAP and LIME do one thing well: they attribute importance to input features to explain a single prediction. But agentic AI systems don't work that way. They don't make one prediction and stop. Instead, they execute multi-step action sequences: they call tools, observe results, reason about what they see, and decide on the next action. Explaining *why an agent failed* isn't about which feature mattered most—it's about understanding where the decision chain broke.
+
+**Chaduvula et al.** from the Vector Institute and Mayo Clinic make this distinction formal in a new paper (arXiv:2602.06841, Feb 2026). They draw a line between:
+
+- **Static XAI**: Feature attribution for single-pass predictions (SHAP, LIME, attention visualization)
+- **Agentic XAI**: Trace-based explanations for action sequences in agent trajectories
+
+Their solution is the **Minimal Explanation Packet (MEP)** framework—a structured way to document and verify agent behavior across multiple steps. They evaluate it on two benchmarks: TAU-bench Airline and AssistantBench, using GPT-5 Medium as an automated judge.
+
+**Key finding**: State Tracking Consistency is the strongest predictor of agent failure (effect size Δ=0.333, relative risk RR=0.51). The agent's ability to remember and apply what it has learned matters more than any individual feature.
+
+---
+
+## Why It Matters Now
+
+AI agents are moving from research playgrounds into production. They're triaging patient calls at health systems, handling customer support tickets, running multi-step research tasks, and managing workflows. When they go wrong—and they will—we need to know why.
+
+The old XAI toolkit doesn't cut it for agents:
+
+- **SHAP** tells you which patient symptoms mattered for a triage decision, but it can't explain why the agent *looped infinitely* trying to refill a prescription.
+- **LIME** can approximate a single prediction, but agents make dozens of decisions in sequence; local linear approximations don't capture the emergent failures of chains.
+- **Attention visualization** shows which tokens influenced the output, but not whether the agent *correctly remembered and applied information from five steps ago*.
+
+This is a gap in practice. Healthcare systems, banks, and logistics companies are deploying agents, and auditors are asking for explanations. Regulators are too. The MEP framework gives you a structured language to answer: "Why did that agent take that sequence of actions?"
+
+---
+
+## The Numbers
+
+### TAU-bench Airline Results
+- **Model**: o4-mini-2025-04-16 (a lightweight agent model)
+- **Task Accuracy**: 56%
+- **Explanation Quality**: Evaluated on 6 rubric categories using GPT-5 Medium
+
+### AssistantBench Results
+- **Model**: GPT-4.1
+- **Task Accuracy**: 17.39%
+- **Benchmark**: More general assistant tasks, higher complexity
+
+### Failure Predictors (TAU-bench)
+
+| Rubric Category | Effect Size (Δ) | Relative Risk (RR) | Interpretation |
+|---|---|---|---|
+| **State Tracking Consistency** | 0.333 | 0.51 | Strongest predictor. Poor state tracking = 2x failure risk. |
+| Trace Completeness | 0.267 | 0.62 | Missing steps in explanation → higher failure. |
+| Evidence Grounding | 0.201 | 0.69 | Unexplained assertions → moderate failure risk. |
+| Action Justification | 0.189 | 0.71 | Weak reasoning → slight increase in failures. |
+| Verification Signal Clarity | 0.156 | 0.76 | Harder to spot mistakes → lower failure risk. |
+| Artifact Coherence | 0.134 | 0.81 | Least predictive of failure. |
+
+The standout: agents that lose track of their state (what they've learned, what they've tried, what the current situation is) fail far more often than those with other weaknesses.
+
+---
+
+## Static vs. Agentic: A Visual Distinction
+
+```{mermaid}
+graph TB
+    subgraph Static["Static XAI (Single Prediction)"]
+        Input["Input Features"]
+        Model["Model"]
+        Pred["Prediction"]
+        SHAP["SHAP/LIME<br/>Feature Attribution"]
+
+        Input --> Model
+        Model --> Pred
+        Pred --> SHAP
+    end
+
+    subgraph Agentic["Agentic XAI (Action Trajectory)"]
+        Goal["Goal"]
+        Agent["Agent Loop"]
+        Act1["Action₁"]
+        Obs1["Observation₁"]
+        Act2["Action₂"]
+        Obs2["Observation₂"]
+        DotDot["..."]
+        Outcome["Outcome"]
+        MEP["MEP Framework<br/>(Artifact + Evidence + Verification)"]
+
+        Goal --> Agent
+        Agent --> Act1
+        Act1 --> Obs1
+        Obs1 --> Act2
+        Act2 --> Obs2
+        Obs2 --> DotDot
+        DotDot --> Outcome
+        Outcome --> MEP
+    end
+
+    style Static fill:#f9f9f9,stroke:#ccc
+    style Agentic fill:#e8f5e9,stroke:#0d7c5f,stroke-width:3px
+    style MEP fill:#0d7c5f,color:#fff,stroke:#0d7c5f
+```
+
+**Left (Static)**: Input → Model → Prediction → SHAP says "features A and B drove this output."
+
+**Right (Agentic)**: Goal → Agent takes actions, observes results, reasons, repeats → Outcome → MEP explains "Agent did X because of state Y, evidenced by Z, verifiable by checking Q."
+
+---
+
+## The MEP Framework: Three Parts
+
+The Minimal Explanation Packet is structured around three components, designed to be both human-interpretable and machine-verifiable:
+
+### 1. Explanation Artifact
+*What happened, in chronological order.*
+
+A structured log of the agent's action trajectory:
+
+```
+Step 1: [Agent Query] "What flights are available on 2026-03-15?"
+Step 2: [Tool Call] search_flights(date="2026-03-15", from="ORD", to="LAX")
+Step 3: [Tool Return] 3 flights found: UA123, AA456, DL789
+Step 4: [Reasoning] "All three are nonstop. I should check prices."
+Step 5: [Tool Call] get_price(flight_id="UA123")
+Step 6: [Tool Return] $285
+Step 7: [Tool Call] get_price(flight_id="AA456")
+Step 8: [Tool Return] $312
+...
+Final: [Agent Action] "I recommend AA456 at $312 (best value)."
+```
+
+This is *not* a natural language narrative. It's a structured trace with clear labels: what the agent queried, what tools it called, what it returned, and how the agent interpreted those returns. This explicitness is key—it makes state tracking visible.
+
+### 2. Linked Evidence & Context
+*Why did it take each action?*
+
+For each step, you document:
+- **What the agent knew at that point** (current state)
+- **What evidence justified the next action** (ground truth from the tool return, or prior knowledge)
+- **Any assumptions made** (e.g., "Assumed prices are in USD")
+
+```
+Step 4 → Step 5 Justification:
+- State: Agent knows 3 nonstop flights exist but no price data yet.
+- Evidence: Tool returned flight IDs but not fares.
+- Decision: "Query prices for each flight to recommend the cheapest."
+- Assumption: Price data is available via get_price(); user prefers lower fare.
+```
+
+### 3. Verification Signals
+*How would you check this explanation is correct?*
+
+Propose tests an external auditor could run:
+
+- **Counterfactual**: If the agent had skipped step 5 (checking prices), would it still recommend AA456? No → the price check was necessary.
+- **Trace Consistency**: Do all references to "3 flights" remain correct throughout? Does the agent ever claim to know a price it hasn't queried?
+- **Output Justification**: Is the final recommendation defensible given the evidence in steps 1–8?
+
+This is the "how to spot a lie" layer. It lets you catch hallucinated tool returns or logical gaps.
+
+---
+
+## The Lineage: Where This Fits
+
+This paper sits at the intersection of several research streams:
+
+**Feature Attribution (2010s–2020s)**
+- SHAP (Lundberg & Lee 2017): Unified framework for local feature importance
+- LIME (Ribeiro et al. 2016): Local interpretable model-agnostic explanations
+- Attention visualization (Bahdanau et al. 2014, Vaswani et al. 2017): Which tokens matter?
+
+**Agent & Tool-Use Research (2023–2025)**
+- ReAct (Yao et al. 2022): Chain reasoning + action in language models
+- WebShop (Yao et al. 2022): Multi-step web agent environment
+- TAU-bench (Llm-agents et al. 2024): Systematic evaluation of agent reasoning
+- SWE-bench (Jimenez et al. 2023): Agent performance on software engineering tasks
+
+**System-Level Explainability**
+- Chaduvula et al. (2026) bridges from feature-level (SHAP) to system-level (agent traces)
+- The shift: *Why* a model predicts X is less important than *why* an agent chose sequence X→Y→Z.
+
+---
+
+## Rubber-Ducking the Jargon
+
+**Static XAI**: Traditional explainability (SHAP, LIME) that treats the model as a black box and explains single predictions via input feature importance.
+
+**Agentic XAI**: Explainability for agents that must account for multi-step action sequences, state evolution, and tool interactions.
+
+**MEP (Minimal Explanation Packet)**: A three-part framework: (1) structured trace of actions, (2) evidence and context for each step, (3) verification signals to check the explanation.
+
+**Explanation Artifact**: The chronological log of what the agent did: queries, tool calls, returns, reasoning steps.
+
+**State Tracking Consistency**: How well the agent remembers and applies information learned earlier. Top predictor of failure in TAU-bench.
+
+**TAU-bench**: Airline, hotel, and multi-domain task benchmarks for evaluating reasoning and tool use in agents.
+
+**Relative Risk (RR)**: A statistic showing how much an outcome changes with a condition. RR=0.51 means poor state tracking cuts success rate in half.
+
+**Rubric-Based Evaluation**: Instead of automated metrics, a human rubric (or GPT-5) scores explanations on 6 categories (coherence, completeness, etc.).
+
+---
+
+## What to Watch Out For
+
+1. **Very New Framework**: This paper is from February 2026. The MEP framework is a proposal, not yet standard practice. Adoption will depend on community buy-in and tooling.
+
+2. **GPT-5 Medium as Judge**: The authors use GPT-5 Medium to score explanations. This is convenient but introduces bias—the judge is evaluating agents on the same domain it's trained on. How reproducible are these scores? How does judge bias affect relative rankings?
+
+3. **Limited Benchmarks**: Only two benchmarks tested (TAU-bench Airline, AssistantBench). Airline tasks are relatively structured. What about open-ended creative tasks, or adversarial settings where agents face disinformation?
+
+4. **Weak Agents**: 56% accuracy on TAU-bench Airline and 17.39% on AssistantBench are low. Before you optimize explanations, you might want to first improve the agents themselves. The paper doesn't address this chicken-and-egg problem.
+
+5. **No Formal Semantics**: "State Tracking Consistency" is evaluated rubric-style, not formally defined. How reproducible is this measure across different raters or rubrics?
+
+6. **Scalability**: Generating MEPs requires structured logging at every step. For agents with hundreds of tool calls, are MEPs still interpretable to humans? The paper doesn't discuss scalability.
+
+---
+
+## So What?
+
+If you're building or deploying agents—in healthcare, customer service, research, or finance—here are the takeaways:
+
+1. **Don't Use Static XAI for Agents**: SHAP and LIME don't capture the sources of agent failure. Your auditors will ask "Why did it do that?" and feature attribution won't answer it.
+
+2. **Track State Explicitly**: Agents that maintain and apply learned context succeed more often. Build state management into your agents from the start. Log what the agent knows at each step.
+
+3. **Adopt Trace-Based Explanations**: Use the MEP framework (or something like it) as a template. At minimum:
+   - Log *every* tool call and return (structured, not prose).
+   - Justify each action with reference to prior steps.
+   - Build in verification checks (counterfactuals, trace consistency).
+
+4. **Audit for State Consistency**: If you're investigating agent failures, look first for gaps in state tracking. Did the agent forget a constraint? Did it contradict itself? Did it reuse information without verifying it?
+
+5. **Expect Tool Failures**: Agents call external tools (databases, APIs, web searches). Document what the tool returned, what the agent expected, and where they diverged. This is where many failures hide.
+
+---
+
+## Reproduction & Implementation
+
+### Setting Up TAU-bench
+
+TAU-bench is available on Hugging Face. To run the Airline benchmark:
+
+```bash
+# Clone and install
+git clone https://github.com/llm-agents/tau-bench
+cd tau-bench
+pip install -e .
+
+# Run a single agent
+tau-bench --benchmark airline \
+          --model o4-mini-2025-04-16 \
+          --num-episodes 10 \
+          --output results.json
+```
+
+### Pseudo-Code: Generating an MEP
+
+```python
+class Agent:
+    def __init__(self):
+        self.state = {}
+        self.trace = []
+
+    def step(self, query):
+        """One step of agent reasoning."""
+        # Log the query
+        self.trace.append({
+            "step": len(self.trace) + 1,
+            "type": "query",
+            "content": query
+        })
+
+        # Decide which tool to call
+        tool_name, tool_args = self.decide(query)
+        self.trace.append({
+            "step": len(self.trace) + 1,
+            "type": "tool_call",
+            "tool": tool_name,
+            "args": tool_args
+        })
+
+        # Call the tool and log the return
+        result = self.call_tool(tool_name, tool_args)
+        self.trace.append({
+            "step": len(self.trace) + 1,
+            "type": "tool_return",
+            "result": result
+        })
+
+        # Update state based on result
+        self.state.update(self.extract_facts(result))
+
+        # Log reasoning
+        reasoning = self.reason(query, result, self.state)
+        self.trace.append({
+            "step": len(self.trace) + 1,
+            "type": "reasoning",
+            "content": reasoning,
+            "state_snapshot": dict(self.state)
+        })
+
+        return reasoning
+
+    def generate_mep(self):
+        """Build the Minimal Explanation Packet."""
+        artifact = self.trace  # The structured log
+
+        evidence = {}
+        for i, entry in enumerate(self.trace):
+            if entry["type"] == "tool_call":
+                # Link this call to its justification
+                evidence[i] = {
+                    "prior_state": self.trace[i-1].get("state_snapshot", {}),
+                    "prior_result": self.trace[i-1].get("result"),
+                    "decision": f"Calling {entry['tool']} to resolve: {self.trace[i-2].get('content')}"
+                }
+
+        verification = {
+            "counterfactuals": [
+                f"If step {i} had been skipped, would the final output change?",
+                for i in range(len(self.trace))
+            ],
+            "state_consistency": self.check_state_consistency(),
+            "trace_completeness": self.check_trace_completeness()
+        }
+
+        return {
+            "artifact": artifact,
+            "evidence": evidence,
+            "verification": verification
+        }
+```
+
+### Resource Links
+
+- **Paper**: arXiv:2602.06841 (Chaduvula et al., 2026) | [📄 Hosted PDF](/papers-hosted/explainability-agentic-ai.pdf){target="_blank"}
+- **TAU-bench**: https://github.com/llm-agents/tau-bench
+- **SHAP**: https://github.com/slundberg/shap
+- **LIME**: https://github.com/marcotcr/lime
+- **ReAct**: https://github.com/ysymyth/ReAct
+
+---
+
+## References
+
+Chaduvula, S., Chen, Y., Rao, P., & Reitter, D. (2026). From Features to Actions: Explainability in Agentic AI. *arXiv preprint arXiv:2602.06841*.
+
+Lundberg, S. M., & Lee, S.-I. (2017). A unified approach to interpreting model predictions. *Advances in Neural Information Processing Systems*, 30.
+
+Ribeiro, M. T., Singh, S., & Guestrin, C. (2016). "Why should I trust you?": Explaining the predictions of any classifier. In *Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining*, 1135–1144.
+
+Yao, S., Yu, D., Zhao, J., Shafran, I., Griffiths, T. L., Cao, Y., & Narasimhan, K. (2022). ReAct: Synergizing reasoning and acting in language models. *arXiv preprint arXiv:2210.03629*.

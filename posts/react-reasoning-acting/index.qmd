@@ -6,6 +6,8 @@ description: "Yao et al.'s ICLR 2023 paper introduced ReAct — interleaving rea
 image: react-thumbnail.svg
 ---
 
+> 📄 **[Read the Full Paper](/papers-hosted/react.pdf){target="_blank"}**
+
 ## The Gist
 
 **ReAct** (Reasoning + Acting) was the breakthrough paper that showed language models don't have to choose between two worlds: pure reasoning or pure action.
@@ -207,7 +209,7 @@ def react_agent(question, model, tools):
 
 ### Key Resources
 
-- **Original Paper:** arXiv:2210.03629 – [ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629)
+- **Original Paper:** [ReAct: Synergizing Reasoning and Acting in Language Models](/papers-hosted/react.pdf) | [arXiv:2210.03629](https://arxiv.org/abs/2210.03629)
 - **GitHub:** [ysymyth/ReAct](https://github.com/ysymyth/ReAct) – Official implementation, datasets, and prompts.
 - **HotpotQA Benchmark:** [hotpotqa.github.io](https://hotpotqa.github.io/)
 - **ALFWorld Environment:** [alfworld.github.io](https://www.allenai.org/alfworld)

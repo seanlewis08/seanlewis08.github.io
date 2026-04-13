@@ -1,0 +1,181 @@
+---
+title: "Non-Manipulable Causes: Pearl's Answer to Causal Inference's Oldest Objection"
+date: "2026-02-27"
+categories: [Causal Inference, Statistics, Philosophy of Science]
+description: "Judea Pearl's 2018 paper tackles the 'no causation without manipulation' objection head-on — showing that structural causal models can define causal effects for inherently non-manipulable variables like race, gender, or obesity through the do-operator, without requiring physical intervention."
+image: pearl-causes-thumbnail.svg
+---
+
+> 📄 **[Read the Full Paper](/papers-hosted/pearl-non-manipulable-causes.pdf){target="_blank"}**
+
+## The Gist
+
+There's a long-standing philosophical objection that's haunted causal inference for decades: **you can't talk about the causal effect of race on hiring, or gender on wages, because you can't randomly assign someone's race or gender.** This "no causation without manipulation" principle comes from Holland and Rubin's potential outcomes framework — it says a causal effect only exists if you can *in principle* manipulate the treatment.
+
+Judea Pearl's 2018 technical report argues this is a limitation of the potential outcomes framework itself, not of causality. Using **structural causal models (SCMs)** and the **do-operator**, you can formally define causal effects for inherently non-manipulable variables without requiring physical intervention.
+
+Here's the key insight: the do-operator works by **graph surgery**. You remove all arrows *into* the variable you're interested in ("cutting" the confounder paths) and set it to a value, then compute the resulting distribution. This lets you ask "what would the hiring rate be if applicants were Black?" without needing to actually change anyone's race. 
+
+Pearl's central claim: the confusion between "manipulation" and "cause" stems from conflating the *definition* of causal effect with the *identification* (estimation) of that effect. You can define a causal quantity mathematically even if you can't physically randomize it.
+
+---
+
+## Why It Matters Now
+
+This matters because **algorithmic fairness, health disparities, and social science all depend on it.**
+
+If you can't define the causal effect of race on hiring outcomes, you can't measure discrimination. If you can't reason about gender's causal impact on health, you can't audit health systems for equity. Pearl's framework makes **fairness auditing formally possible** — you can rigorously ask "would outcomes change if we intervened on group membership?" without needing to run unethical experiments.
+
+It's also practical: as machine learning systems are deployed at scale, the ability to reason about causal effects of protected attributes is essential. Pearl's work gives the formal foundation for those conversations.
+
+---
+
+## The Two Frameworks
+
+The tension lies between two dominant paradigms in causal inference:
+
+| **Potential Outcomes (Rubin)** | **Structural Causal Models (Pearl)** |
+|---|---|
+| Built on the idea that each unit has potential outcomes Y(1) and Y(0) under each treatment level. | Built on causal graphs (DAGs) and equations linking variables. |
+| Defines causal effect as the difference E[Y(1) - Y(0)]. | Defines causal effect using the do-operator: P(Y\|do(X=x)). |
+| Requires the treatment to be (at least conceptually) randomizable. | Can define causal effects for non-manipulable variables. |
+| Strong on identification under randomization; weaker on non-manipulable treatments. | Natural fit for non-manipulable treatments like race, gender, or age. |
+| Focuses on unconfoundedness assumptions. | Focuses on the causal graph structure (backdoor, frontdoor). |
+
+Both frameworks are powerful. Pearl's point: **the potential outcomes framework unnecessarily restricts what we can call "causal," when the SCM framework is more general.**
+
+---
+
+## The do-Operator, Demystified
+
+Think of do(X = x) as a formal operation that says: "ignore how X naturally comes about, and set it to x. What happens next?"
+
+**The key difference:**
+- **P(Y | X = x)** is observational: "Among people where X happens to equal x, what's the distribution of Y?" This includes the influence of confounders.
+- **P(Y | do(X = x))** is interventional: "If we force X to equal x, blocking all other paths that would naturally set X, what's the distribution of Y?" This removes confounder bias.
+
+Mathematically, do(X = x) works by **graph surgery**:
+
+1. Remove all arrows *pointing into* X (cut the confounders).
+2. Set X = x.
+3. Compute P(Y | do(X = x)) by propagating the change through the remaining graph.
+
+Example: Suppose Qualifications → Hiring, but Race also influences Hiring (direct discrimination), and Qualifications and Race are correlated (a confounder: systemic inequity). 
+
+```
+Systemic Inequity → Qualifications → Hiring
+                  ↓                   ↑
+                  └─────→ Race ───────┘
+```
+
+- **P(Hiring = Yes | Race = Black)** conflates the direct effect of race *and* the effect of race-driven differences in qualifications.
+- **P(Hiring = Yes | do(Race = Black))** isolates the direct effect: it asks, if we set race to Black *but keep qualifications at whatever distribution it would naturally have*, would hiring change?
+
+This is why do() is powerful: it lets you ask causal questions about variables you can't actually randomize.
+
+---
+
+## The Lineage
+
+Pearl's work on non-manipulable causes sits within a much larger research program:
+
+- **Causality (2000)**: Pearl's foundational book introducing SCMs, the do-operator, causal graphs, and the criteria for identifiability (backdoor, frontdoor).
+- **The Book of Why (2018)**: Pearl and Mackenzie's popular treatment, bringing causal thinking to a broader audience.
+- **Debate with Rubin/Holland (1980s–2010s)**: Pearl and Rubin disagreed fundamentally on whether causality requires manipulability. This paper is Pearl's answer: no, it doesn't.
+- **Backdoor and frontdoor criteria**: Pearl showed how causal effects can be identified from observational data *without* randomization, using graph structure.
+- **Causal diagrams in epidemiology and social science**: Pearl's framework has become standard for reasoning about confounders in non-experimental settings.
+
+---
+
+## Rubber-Ducking the Jargon
+
+**Structural Causal Model (SCM)**: A set of equations linking variables, often represented as a directed acyclic graph (DAG). Each equation says how a variable is determined by its parents in the graph.
+
+**do-operator** (or intervention operator): The formal notation do(X = x) representing a surgical intervention that sets X to x and severs all other influences on X.
+
+**Graph surgery**: The mental or algorithmic process of removing arrows in a causal graph to represent an intervention.
+
+**Potential outcomes**: The outcomes a unit *would have* under different treatment levels (Y(0), Y(1), etc.). Originated with Rubin.
+
+**Non-manipulable variable**: A variable you cannot ethically or physically randomize, like race, gender, or age.
+
+**Average Causal Effect (ACE)**: The expected difference in outcomes caused by a treatment: E[Y | do(T=1)] - E[Y | do(T=0)].
+
+**Backdoor criterion**: A graphical rule for identifying confounders that bias a causal effect. If a path from X to Y goes "backwards" into X, you have confounding.
+
+**Front-door criterion**: A rule for identifying causal effects even when there are unmeasured confounders, if you have complete mediation.
+
+---
+
+## What to Watch Out For
+
+**The philosophical debate is unresolved.** Statisticians like Andrew Gelman have pushed back on SCMs, preferring the potential outcomes framework or Bayesian model checking. There's real disagreement about whether Pearl's framework resolves the manipulation problem or just redefines it away.
+
+**SCMs require knowing the causal graph.** Pearl's framework is only as good as your graph. If you don't have the right causal structure, do() can give you nonsense. And in practice, you often don't know the true graph.
+
+**Some statisticians reject the framework entirely.** The potential outcomes framework has deep roots in experimental design. Not everyone agrees Pearl's SCMs are a better foundation, even if they're more general.
+
+**The paper is more philosophical argument than empirical result.** You won't find simulations or real data applications here. It's Pearl defending his framework against a 40-year-old objection. That's valuable, but it's not a how-to guide.
+
+---
+
+## So What?
+
+**If you work in fairness, discrimination auditing, or health disparities:** Pearl's framework gives you formal tools to define and measure causal effects you care about — without requiring unethical experiments. This is huge.
+
+**If you're a statistician or data scientist:** Understanding the do-operator is becoming essential. It's the lingua franca of modern causal inference. Even if you prefer potential outcomes, you'll need to translate between frameworks.
+
+**If you're philosophically inclined:** This paper is a defense of a research program against its oldest objection. It's worth reading for the intellectual history and the rigor.
+
+---
+
+## Reproduction & Implementation
+
+**DoWhy (Python library):** The causal-ml community has built tooling on Pearl's framework. The `DoWhy` library lets you:
+- Specify a causal graph (as a DAG).
+- Define a causal query (e.g., "estimate the effect of X on Y given this graph").
+- Estimate the effect using various identification strategies (backdoor, frontdoor, instrumental variables).
+
+```python
+from dowhy import CausalModel
+
+# Specify your causal graph
+gml_graph = """
+digraph {
+    Qualifications -> Hiring;
+    Race -> Hiring;
+    SystemicInequity -> Qualifications;
+    SystemicInequity -> Race;
+}
+"""
+
+model = CausalModel(
+    data=df,
+    treatment='Race',
+    outcome='Hiring',
+    common_causes=['SystemicInequity'],
+    instruments=[],
+    graph=gml_graph
+)
+
+identified_estimand = model.identify_effect(proceed_when_unidentifiable=True)
+estimate = model.estimate_effect(identified_estimand, method_name="backdoor.linear_regression")
+```
+
+**Reading the original:** Pearl's technical report R-483 is available through UCLA's Cognitive Systems Lab. It's dense but rewarding.
+
+**Further context:** Chapter 7 of *The Book of Why* covers this material for a general audience. Chapter 3 of *Causality* is the authoritative technical treatment.
+
+---
+
+## References
+
+Pearl, J. (2018). "On the Interpretation of do(x)" and Non-Manipulable Causes. *Technical Report R-483*, UCLA Cognitive Systems Laboratory. [📄 Read the Full Paper](/papers-hosted/pearl-non-manipulable-causes.pdf){target="_blank"}
+
+Pearl, J., & Mackenzie, D. (2018). *The Book of Why: The New Science of Cause and Effect*. Basic Books.
+
+Pearl, J. (2000). *Causality: Models, Reasoning, and Inference*. Cambridge University Press.
+
+Rubin, D. B. (1974). Estimating Causal Effects of Treatments in Randomized and Nonrandomized Studies. *Journal of Educational Psychology*, 66(5), 688–701.
+
+Holland, P. W. (1986). Statistics and Causal Inference. *Journal of the American Statistical Association*, 81(396), 945–960.

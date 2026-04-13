@@ -6,6 +6,8 @@ description: "Wang et al. identified three systematic failure modes in chain-of-
 image: ps-plus-thumbnail.svg
 ---
 
+> 📄 **[Read the Full Paper](/papers-hosted/plan-and-solve-prompting.pdf){target="_blank"}**
+
 ## The Gist
 
 Chain-of-thought (CoT) prompting has become a go-to technique for getting language models to reason through problems step-by-step. But it still fails in surprisingly predictable ways.
@@ -243,7 +245,7 @@ def ps_plus_solve(problem: str, model) -> str:
 ## Links & References
 
 - **ACL 2023 paper**: [Plan-and-Solve Prompting: Improving Zero-shot Chain-of-Thought Reasoning by Large Language Models](https://aclanthology.org/2023.acl-main.507/)
-- **arXiv**: [2305.04091](https://arxiv.org/abs/2305.04091)
+- **Paper**: [Read the Full Paper](/papers-hosted/plan-and-solve-prompting.pdf) | [arXiv](https://arxiv.org/abs/2305.04091)
 - **Authors**: Lei Wang, Wanyu Huang, Yushun Dong, Yilun Zhao, Yali Du, Edward Y. Chang, Benyou Wang
 - **Related work**:
   - [Wei et al. (2022): Chain-of-Thought Prompting](https://arxiv.org/abs/2201.11903)

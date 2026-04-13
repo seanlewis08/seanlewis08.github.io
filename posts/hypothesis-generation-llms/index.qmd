@@ -6,6 +6,8 @@ description: "Zhou et al.'s HypoGeniC uses a UCB-inspired algorithm to iterative
 image: hypogenic-thumbnail.svg
 ---
 
+> 📄 **[Read the Full Paper](/papers-hosted/hypogenic.pdf){target="_blank"}**
+
 ## The Gist
 
 HypoGeniC treats hypothesis generation as an **explore-exploit problem**. Given a dataset, the algorithm iteratively:
@@ -278,7 +280,7 @@ Good hypotheses are specific, actionable, and human-readable:
 
 ### Resources & Links
 
-- **Paper**: [arXiv:2404.04326](https://arxiv.org/abs/2404.04326)
+- **Paper**: [arXiv:2404.04326](https://arxiv.org/abs/2404.04326) | [📄 Hosted PDF](/papers-hosted/hypogenic.pdf){target="_blank"}
 - **Author**: Kailai Yang, Hao Liu, and Yapei Zhou
 - **Citation**: Zhou et al., "HypoGeniC: Hypothesis Generation with Large Language Models," 2024
 

@@ -6,6 +6,8 @@ description: "Wei et al.'s landmark NeurIPS 2022 paper showed that simply asking
 image: cot-thumbnail.svg
 ---
 
+> 📄 **[Read the Full Paper](/papers-hosted/chain-of-thought-prompting.pdf){target="_blank"}**
+
 ## The Gist
 
 What if you could get a language model to solve harder problems just by asking it to "think out loud"? That's the elegantly simple insight behind **chain-of-thought (CoT) prompting**, demonstrated in Wei et al.'s NeurIPS 2022 paper. Instead of asking a model "What is 15% of 40?" and expecting the answer directly, you show it a few examples where the answer comes *after* the reasoning: "15% of 40. 40 × 0.15 = 6." Then the model learns to do the same—walking through the problem step by step before committing to an answer.
@@ -212,7 +214,7 @@ def extract_final_answer(text):
 
 ### Key Resources
 
-- **Paper**: [Chain-of-Thought Prompting Elicits Reasoning in Large Language Models](https://arxiv.org/abs/2201.11903) (arXiv:2201.11903)
+- **Paper**: [Chain-of-Thought Prompting Elicits Reasoning in Large Language Models](/papers-hosted/chain-of-thought-prompting.pdf) | [arXiv](https://arxiv.org/abs/2201.11903)
 - **Benchmark (GSM8K)**: [Grade School Math 8K](https://huggingface.co/datasets/openai/gsm8k) on Hugging Face
 - **Related work (Self-Consistency)**: [Self-Consistency Improves Chain of Thought Reasoning in Language Models](https://arxiv.org/abs/2203.11171)
 - **PaLM model**: [PaLM: Scaling Language Modeling with Pathways](https://arxiv.org/abs/2204.02311)

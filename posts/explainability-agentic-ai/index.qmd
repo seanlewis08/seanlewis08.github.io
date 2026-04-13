@@ -6,6 +6,8 @@ description: "Chaduvula et al. from the Vector Institute and Mayo Clinic argue t
 image: xai-agents-thumbnail.svg
 ---
 
+> 📄 **[Read the Full Paper](/papers-hosted/explainability-agentic-ai.pdf){target="_blank"}**
+
 ## The Gist
 
 Traditional explainable AI (XAI) tools like SHAP and LIME do one thing well: they attribute importance to input features to explain a single prediction. But agentic AI systems don't work that way. They don't make one prediction and stop. Instead, they execute multi-step action sequences: they call tools, observe results, reason about what they see, and decide on the next action. Explaining *why an agent failed* isn't about which feature mattered most—it's about understanding where the decision chain broke.
@@ -337,7 +339,7 @@ class Agent:
 
 ### Resource Links
 
-- **Paper**: arXiv:2602.06841 (Chaduvula et al., 2026)
+- **Paper**: arXiv:2602.06841 (Chaduvula et al., 2026) | [📄 Hosted PDF](/papers-hosted/explainability-agentic-ai.pdf){target="_blank"}
 - **TAU-bench**: https://github.com/llm-agents/tau-bench
 - **SHAP**: https://github.com/slundberg/shap
 - **LIME**: https://github.com/marcotcr/lime

@@ -6,6 +6,8 @@ description: "Saichandran et al. from Boston University build a multi-agent syst
 image: alzheimers-agents-thumbnail.svg
 ---
 
+> 📄 **[Read the Full Paper](/papers-hosted/agentic-ai-alzheimers.pdf){target="_blank"}**
+
 ## The Gist
 
 Researchers at Boston University have built a multi-agent system that automates hypothesis testing in Alzheimer's Disease and Related Dementias (ADRD) research. The system comprises four specialized LLM agents working in concert:
@@ -325,7 +327,7 @@ return results
 
 ### Resource Links
 
-- **Preprint**: [Saichandran et al. on medRxiv (December 2025)](https://www.medrxiv.org) (search for the title)
+- **Preprint**: [Saichandran et al. on medRxiv (December 2025)](https://www.medrxiv.org) (search for the title) | [📄 Hosted PDF](/papers-hosted/agentic-ai-alzheimers.pdf){target="_blank"}
 - **NACC Data**: [National Alzheimer's Coordinating Center](https://nacc.naccdata.org)
 - **Qwen3 Model**: [Alibaba Qwen Models on Hugging Face](https://huggingface.co/Qwen)
 - **Ollama (local inference)**: [ollama.ai](https://ollama.ai)

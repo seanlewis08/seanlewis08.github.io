@@ -6,6 +6,8 @@ description: "Judea Pearl's 2018 paper tackles the 'no causation without manipul
 image: pearl-causes-thumbnail.svg
 ---
 
+> 📄 **[Read the Full Paper](/papers-hosted/pearl-non-manipulable-causes.pdf){target="_blank"}**
+
 ## The Gist
 
 There's a long-standing philosophical objection that's haunted causal inference for decades: **you can't talk about the causal effect of race on hiring, or gender on wages, because you can't randomly assign someone's race or gender.** This "no causation without manipulation" principle comes from Holland and Rubin's potential outcomes framework — it says a causal effect only exists if you can *in principle* manipulate the treatment.
@@ -168,7 +170,7 @@ estimate = model.estimate_effect(identified_estimand, method_name="backdoor.line
 
 ## References
 
-Pearl, J. (2018). "On the Interpretation of do(x)" and Non-Manipulable Causes. *Technical Report R-483*, UCLA Cognitive Systems Laboratory.
+Pearl, J. (2018). "On the Interpretation of do(x)" and Non-Manipulable Causes. *Technical Report R-483*, UCLA Cognitive Systems Laboratory. [📄 Read the Full Paper](/papers-hosted/pearl-non-manipulable-causes.pdf){target="_blank"}
 
 Pearl, J., & Mackenzie, D. (2018). *The Book of Why: The New Science of Cause and Effect*. Basic Books.
 

@@ -6,6 +6,8 @@ description: "Zhou et al.'s Star-Agents system uses multiple LLM agent pairs, du
 image: star-agents-thumbnail.svg
 ---
 
+> 📄 **[Read the Full Paper](/papers-hosted/star-agents.pdf){target="_blank"}**
+
 ## The Gist
 
 The quality of instruction-tuning data is often more important than quantity, but curating good data is expensive and subjective. **Star-Agents** automates this process with three key components:
@@ -264,7 +266,7 @@ def compute_ifd(target_result: str, reference_result: str) -> float:
 
 ### Resources & Links
 
-- **Paper**: Zhou et al., "Star-Agents: Automatic Data Optimization with LLM Agents for Instruction Tuning" (NeurIPS 2024)
+- **Paper**: Zhou et al., "Star-Agents: Automatic Data Optimization with LLM Agents for Instruction Tuning" (NeurIPS 2024) | [📄 Hosted PDF](/papers-hosted/star-agents.pdf){target="_blank"}
 - **Related**: Self-Instruct (Wang et al.), Evol-Instruct (WizardLM), LIMA (Zhou et al.)
 - **Benchmarks**: MT-bench (Zheng et al.), Vicuna-bench (Vicuna team)
 - **Models**: Hugging Face (Mistral, Qwen, Llama, etc.), OpenAI (ChatGPT as evaluator)

@@ -6,6 +6,8 @@ description: "Efron and Hastie's masterwork traces 250 years of statistical infe
 image: casi-thumbnail.svg
 ---
 
+> 📄 **[Read the Full Book](/papers-hosted/casi.pdf){target="_blank"}**
+
 ## The Gist
 
 This isn't a research paper — it's a *map*. "Computer Age Statistical Inference" (Efron & Hastie, Cambridge University Press, 2016/2021) is the definitive account of how statistical thinking evolved from hand-computation to the algorithmic era. Written by two of the field's architects — Bradley Efron (inventor of the bootstrap) and Trevor Hastie (co-creator of LASSO, GAMs, and "The Elements of Statistical Learning") — the book traces 250 years of inference theory and practice.
@@ -206,7 +208,7 @@ print(f"Cross-validation accuracy: {scores.mean():.3f} +/- {scores.std():.3f}")
 
 ## Resources
 
-- **Book page:** Cambridge University Press
+- **Book**: [Computer Age Statistical Inference (Full PDF)](/papers-hosted/casi.pdf) | [Cambridge University Press](https://www.cambridge.org/us/academic/subjects/statistics-probability/statistical-theory-and-methods/computer-age-statistical-inference-algorithms-evidence-and-data-science)
 - **Supplementary materials:** [Statistics Department, Stanford University](https://web.stanford.edu/~hastie/CASI/)
 - **R code:** The book has an accompanying R package and code examples
 - **Related reading:**
