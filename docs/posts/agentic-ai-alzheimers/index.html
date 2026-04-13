@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Sean Lewis">
+<meta name="dcterms.date" content="2026-03-03">
+<meta name="description" content="Saichandran et al.&nbsp;from Boston University build a multi-agent system with four specialized LLM agents that automatically tests Alzheimer’s disease hypotheses against the NACC cohort (n=48,876). The system verified 42 of 100 ADRD hypotheses while correctly rejecting 85% of negative controls.">
+
+<title>Agentic AI for Alzheimer’s: Automating Hypothesis Testing at Scale – Sean Lewis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Sean Lewis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../projects.html"> 
+<span class="menu-text">Projects</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/seanlewis08"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/selew/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-gist" id="toc-the-gist" class="nav-link active" data-scroll-target="#the-gist">The Gist</a></li>
+  <li><a href="#why-it-matters-now" id="toc-why-it-matters-now" class="nav-link" data-scroll-target="#why-it-matters-now">Why It Matters Now</a></li>
+  <li><a href="#key-results-scaling-behavior" id="toc-key-results-scaling-behavior" class="nav-link" data-scroll-target="#key-results-scaling-behavior">Key Results &amp; Scaling Behavior</a></li>
+  <li><a href="#the-dual-loop-architecture" id="toc-the-dual-loop-architecture" class="nav-link" data-scroll-target="#the-dual-loop-architecture">The Dual-Loop Architecture</a></li>
+  <li><a href="#the-four-agents-in-detail" id="toc-the-four-agents-in-detail" class="nav-link" data-scroll-target="#the-four-agents-in-detail">The Four Agents in Detail</a>
+  <ul class="collapse">
+  <li><a href="#data-preparation-agent" id="toc-data-preparation-agent" class="nav-link" data-scroll-target="#data-preparation-agent">Data Preparation Agent</a></li>
+  <li><a href="#planning-agent" id="toc-planning-agent" class="nav-link" data-scroll-target="#planning-agent">Planning Agent</a></li>
+  <li><a href="#scientist-agent" id="toc-scientist-agent" class="nav-link" data-scroll-target="#scientist-agent">Scientist Agent</a></li>
+  <li><a href="#critic-agent" id="toc-critic-agent" class="nav-link" data-scroll-target="#critic-agent">Critic Agent</a></li>
+  </ul></li>
+  <li><a href="#scaling-and-negative-controls" id="toc-scaling-and-negative-controls" class="nav-link" data-scroll-target="#scaling-and-negative-controls">Scaling and Negative Controls</a>
+  <ul class="collapse">
+  <li><a href="#why-scaling-matters" id="toc-why-scaling-matters" class="nav-link" data-scroll-target="#why-scaling-matters">Why Scaling Matters</a></li>
+  <li><a href="#the-negative-control-result" id="toc-the-negative-control-result" class="nav-link" data-scroll-target="#the-negative-control-result">The Negative Control Result</a></li>
+  </ul></li>
+  <li><a href="#the-lineage-what-this-connects-to" id="toc-the-lineage-what-this-connects-to" class="nav-link" data-scroll-target="#the-lineage-what-this-connects-to">The Lineage: What This Connects To</a></li>
+  <li><a href="#rubber-ducking-the-jargon" id="toc-rubber-ducking-the-jargon" class="nav-link" data-scroll-target="#rubber-ducking-the-jargon">Rubber-Ducking the Jargon</a></li>
+  <li><a href="#what-to-watch-out-for" id="toc-what-to-watch-out-for" class="nav-link" data-scroll-target="#what-to-watch-out-for">What to Watch Out For</a></li>
+  <li><a href="#so-what" id="toc-so-what" class="nav-link" data-scroll-target="#so-what">So What?</a>
+  <ul class="collapse">
+  <li><a href="#for-healthcare-researchers" id="toc-for-healthcare-researchers" class="nav-link" data-scroll-target="#for-healthcare-researchers">For Healthcare Researchers</a></li>
+  <li><a href="#for-ai-practitioners" id="toc-for-ai-practitioners" class="nav-link" data-scroll-target="#for-ai-practitioners">For AI Practitioners</a></li>
+  </ul></li>
+  <li><a href="#reproduction-implementation" id="toc-reproduction-implementation" class="nav-link" data-scroll-target="#reproduction-implementation">Reproduction &amp; Implementation</a>
+  <ul class="collapse">
+  <li><a href="#accessing-the-data" id="toc-accessing-the-data" class="nav-link" data-scroll-target="#accessing-the-data">Accessing the Data</a></li>
+  <li><a href="#system-setup" id="toc-system-setup" class="nav-link" data-scroll-target="#system-setup">System Setup</a></li>
+  <li><a href="#agent-architecture-pseudocode" id="toc-agent-architecture-pseudocode" class="nav-link" data-scroll-target="#agent-architecture-pseudocode">Agent Architecture (Pseudocode)</a></li>
+  <li><a href="#resource-links" id="toc-resource-links" class="nav-link" data-scroll-target="#resource-links">Resource Links</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Agentic AI for Alzheimer’s: Automating Hypothesis Testing at Scale</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">AI Agents</div>
+    <div class="quarto-category">Healthcare</div>
+    <div class="quarto-category">Alzheimer's</div>
+    <div class="quarto-category">Biomedical Research</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Saichandran et al.&nbsp;from Boston University build a multi-agent system with four specialized LLM agents that automatically tests Alzheimer’s disease hypotheses against the NACC cohort (n=48,876). The system verified 42 of 100 ADRD hypotheses while correctly rejecting 85% of negative controls.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Sean Lewis </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 3, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="the-gist" class="level2">
+<h2 class="anchored" data-anchor-id="the-gist">The Gist</h2>
+<p>Researchers at Boston University have built a multi-agent system that automates hypothesis testing in Alzheimer’s Disease and Related Dementias (ADRD) research. The system comprises four specialized LLM agents working in concert:</p>
+<ol type="1">
+<li><strong>Data Preparation Agent</strong> — Cleans, preprocesses, and structures the NACC dataset</li>
+<li><strong>Planning Agent</strong> — Translates natural language hypotheses into statistical test plans</li>
+<li><strong>Scientist Agent</strong> — Executes the statistical analysis (writes and runs code)</li>
+<li><strong>Critic Agent</strong> — Reviews results for correctness and statistical validity</li>
+</ol>
+<p>The architecture uses a <strong>dual-loop design</strong>: - <strong>Outer loop</strong>: Data Preparation + Planning (one-time setup) - <strong>Inner loop</strong>: Scientist and Critic iterate until the critic approves the analysis</p>
+<p>Using the NACC cohort (n=48,876 participants, ~750 features), the system tested 100 ADRD hypotheses: - <strong>42.0±2.8</strong> verified (null hypothesis rejected) - <strong>16.6±1.1</strong> not rejected - <strong>41.4±2.3</strong> deemed not testable with available data</p>
+<p>The system demonstrates strong <strong>negative control performance</strong>: 85.2±0.6% of 100 non-ADRD hypotheses were correctly classified as not testable.</p>
+<p>Notably, this system runs on <strong>Qwen3-4B-Instruct</strong>—a small, open-source model—making it accessible and practical.</p>
+</section>
+<section id="why-it-matters-now" class="level2">
+<h2 class="anchored" data-anchor-id="why-it-matters-now">Why It Matters Now</h2>
+<p>The landscape of ADRD research is data-rich but hypothesis-poor in terms of testing throughput. Major cohorts like NACC contain hundreds of potential publishable hypotheses, yet manual hypothesis testing remains slow, labor-intensive, and prone to p-hacking.</p>
+<p>This system addresses a real bottleneck: <strong>screening at scale</strong>. By automatically testing hypotheses against large cohorts, researchers can prioritize which ideas are worth deep human investigation. This shifts the researcher’s role from manual testing to hypothesis generation and result interpretation.</p>
+<p>Additionally, the fact that this works on a 4B parameter model (not a 70B+ flagship) means: - Runs on modest hardware - Lower latency and cost - Reproducibility on research budgets - Potential for on-premises deployment in privacy-sensitive healthcare settings</p>
+</section>
+<section id="key-results-scaling-behavior" class="level2">
+<h2 class="anchored" data-anchor-id="key-results-scaling-behavior">Key Results &amp; Scaling Behavior</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Metric</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>ADRD hypotheses verified</td>
+<td>42.0 ± 2.8 (out of 100)</td>
+</tr>
+<tr class="even">
+<td>ADRD hypotheses not rejected</td>
+<td>16.6 ± 1.1</td>
+</tr>
+<tr class="odd">
+<td>ADRD hypotheses not testable</td>
+<td>41.4 ± 2.3</td>
+</tr>
+<tr class="even">
+<td>Negative controls (correctly not testable)</td>
+<td>85.2 ± 0.6% (out of 100)</td>
+</tr>
+<tr class="odd">
+<td>Model used</td>
+<td>Qwen3-4B-Instruct</td>
+</tr>
+<tr class="even">
+<td>NACC cohort size</td>
+<td>48,876 participants</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Scaling dynamics</strong> reveal a crucial insight: - <strong>n=100</strong>: 10.4 hypotheses verified - <strong>n=1,000</strong>: 22.7 hypotheses verified - <strong>n=10,000</strong>: 35.4 hypotheses verified - <strong>n=48,876</strong>: 42.0 hypotheses verified</p>
+<p>As the dataset grows, the number of statistically testable hypotheses increases—underscoring why large cohorts unlock discovery.</p>
+</section>
+<section id="the-dual-loop-architecture" class="level2">
+<h2 class="anchored" data-anchor-id="the-dual-loop-architecture">The Dual-Loop Architecture</h2>
+<pre class="mermaid"><code>graph LR
+    DP["Data Prep Agent"] --&gt; PA["Planning Agent"]
+    PA --&gt; SA["Scientist Agent"]
+    CA["Critic Agent"] &lt;--&gt; SA
+    SA --&gt; Result["Results"]
+
+    style DP fill:#0d7c5f,color:#fff
+    style PA fill:#0d7c5f,color:#fff
+    style SA fill:#6d5acd,color:#fff
+    style CA fill:#6d5acd,color:#fff
+    style Result fill:#f5f5f5,color:#1a1a1a</code></pre>
+<p><strong>Outer Loop (Setup)</strong>: - Data Prep Agent explores the NACC dataset, identifies available features, checks for missingness, and summarizes distributions - Planning Agent receives the hypothesis and the data summary, outputs a formal statistical test plan</p>
+<p><strong>Inner Loop (Iteration)</strong>: - Scientist Agent writes code (in Python) to execute the test plan - Critic Agent inspects the code and results for validity: - Are assumptions met? (normality, equal variance, etc.) - Is the sample size adequate? - Are effect sizes meaningful? - Is the p-value correctly computed? - If the Critic raises concerns, the Scientist revises the approach - Loop continues until the Critic approves</p>
+</section>
+<section id="the-four-agents-in-detail" class="level2">
+<h2 class="anchored" data-anchor-id="the-four-agents-in-detail">The Four Agents in Detail</h2>
+<section id="data-preparation-agent" class="level3">
+<h3 class="anchored" data-anchor-id="data-preparation-agent">Data Preparation Agent</h3>
+<p><strong>Role</strong>: Understand the data landscape.</p>
+<p><strong>Input</strong>: NACC dataset schema, hypothesis domain (e.g., “cognitive decline”)</p>
+<p><strong>Process</strong>: - Loads and explores relevant features - Computes summary statistics, missing data patterns - Identifies outliers, distributions - Generates a data profile document</p>
+<p><strong>Output</strong>: Structured data summary (features available, n for each, data types, missingness %)</p>
+<p><strong>Example</strong>: For a hypothesis about amyloid-beta and cognitive decline, the agent identifies: - Available amyloid-beta measures (e.g., plasma p-tau181, CSF Aβ42) - Cognitive outcome variables (MMSE, MoCA, etc.) - Sample sizes per variable - Missing data prevalence</p>
+</section>
+<section id="planning-agent" class="level3">
+<h3 class="anchored" data-anchor-id="planning-agent">Planning Agent</h3>
+<p><strong>Role</strong>: Translate hypothesis into a testable plan.</p>
+<p><strong>Input</strong>: Natural language hypothesis (e.g., “Higher blood pressure at baseline is associated with faster cognitive decline”), data profile</p>
+<p><strong>Process</strong>: - Parses the hypothesis into predictor(s) and outcome(s) - Selects appropriate statistical test (t-test, correlation, regression, survival analysis) - Defines null hypothesis, alternative, significance level (α=0.05) - Specifies any required adjustments (covariates, multiple comparisons)</p>
+<p><strong>Output</strong>: Formal test plan document including: - Statistical test method - Null hypothesis statement - Inclusion/exclusion criteria - Covariates to adjust for - Interpretation rules</p>
+<p><strong>Example Plan</strong>:</p>
+<pre><code>Hypothesis: Higher blood pressure → faster cognitive decline
+Test: Linear regression of MMSE slope on baseline SBP
+Covariates: age, sex, education, APOE status
+H0: coefficient = 0
+H1: coefficient ≠ 0
+α = 0.05
+Interpret: p &lt; 0.05 = verified; p ≥ 0.05 = not rejected</code></pre>
+</section>
+<section id="scientist-agent" class="level3">
+<h3 class="anchored" data-anchor-id="scientist-agent">Scientist Agent</h3>
+<p><strong>Role</strong>: Execute the analysis.</p>
+<p><strong>Input</strong>: Test plan, data, hypothesis</p>
+<p><strong>Process</strong>: - Writes Python code (using pandas, scipy, statsmodels) - Loads relevant features from NACC - Applies inclusion/exclusion criteria - Runs the statistical test - Extracts p-value, effect size, confidence intervals</p>
+<p><strong>Output</strong>: Analysis code + results summary (p-value, coefficient, effect size, sample n)</p>
+<p><strong>Example Code Output</strong>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> ttest_ind</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>df_filtered <span class="op">=</span> df[df[<span class="st">'diagnosis'</span>].isin([<span class="st">'CN'</span>, <span class="st">'MCI'</span>, <span class="st">'Dementia'</span>])]</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>control <span class="op">=</span> df_filtered[df_filtered[<span class="st">'APOE_status'</span>] <span class="op">==</span> <span class="st">'non-carrier'</span>][<span class="st">'cognitive_score'</span>]</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>case <span class="op">=</span> df_filtered[df_filtered[<span class="st">'APOE_status'</span>] <span class="op">==</span> <span class="st">'carrier'</span>][<span class="st">'cognitive_score'</span>]</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>t_stat, p_value <span class="op">=</span> ttest_ind(control, case)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"p-value: </span><span class="sc">{</span>p_value<span class="sc">:.4f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="critic-agent" class="level3">
+<h3 class="anchored" data-anchor-id="critic-agent">Critic Agent</h3>
+<p><strong>Role</strong>: Validate the analysis before accepting results.</p>
+<p><strong>Input</strong>: Test plan, analysis code, results, raw data sample</p>
+<p><strong>Process</strong>: - Reads the code for logic errors - Checks assumptions (for t-test: normality; for regression: linearity, homoscedasticity) - Verifies sample sizes are adequate for power - Reviews effect sizes for meaningfulness - Flags p-hacking red flags (e.g., multiple comparisons without correction)</p>
+<p><strong>Output</strong>: Approval or rejection with rationale.</p>
+<p><strong>Example Critique</strong>: - “Approved: n=200 per group, p=0.032, effect size d=0.35 (small but reasonable), assumptions met via Shapiro-Wilk test.” - “Rejected: n=15, test underpowered; recommend p &lt; 0.01 as threshold; effect size d=1.8 (suspiciously large—check for outliers).”</p>
+<p>If rejected, the Scientist agent revises (e.g., removes outliers, adjusts the test) and resubmits. The loop iterates until Critic approval.</p>
+</section>
+</section>
+<section id="scaling-and-negative-controls" class="level2">
+<h2 class="anchored" data-anchor-id="scaling-and-negative-controls">Scaling and Negative Controls</h2>
+<section id="why-scaling-matters" class="level3">
+<h3 class="anchored" data-anchor-id="why-scaling-matters">Why Scaling Matters</h3>
+<p>The dramatic increase from 10.4 verified hypotheses at n=100 to 42.0 at n=48,876 illustrates a fundamental principle: <strong>statistical power grows with sample size</strong>. Hypotheses about small effects require large samples; larger cohorts unlock detection of previously undetectable associations. This motivates continued investment in data sharing and large biobanks.</p>
+</section>
+<section id="the-negative-control-result" class="level3">
+<h3 class="anchored" data-anchor-id="the-negative-control-result">The Negative Control Result</h3>
+<p>The system correctly identified <strong>85.2% of non-ADRD hypotheses as not testable</strong>. This is crucial for trust. A naive system might force-fit every hypothesis to data, reporting spurious associations. Instead, this system has the discipline to say “not testable” when the data don’t support a meaningful test.</p>
+<p>Examples of negative control hypotheses: - “Favorite color is associated with MMSE score” - “Birth month predicts Alzheimer’s onset” - “Handedness affects amyloid accumulation”</p>
+<p>The high negative control accuracy demonstrates the system is not simply pattern-matching; it has genuine statistical reasoning.</p>
+</section>
+</section>
+<section id="the-lineage-what-this-connects-to" class="level2">
+<h2 class="anchored" data-anchor-id="the-lineage-what-this-connects-to">The Lineage: What This Connects To</h2>
+<p>This work sits at the intersection of several communities:</p>
+<ul>
+<li><strong>Automated Scientific Discovery</strong>: Following earlier work on hypothesis generation and testing in biomedicine (e.g., machine learning surrogates for hypothesis prioritization)</li>
+<li><strong>Multi-Agent Systems in Healthcare</strong>: Builds on recent advances in multi-turn LLM reasoning for clinical decision support</li>
+<li><strong>LLM-as-Research-Assistant</strong>: Extends tools like retrieval-augmented generation (RAG) and code generation (e.g., GitHub Copilot for science)</li>
+<li><strong>NACC as a Public Resource</strong>: Leverages one of the largest open Alzheimer’s disease cohorts, enabling reproducible discovery</li>
+<li><strong>Small-Model Efficiency</strong>: Demonstrates that large models are not necessary for complex reasoning—a win for reproducibility and accessibility</li>
+</ul>
+</section>
+<section id="rubber-ducking-the-jargon" class="level2">
+<h2 class="anchored" data-anchor-id="rubber-ducking-the-jargon">Rubber-Ducking the Jargon</h2>
+<ul>
+<li><strong>NACC</strong>: National Alzheimer’s Coordinating Center, a longitudinal cohort of ~50k participants with cognitive testing, biomarkers, and neuropathology</li>
+<li><strong>ADRD</strong>: Alzheimer’s Disease and Related Dementias (includes AD, FTD, Lewy body dementia, vascular dementia, etc.)</li>
+<li><strong>Null Hypothesis</strong>: The assumption that no effect exists; “verified” means we reject this assumption (p &lt; 0.05)</li>
+<li><strong>Negative Control</strong>: A hypothesis designed to be false; if your method correctly rejects it, that’s evidence your method works</li>
+<li><strong>Qwen3-4B-Instruct</strong>: A 4 billion parameter open-source language model from Alibaba; instruction-tuned for following directions</li>
+<li><strong>Dual-Loop Architecture</strong>: Two nested workflows—outer loop handles setup (data prep + planning), inner loop handles iteration (scientist + critic refining)</li>
+<li><strong>Statistical Power</strong>: The probability of detecting a true effect. Larger sample sizes = higher power</li>
+<li><strong>Effect Size</strong>: A standardized measure of the magnitude of an effect (e.g., Cohen’s d for t-tests), independent of sample size</li>
+</ul>
+</section>
+<section id="what-to-watch-out-for" class="level2">
+<h2 class="anchored" data-anchor-id="what-to-watch-out-for">What to Watch Out For</h2>
+<ol type="1">
+<li><p><strong>Preprint Status</strong>: This is a medRxiv preprint (December 2025), not yet peer-reviewed. The results are promising but await community scrutiny.</p></li>
+<li><p><strong>Model Scale</strong>: Qwen3-4B is tiny by modern standards. It may struggle with nuanced statistical reasoning in edge cases. Performance on more complex designs (mixed models, survival analysis) is unclear.</p></li>
+<li><p><strong>“Not Testable” Rate</strong>: 41.4% of hypotheses were classified as not testable. Is this conservatism a feature (avoiding false positives) or a limitation (missing real effects)? The paper does not deeply analyze failure modes.</p></li>
+<li><p><strong>No Human Comparison</strong>: The paper does not compare the system’s results against human statisticians on the same hypotheses. How often do they agree? Disagree?</p></li>
+<li><p><strong>NACC Generalization</strong>: Results are NACC-specific. The features, populations, and measurement tools may not transfer to other cohorts. The system may need retraining or refinement for new datasets.</p></li>
+<li><p><strong>Ethical Considerations</strong>: Automated hypothesis testing in healthcare is powerful but risky. Who validates the system’s hypotheses before they influence clinical research? What guardrails prevent misuse?</p></li>
+<li><p><strong>Multiple Comparisons</strong>: Testing 100 hypotheses at α=0.05 inflates false discovery risk. The paper applies some corrections but does not deeply address family-wise error control.</p></li>
+</ol>
+</section>
+<section id="so-what" class="level2">
+<h2 class="anchored" data-anchor-id="so-what">So What?</h2>
+<section id="for-healthcare-researchers" class="level3">
+<h3 class="anchored" data-anchor-id="for-healthcare-researchers">For Healthcare Researchers</h3>
+<p>This is a <strong>screening and prioritization tool</strong>, not a replacement for human reasoning.</p>
+<p><strong>Use case</strong>: You have a cohort and 50 candidate hypotheses. Instead of testing all 50 manually (weeks of work), submit them to the agent system (hours). Get a prioritized list of the 10 most likely to replicate, then invest human effort in validation, mechanistic studies, and follow-up cohorts.</p>
+<p><strong>Outcome</strong>: Faster hypothesis prioritization, fewer false leads, more efficient use of researcher time.</p>
+</section>
+<section id="for-ai-practitioners" class="level3">
+<h3 class="anchored" data-anchor-id="for-ai-practitioners">For AI Practitioners</h3>
+<p>This work demonstrates:</p>
+<ol type="1">
+<li><p><strong>Multi-agent systems can execute structured workflows</strong>: The four-agent design is not just for show; the dual-loop architecture solves a real problem (iterative refinement).</p></li>
+<li><p><strong>Small models are sufficient for specialized tasks</strong>: 4B parameters is tiny, yet it outperforms naive baselines. This suggests that model scale is less important than architecture and domain expertise (encoded in prompts and validators).</p></li>
+<li><p><strong>Verification loops are critical</strong>: The Critic agent is not decorative—it catches errors and ensures results are sound. Future systems should invest in adversarial or validating agents.</p></li>
+</ol>
+</section>
+</section>
+<section id="reproduction-implementation" class="level2">
+<h2 class="anchored" data-anchor-id="reproduction-implementation">Reproduction &amp; Implementation</h2>
+<section id="accessing-the-data" class="level3">
+<h3 class="anchored" data-anchor-id="accessing-the-data">Accessing the Data</h3>
+<p>The NACC dataset is publicly available through the National Alzheimer’s Coordinating Center (nacc.naccdata.org). Registration and data use agreement required.</p>
+</section>
+<section id="system-setup" class="level3">
+<h3 class="anchored" data-anchor-id="system-setup">System Setup</h3>
+<p><strong>Requirements</strong>: - Python 3.10+ - pandas, numpy, scipy, statsmodels - A quantized or small version of Qwen3-4B-Instruct (e.g., via Ollama, vLLM, or Hugging Face Transformers) - NACC data (local copy recommended for repeated queries)</p>
+<p><strong>Inference Setup</strong>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Example: Run Qwen3-4B locally via Ollama</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> pull qwen3:4b-instruct</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> serve  <span class="co"># Exposes API on localhost:11434</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Then call the model via the Ollama API or Hugging Face transformers.</p>
+</section>
+<section id="agent-architecture-pseudocode" class="level3">
+<h3 class="anchored" data-anchor-id="agent-architecture-pseudocode">Agent Architecture (Pseudocode)</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> DataPrepAgent:</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> prepare(<span class="va">self</span>, data, hypothesis_domain):</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Load and explore data</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> data_profile</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> PlanningAgent:</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> plan(<span class="va">self</span>, hypothesis, data_profile):</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Parse hypothesis, select test, define criteria</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> test_plan</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ScientistAgent:</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> analyze(<span class="va">self</span>, test_plan, data):</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Execute code, compute statistics</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> results</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CriticAgent:</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> validate(<span class="va">self</span>, test_plan, code, results):</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Check assumptions, flag issues</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> approval_or_revision</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Main loop</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>data_profile <span class="op">=</span> data_prep_agent.prepare(data, domain)</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>test_plan <span class="op">=</span> planning_agent.plan(hypothesis, data_profile)</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>approved <span class="op">=</span> <span class="va">False</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> <span class="kw">not</span> approved:</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    results <span class="op">=</span> scientist_agent.analyze(test_plan, data)</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    approved <span class="op">=</span> critic_agent.validate(test_plan, results)</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> approved:</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Scientist revises approach</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a><span class="cf">return</span> results</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="resource-links" class="level3">
+<h3 class="anchored" data-anchor-id="resource-links">Resource Links</h3>
+<ul>
+<li><strong>Preprint</strong>: <a href="https://www.medrxiv.org">Saichandran et al.&nbsp;on medRxiv (December 2025)</a> (search for the title)</li>
+<li><strong>NACC Data</strong>: <a href="https://nacc.naccdata.org">National Alzheimer’s Coordinating Center</a></li>
+<li><strong>Qwen3 Model</strong>: <a href="https://huggingface.co/Qwen">Alibaba Qwen Models on Hugging Face</a></li>
+<li><strong>Ollama (local inference)</strong>: <a href="https://ollama.ai">ollama.ai</a></li>
+</ul>
+<hr>
+<p><strong>Cite this post</strong>: Saichandran, S., et al.&nbsp;(2025). Agentic AI for Automated Hypothesis Testing in Alzheimer’s Disease Research. <em>medRxiv preprint</em>. Retrieved from your reference.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<script src="https://utteranc.es/client.js" repo="seanlewis08/blogComments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+<script src="animations.js"></script>
+
+
+
+
+</body></html>

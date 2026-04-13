@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Sean Lewis">
+<meta name="dcterms.date" content="2026-02-24">
+<meta name="description" content="Huang et al.’s ICLR 2024 benchmark puts LLM agents to the test on real ML research tasks — from CIFAR-10 to Kaggle competitions. GPT-4 handles canonical tasks (~90%) but struggles badly with open-ended research (0-30% on Kaggle).">
+
+<title>MLAgentBench: Can AI Agents Actually Do Machine Learning Research? – Sean Lewis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Sean Lewis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../projects.html"> 
+<span class="menu-text">Projects</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/seanlewis08"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/selew/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-gist" id="toc-the-gist" class="nav-link active" data-scroll-target="#the-gist">The Gist</a></li>
+  <li><a href="#why-it-matters-now" id="toc-why-it-matters-now" class="nav-link" data-scroll-target="#why-it-matters-now">Why It Matters Now</a></li>
+  <li><a href="#key-results" id="toc-key-results" class="nav-link" data-scroll-target="#key-results">Key Results</a></li>
+  <li><a href="#the-agent-loop" id="toc-the-agent-loop" class="nav-link" data-scroll-target="#the-agent-loop">The Agent Loop</a></li>
+  <li><a href="#the-gap-following-instructions-vs.-doing-research" id="toc-the-gap-following-instructions-vs.-doing-research" class="nav-link" data-scroll-target="#the-gap-following-instructions-vs.-doing-research">The Gap: Following Instructions vs.&nbsp;Doing Research</a>
+  <ul class="collapse">
+  <li><a href="#canonical-tasks-clear-signal-clear-path" id="toc-canonical-tasks-clear-signal-clear-path" class="nav-link" data-scroll-target="#canonical-tasks-clear-signal-clear-path">Canonical Tasks: Clear Signal, Clear Path</a></li>
+  <li><a href="#research-tasks-ambiguous-goal-unknown-path" id="toc-research-tasks-ambiguous-goal-unknown-path" class="nav-link" data-scroll-target="#research-tasks-ambiguous-goal-unknown-path">Research Tasks: Ambiguous Goal, Unknown Path</a></li>
+  </ul></li>
+  <li><a href="#the-lineage-from-code-to-research" id="toc-the-lineage-from-code-to-research" class="nav-link" data-scroll-target="#the-lineage-from-code-to-research">The Lineage: From Code to Research</a></li>
+  <li><a href="#rubber-ducking-the-jargon" id="toc-rubber-ducking-the-jargon" class="nav-link" data-scroll-target="#rubber-ducking-the-jargon">Rubber-Ducking the Jargon</a></li>
+  <li><a href="#what-to-watch-out-for" id="toc-what-to-watch-out-for" class="nav-link" data-scroll-target="#what-to-watch-out-for">What to Watch Out For</a></li>
+  <li><a href="#so-what" id="toc-so-what" class="nav-link" data-scroll-target="#so-what">So What?</a></li>
+  <li><a href="#reproduction-implementation" id="toc-reproduction-implementation" class="nav-link" data-scroll-target="#reproduction-implementation">Reproduction &amp; Implementation</a>
+  <ul class="collapse">
+  <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup">Setup</a></li>
+  <li><a href="#agent-architecture-pseudocode" id="toc-agent-architecture-pseudocode" class="nav-link" data-scroll-target="#agent-architecture-pseudocode">Agent Architecture (Pseudocode)</a></li>
+  <li><a href="#key-resources" id="toc-key-resources" class="nav-link" data-scroll-target="#key-resources">Key Resources</a></li>
+  <li><a href="#running-your-own-evaluation" id="toc-running-your-own-evaluation" class="nav-link" data-scroll-target="#running-your-own-evaluation">Running Your Own Evaluation</a></li>
+  </ul></li>
+  <li><a href="#whats-next" id="toc-whats-next" class="nav-link" data-scroll-target="#whats-next">What’s Next?</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">MLAgentBench: Can AI Agents Actually Do Machine Learning Research?</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">AI Agents</div>
+    <div class="quarto-category">Benchmarking</div>
+    <div class="quarto-category">Machine Learning</div>
+    <div class="quarto-category">ICLR</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Huang et al.’s ICLR 2024 benchmark puts LLM agents to the test on real ML research tasks — from CIFAR-10 to Kaggle competitions. GPT-4 handles canonical tasks (~90%) but struggles badly with open-ended research (0-30% on Kaggle).
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Sean Lewis </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">February 24, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="the-gist" class="level2">
+<h2 class="anchored" data-anchor-id="the-gist">The Gist</h2>
+<p>MLAgentBench (Huang et al., ICLR 2024) is the first comprehensive benchmark for evaluating AI agents on machine learning research tasks. The benchmark consists of 15 real ML problems spanning two categories:</p>
+<p><strong>Canonical tasks</strong> (well-defined, clear baselines): - CIFAR-10 image classification - Ogbg-molhiv molecular property prediction - IMDb sentiment analysis</p>
+<p><strong>Open-ended research tasks</strong> (ambiguous, iterative): - BabyLM language model pretraining challenge - Kaggle competitions: House Prices prediction, Spaceship Titanic classification, Feedback Prize competition</p>
+<p>The experimental setup is straightforward: agents receive a task description, starter code, and a dataset, then must autonomously write and edit code, run experiments, observe results, iterate, and submit final results.</p>
+<p>The headline finding is stark: <strong>GPT-4 achieves ~90% success on canonical tasks but only 0-30% on Kaggle/research tasks.</strong> This gap reveals a crucial distinction—writing ML code is not the same as doing ML research. Agents excel at following instructions but struggle with ambiguity, experimental design, and hypothesis generation.</p>
+</section>
+<section id="why-it-matters-now" class="level2">
+<h2 class="anchored" data-anchor-id="why-it-matters-now">Why It Matters Now</h2>
+<p>We live in an era where “can the model write code?” is table stakes. HumanEval, MBPP, and SWE-bench have already established that large language models are competent programmers. But can they be <em>researchers</em>?</p>
+<p>MLAgentBench is the first benchmark to ask this question directly. It’s timely because:</p>
+<ol type="1">
+<li><p><strong>The bottleneck has shifted.</strong> Code generation is largely solved. The bottleneck is now experimental design, hypothesis generation, and navigating uncertainty.</p></li>
+<li><p><strong>It distinguishes capability levels.</strong> Not all tasks are created equal. Success on CIFAR-10 means something different than success on BabyLM.</p></li>
+<li><p><strong>It’s grounded in reality.</strong> These aren’t synthetic tasks; they’re real ML competitions and well-known benchmarks. The skills agents need are the skills human researchers need.</p></li>
+<li><p><strong>It scales with agent sophistication.</strong> As agents get better scaffolding, memory, and tools, this benchmark will show whether that improvement translates to actual research capability.</p></li>
+</ol>
+</section>
+<section id="key-results" class="level2">
+<h2 class="anchored" data-anchor-id="key-results">Key Results</h2>
+<p>Here’s the performance breakdown across agent types and task categories:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Task Category</th>
+<th>Task</th>
+<th>GPT-4</th>
+<th>Claude</th>
+<th>Other LLMs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Canonical</strong></td>
+<td>CIFAR-10</td>
+<td>✅ 90%</td>
+<td>75%</td>
+<td>60-70%</td>
+</tr>
+<tr class="even">
+<td><strong>Canonical</strong></td>
+<td>Ogbg-molhiv</td>
+<td>✅ 85%</td>
+<td>70%</td>
+<td>50-65%</td>
+</tr>
+<tr class="odd">
+<td><strong>Canonical</strong></td>
+<td>IMDb</td>
+<td>✅ 95%</td>
+<td>80%</td>
+<td>65-75%</td>
+</tr>
+<tr class="even">
+<td><strong>Open-ended</strong></td>
+<td>BabyLM</td>
+<td>20-30%</td>
+<td>15-20%</td>
+<td>5-15%</td>
+</tr>
+<tr class="odd">
+<td><strong>Open-ended</strong></td>
+<td>House Prices (Kaggle)</td>
+<td>15%</td>
+<td>10%</td>
+<td>5-10%</td>
+</tr>
+<tr class="even">
+<td><strong>Open-ended</strong></td>
+<td>Spaceship Titanic</td>
+<td>25%</td>
+<td>18%</td>
+<td>8-12%</td>
+</tr>
+<tr class="odd">
+<td><strong>Open-ended</strong></td>
+<td>Feedback Prize</td>
+<td>5-10%</td>
+<td>3-5%</td>
+<td>0-3%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key findings:</strong> - Performance cliff between canonical and open-ended tasks - GPT-4’s advantage shrinks dramatically on research tasks - Success on canonical tasks does NOT predict success on research tasks - Agents succeed when there’s a clear metric and well-trodden path; fail when they must explore</p>
+</section>
+<section id="the-agent-loop" class="level2">
+<h2 class="anchored" data-anchor-id="the-agent-loop">The Agent Loop</h2>
+<p>Here’s how MLAgentBench agents work:</p>
+<pre class="mermaid"><code>flowchart LR
+    A["📋 Read Task Description"] --&gt; B["🔧 Write/Edit Code"]
+    B --&gt; C["▶️ Run Experiment"]
+    C --&gt; D["👀 Observe Results"]
+    D --&gt; E{Meets Goal?}
+    E --&gt;|No| F["💭 Analyze Results"]
+    F --&gt; B
+    E --&gt;|Yes| G["✅ Submit Solution"]</code></pre>
+<p>Agents have access to: - A task description and starter code - A code editor with syntax checking - A Python REPL to run experiments - An observation buffer to track progress - A submission endpoint</p>
+<p>The agent’s job is to manage this loop: write code → run it → check results → update hypothesis → repeat. Simple in principle, hard in practice for open-ended tasks.</p>
+</section>
+<section id="the-gap-following-instructions-vs.-doing-research" class="level2">
+<h2 class="anchored" data-anchor-id="the-gap-following-instructions-vs.-doing-research">The Gap: Following Instructions vs.&nbsp;Doing Research</h2>
+<p>This is the heart of MLAgentBench’s insight. Let me break down why canonical tasks are easy and research tasks are hard.</p>
+<section id="canonical-tasks-clear-signal-clear-path" class="level3">
+<h3 class="anchored" data-anchor-id="canonical-tasks-clear-signal-clear-path">Canonical Tasks: Clear Signal, Clear Path</h3>
+<p><strong>CIFAR-10 example:</strong> - Goal: “Achieve &gt;90% accuracy on CIFAR-10” - What agents do well: Find standard architectures (ResNet, ViT), apply known optimizations, tune hyperparameters - Why it works: The path is well-trodden. Thousands of papers have solved this. Agents can pattern-match on starter code and documentation. - Success rate: 90%+</p>
+</section>
+<section id="research-tasks-ambiguous-goal-unknown-path" class="level3">
+<h3 class="anchored" data-anchor-id="research-tasks-ambiguous-goal-unknown-path">Research Tasks: Ambiguous Goal, Unknown Path</h3>
+<p><strong>Kaggle competition example (House Prices):</strong> - Goal: “Predict house prices. Submit predictions to Kaggle.” - What agents struggle with: Feature engineering creativity, ensemble methods, handling missing data creatively, iterating after each Kaggle submission - Why it fails: No single right answer. Winning solutions involve combinations of techniques that aren’t documented in one place. Agents must <em>experiment</em>, not just <em>follow</em>. - Success rate: 5-25%</p>
+<p>The difference is hypothesis generation. On CIFAR-10, agents inherit good hypotheses from the research literature (“use batch norm,” “use ResNets,” “augment images”). On House Prices, agents must <em>invent</em> new hypotheses (“maybe the price depends on neighborhood interactions,” “maybe I need a stacking ensemble”).</p>
+<p>This is where agents hit a wall. They’re pattern matchers, not hypothesis generators.</p>
+</section>
+</section>
+<section id="the-lineage-from-code-to-research" class="level2">
+<h2 class="anchored" data-anchor-id="the-lineage-from-code-to-research">The Lineage: From Code to Research</h2>
+<p>MLAgentBench sits at the intersection of three research directions:</p>
+<ol type="1">
+<li><strong>Code generation benchmarks</strong> (HumanEval, MBPP): Can models write code that passes tests?
+<ul>
+<li>Answer: Yes, for well-defined problems.</li>
+</ul></li>
+<li><strong>Software engineering benchmarks</strong> (SWE-bench): Can models fix real bugs and implement features?
+<ul>
+<li>Answer: Partially—GPT-4 ~13% pass rate on realistic repos.</li>
+</ul></li>
+<li><strong>Research capability</strong> (MLAgentBench): Can models do ML research?
+<ul>
+<li>Answer: No, not yet—0-30% on open-ended tasks.</li>
+</ul></li>
+</ol>
+<p>Each benchmark pushes the frontier further. MLAgentBench asks not “can you write code?” but “can you do what researchers do?”—which includes reading papers, forming hypotheses, running experiments, and iterating.</p>
+</section>
+<section id="rubber-ducking-the-jargon" class="level2">
+<h2 class="anchored" data-anchor-id="rubber-ducking-the-jargon">Rubber-Ducking the Jargon</h2>
+<p><strong>MLAgentBench</strong>: A benchmark of 15 ML tasks for evaluating agent research capability.</p>
+<p><strong>Canonical vs.&nbsp;open-ended tasks</strong>: Canonical tasks have clear metrics and well-known solutions (CIFAR-10). Open-ended tasks are realistic research challenges where the path to success is ambiguous (Kaggle).</p>
+<p><strong>Success rate</strong>: Percentage of attempts where the agent achieved the stated goal (e.g., &gt;90% accuracy on CIFAR-10, or top X percentile on Kaggle leaderboard).</p>
+<p><strong>Agent scaffolding</strong>: The tools and structure provided to agents. MLAgentBench gives agents code editors, REPLs, and observation buffers. Better scaffolding = better performance.</p>
+<p><strong>Kaggle-style evaluation</strong>: Submit predictions to a leaderboard and get ranked. Unlike train/test splits, Kaggle tasks require public leaderboard optimization and exploration.</p>
+<p><strong>Hypothesis space explosion</strong>: On open-ended tasks, the number of possible experiments grows exponentially. Agents can’t explore them all, so they need good <em>priors</em> about which hypotheses to try first.</p>
+</section>
+<section id="what-to-watch-out-for" class="level2">
+<h2 class="anchored" data-anchor-id="what-to-watch-out-for">What to Watch Out For</h2>
+<ol type="1">
+<li><p><strong>Task selection bias</strong>: The 15 tasks in MLAgentBench are curated. Different tasks might show different capability profiles.</p></li>
+<li><p><strong>GPT-4 primacy</strong>: Results are dominated by GPT-4 performance. Other models (Claude, open-source LLMs) may scale differently.</p></li>
+<li><p><strong>Limited agent architectures</strong>: Only a few agent designs were tested. Better agents (with planning, memory, retrieval) might improve performance significantly.</p></li>
+<li><p><strong>Success metrics may hide partial progress</strong>: An agent that achieves 85% on a task requiring 90% “fails” but has learned a lot. The metric is binary but the capability is continuous.</p></li>
+<li><p><strong>Scalability questions</strong>: Can agents do this at scale? The benchmark is 15 tasks. What happens with 100? 1000?</p></li>
+</ol>
+</section>
+<section id="so-what" class="level2">
+<h2 class="anchored" data-anchor-id="so-what">So What?</h2>
+<p>MLAgentBench reveals a hard truth: <strong>current agents are good coding assistants but poor researchers.</strong> They can write correct code given clear specifications, but they can’t generate novel hypotheses or navigate ambiguity.</p>
+<p>The bottleneck is not code generation. It’s: - <strong>Hypothesis generation</strong>: Agents need better ways to explore the space of possible experiments. - <strong>Experiment design</strong>: Agents need to understand what experiments would be most informative. - <strong>Failure interpretation</strong>: Agents need to learn <em>why</em> experiments fail, not just observe that they do. - <strong>Creative problem-solving</strong>: Agents need to combine techniques in novel ways.</p>
+<p>This suggests a path forward: - Better in-context examples of research reasoning (not just code) - Agents with access to paper search and literature review - Improved memory for tracking long-term hypothesis evolution - Explicit hypothesis-testing frameworks (Bayesian updating, active learning)</p>
+</section>
+<section id="reproduction-implementation" class="level2">
+<h2 class="anchored" data-anchor-id="reproduction-implementation">Reproduction &amp; Implementation</h2>
+<section id="setup" class="level3">
+<h3 class="anchored" data-anchor-id="setup">Setup</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Clone the repo</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/geekan/MLAgentBench.git</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> MLAgentBench</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Install dependencies</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Run a simple example</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> run.py <span class="at">--agent</span> gpt-4 <span class="at">--task</span> cifar10 <span class="at">--backend</span> openai</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="agent-architecture-pseudocode" class="level3">
+<h3 class="anchored" data-anchor-id="agent-architecture-pseudocode">Agent Architecture (Pseudocode)</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> MLResearchAgent:</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, task_description, code_dir):</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.task <span class="op">=</span> task_description</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.code_dir <span class="op">=</span> code_dir</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.history <span class="op">=</span> []</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> run(<span class="va">self</span>):</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">while</span> <span class="kw">not</span> <span class="va">self</span>.task_complete():</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Read current code state</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>            code <span class="op">=</span> <span class="va">self</span>.read_code()</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Get model's next action</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>            action <span class="op">=</span> <span class="va">self</span>.llm.predict(</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>                task<span class="op">=</span><span class="va">self</span>.task,</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>                code<span class="op">=</span>code,</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>                history<span class="op">=</span><span class="va">self</span>.history</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Execute action (write code, run experiment, etc.)</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>            result <span class="op">=</span> <span class="va">self</span>.execute(action)</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.history.append((action, result))</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.submit_results()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="key-resources" class="level3">
+<h3 class="anchored" data-anchor-id="key-resources">Key Resources</h3>
+<ul>
+<li><strong>Paper</strong>: <a href="https://openreview.net/forum?id=...">MLAgentBench on ICLR 2024</a></li>
+<li><strong>GitHub</strong>: <a href="https://github.com/geekan/MLAgentBench">geekan/MLAgentBench</a></li>
+<li><strong>Blog post</strong>: Original announcement and analysis</li>
+<li><strong>Tasks</strong>: 15 full task definitions with starter code and datasets</li>
+</ul>
+</section>
+<section id="running-your-own-evaluation" class="level3">
+<h3 class="anchored" data-anchor-id="running-your-own-evaluation">Running Your Own Evaluation</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Evaluate GPT-4 on all tasks</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> evaluate.py <span class="at">--agent</span> gpt-4 <span class="at">--tasks</span> all <span class="at">--output</span> results.json</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Evaluate specific models</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> evaluate.py <span class="at">--agent</span> claude <span class="at">--tasks</span> cifar10,kaggle_house</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Analyze results</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> analyze.py <span class="at">--results</span> results.json <span class="at">--plot</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</section>
+<section id="whats-next" class="level2">
+<h2 class="anchored" data-anchor-id="whats-next">What’s Next?</h2>
+<p>MLAgentBench opens up interesting research directions:</p>
+<ol type="1">
+<li><p><strong>Better agent designs</strong>: What architectures beat the benchmarks? Is it better memory? Better scaffolding?</p></li>
+<li><p><strong>Task difficulty analysis</strong>: Which task properties make them hard? Can we predict agent performance from task features?</p></li>
+<li><p><strong>Human-agent collaboration</strong>: Can agents + humans beat full autonomy? Where’s the collaboration point?</p></li>
+<li><p><strong>Generalization</strong>: Do agents that succeed on some tasks generalize to others? Or is each task a separate skill?</p></li>
+</ol>
+<p>The field is moving toward more ambitious benchmarks. MLAgentBench is an important milestone—it’s the first to directly ask “can AI do research?” The answer today is “not really,” but the benchmark exists to measure progress as agents improve.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<script src="https://utteranc.es/client.js" repo="seanlewis08/blogComments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+<script src="animations.js"></script>
+
+
+
+
+</body></html>

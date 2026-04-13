@@ -1,0 +1,87 @@
+<svg viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="450" fill="#FA8072"/>
+
+  <!-- Title -->
+  <text x="400" y="40" font-family="system-ui, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#1a1a1a">
+    Chain-of-Thought Prompting
+  </text>
+
+  <!-- Subtitle -->
+  <text x="400" y="70" font-family="system-ui, sans-serif" font-size="12" text-anchor="middle" fill="#0d7c5f">
+    Emergent reasoning through step-by-step examples
+  </text>
+
+  <!-- LEFT: Standard Path -->
+  <g>
+    <!-- Q Box -->
+    <rect x="80" y="110" width="50" height="40" fill="none" stroke="#4a4a4a" stroke-width="2" rx="4"/>
+    <text x="105" y="135" font-family="system-ui, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#4a4a4a">Q</text>
+
+    <!-- Arrow -->
+    <line x1="135" y1="130" x2="190" y2="130" stroke="#4a4a4a" stroke-width="2"/>
+    <polygon points="190,130 183,126 183,134" fill="#4a4a4a"/>
+
+    <!-- A Box -->
+    <rect x="195" y="110" width="50" height="40" fill="none" stroke="#4a4a4a" stroke-width="2" rx="4"/>
+    <text x="220" y="135" font-family="system-ui, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#4a4a4a">A</text>
+
+    <!-- Label -->
+    <text x="165" y="175" font-family="system-ui, sans-serif" font-size="11" text-anchor="middle" fill="#4a4a4a">Standard</text>
+  </g>
+
+  <!-- RIGHT: Chain-of-Thought Path -->
+  <g>
+    <!-- Q Box -->
+    <rect x="450" y="110" width="50" height="40" fill="none" stroke="#0d7c5f" stroke-width="2" rx="4"/>
+    <text x="475" y="135" font-family="system-ui, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#0d7c5f">Q</text>
+
+    <!-- Arrow to Step 1 -->
+    <line x1="505" y1="130" x2="545" y2="130" stroke="#0d7c5f" stroke-width="2.5"/>
+    <polygon points="545,130 538,126 538,134" fill="#0d7c5f"/>
+
+    <!-- Step 1 Box -->
+    <rect x="545" y="110" width="50" height="40" fill="none" stroke="#0d7c5f" stroke-width="2.5" rx="4"/>
+    <text x="570" y="135" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#0d7c5f">S1</text>
+
+    <!-- Arrow to Step 2 -->
+    <line x1="600" y1="130" x2="640" y2="130" stroke="#0d7c5f" stroke-width="2.5"/>
+    <polygon points="640,130 633,126 633,134" fill="#0d7c5f"/>
+
+    <!-- Step 2 Box -->
+    <rect x="640" y="110" width="50" height="40" fill="none" stroke="#0d7c5f" stroke-width="2.5" rx="4"/>
+    <text x="665" y="135" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#0d7c5f">S2</text>
+
+    <!-- Arrow to Step 3 -->
+    <line x1="695" y1="130" x2="735" y2="130" stroke="#0d7c5f" stroke-width="2.5"/>
+    <polygon points="735,130 728,126 728,134" fill="#0d7c5f"/>
+
+    <!-- Step 3 Box -->
+    <rect x="735" y="110" width="45" height="40" fill="none" stroke="#0d7c5f" stroke-width="2.5" rx="4"/>
+    <text x="757" y="135" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#0d7c5f">S3</text>
+
+    <!-- Arrow to A -->
+    <line x1="760" y1="155" x2="760" y2="195" stroke="#0d7c5f" stroke-width="2.5"/>
+    <polygon points="760,195 756,188 764,188" fill="#0d7c5f"/>
+
+    <!-- A Box -->
+    <rect x="735" y="195" width="50" height="40" fill="none" stroke="#0d7c5f" stroke-width="2.5" rx="4"/>
+    <text x="760" y="220" font-family="system-ui, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#0d7c5f">A</text>
+
+    <!-- Label -->
+    <text x="650" y="175" font-family="system-ui, sans-serif" font-size="11" text-anchor="middle" fill="#0d7c5f">Chain-of-Thought</text>
+  </g>
+
+  <!-- Callout Box -->
+  <g>
+    <rect x="300" y="220" width="150" height="50" fill="#0d7c5f" rx="6" opacity="0.15"/>
+    <text x="375" y="255" font-family="system-ui, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#0d7c5f">
+      57.1% on GSM8K
+    </text>
+  </g>
+
+  <!-- Footer -->
+  <text x="400" y="420" font-family="system-ui, sans-serif" font-size="11" text-anchor="middle" fill="#8a8a8a">
+    Wei et al. (2022) · NeurIPS · arXiv:2201.11903
+  </text>
+</svg>

@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Sean Lewis">
+<meta name="dcterms.date" content="2026-03-02">
+<meta name="description" content="Zhou et al.’s Star-Agents system uses multiple LLM agent pairs, dual-model evaluation, and evolutionary sampling to automatically generate and curate high-quality instruction-tuning data — achieving 12% average improvement and up to 40% on Fermi tasks.">
+
+<title>Star-Agents: Using LLM Agents to Optimize Training Data – Sean Lewis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="../../site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="../../site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="../../site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Sean Lewis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../projects.html"> 
+<span class="menu-text">Projects</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/seanlewis08"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/selew/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-gist" id="toc-the-gist" class="nav-link active" data-scroll-target="#the-gist">The Gist</a></li>
+  <li><a href="#why-it-matters-now" id="toc-why-it-matters-now" class="nav-link" data-scroll-target="#why-it-matters-now">Why It Matters Now</a></li>
+  <li><a href="#key-results" id="toc-key-results" class="nav-link" data-scroll-target="#key-results">Key Results</a></li>
+  <li><a href="#the-system-pipeline" id="toc-the-system-pipeline" class="nav-link" data-scroll-target="#the-system-pipeline">The System Pipeline</a></li>
+  <li><a href="#the-three-components" id="toc-the-three-components" class="nav-link" data-scroll-target="#the-three-components">The Three Components</a>
+  <ul class="collapse">
+  <li><a href="#diverse-data-generation" id="toc-diverse-data-generation" class="nav-link" data-scroll-target="#diverse-data-generation">1. Diverse Data Generation</a></li>
+  <li><a href="#dual-model-evaluation-ifd" id="toc-dual-model-evaluation-ifd" class="nav-link" data-scroll-target="#dual-model-evaluation-ifd">2. Dual-Model Evaluation (IFD)</a></li>
+  <li><a href="#evolutionary-sampling" id="toc-evolutionary-sampling" class="nav-link" data-scroll-target="#evolutionary-sampling">3. Evolutionary Sampling</a></li>
+  </ul></li>
+  <li><a href="#the-lineage" id="toc-the-lineage" class="nav-link" data-scroll-target="#the-lineage">The Lineage</a></li>
+  <li><a href="#rubber-ducking-the-jargon" id="toc-rubber-ducking-the-jargon" class="nav-link" data-scroll-target="#rubber-ducking-the-jargon">Rubber-Ducking the Jargon</a></li>
+  <li><a href="#what-to-watch-out-for" id="toc-what-to-watch-out-for" class="nav-link" data-scroll-target="#what-to-watch-out-for">What to Watch Out For</a></li>
+  <li><a href="#so-what" id="toc-so-what" class="nav-link" data-scroll-target="#so-what">So What?</a></li>
+  <li><a href="#reproduction-implementation" id="toc-reproduction-implementation" class="nav-link" data-scroll-target="#reproduction-implementation">Reproduction &amp; Implementation</a>
+  <ul class="collapse">
+  <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup">Setup</a></li>
+  <li><a href="#pseudocode-the-main-loop" id="toc-pseudocode-the-main-loop" class="nav-link" data-scroll-target="#pseudocode-the-main-loop">Pseudocode: The Main Loop</a></li>
+  <li><a href="#ifd-calculation" id="toc-ifd-calculation" class="nav-link" data-scroll-target="#ifd-calculation">IFD Calculation</a></li>
+  <li><a href="#resources-links" id="toc-resources-links" class="nav-link" data-scroll-target="#resources-links">Resources &amp; Links</a></li>
+  </ul></li>
+  <li><a href="#closing" id="toc-closing" class="nav-link" data-scroll-target="#closing">Closing</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Star-Agents: Using LLM Agents to Optimize Training Data</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">LLMs</div>
+    <div class="quarto-category">Data Optimization</div>
+    <div class="quarto-category">Instruction Tuning</div>
+    <div class="quarto-category">NeurIPS</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Zhou et al.’s Star-Agents system uses multiple LLM agent pairs, dual-model evaluation, and evolutionary sampling to automatically generate and curate high-quality instruction-tuning data — achieving 12% average improvement and up to 40% on Fermi tasks.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Sean Lewis </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 2, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="the-gist" class="level2">
+<h2 class="anchored" data-anchor-id="the-gist">The Gist</h2>
+<p>The quality of instruction-tuning data is often more important than quantity, but curating good data is expensive and subjective. <strong>Star-Agents</strong> automates this process with three key components:</p>
+<ol type="1">
+<li><p><strong>Diverse Data Generation via Multiple Agent Pairs</strong> — Rather than using a single LLM to generate instructions and responses, Star-Agents deploys multiple instruction agents and response agents drawn from different models (Phi-2, ChatGLM, Gemma, Mistral, Qwen, ChatGPT). This maximizes diversity of perspective and reasoning style.</p></li>
+<li><p><strong>Dual-Model Evaluation using IFD Metric</strong> — Each generated example is scored by comparing how a <em>small</em> model versus a <em>large</em> model handle it (Instruction Following Difficulty metric), plus evaluation by an LLM quality judge. This captures both difficulty and quality simultaneously.</p></li>
+<li><p><strong>Evolutionary Sampling</strong> — Probability updates inspired by evolutionary algorithms up-weight agent-pairs that produce high-quality data, creating a feedback loop that steers generation toward better examples.</p></li>
+</ol>
+<p>When tested on Pythia-1B and Llama-2-7B, the system achieved an <strong>average 12% improvement</strong> across standard benchmarks, with <strong>up to 40% improvement</strong> on Fermi estimation tasks. Star Instruct outperforms strong baselines like Evol-Instruct, Alpaca, and IFD-based methods on MT-bench, Vicuna-bench, and WizardLM testsets.</p>
+<hr>
+</section>
+<section id="why-it-matters-now" class="level2">
+<h2 class="anchored" data-anchor-id="why-it-matters-now">Why It Matters Now</h2>
+<p>Data quality is the new bottleneck. As models grow larger, the marginal return of additional data decreases—you need twice the data to get half the benefit. But the return on <em>better</em> data keeps growing. A single high-quality instruction-response pair can teach more than 100 mediocre ones.</p>
+<p>Star-Agents addresses a real pain point: manually curating instruction-tuning datasets is slow, expensive, and inconsistent. Automating this curation—especially in a way that adapts and improves over iterations—could be a force multiplier for smaller teams and organizations without unlimited human annotation budgets.</p>
+<hr>
+</section>
+<section id="key-results" class="level2">
+<h2 class="anchored" data-anchor-id="key-results">Key Results</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Benchmark</th>
+<th>Star-Agents</th>
+<th>Evol-Instruct</th>
+<th>Alpaca</th>
+<th>IFD Baseline</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>MT-bench</td>
+<td>+12–15%</td>
+<td>Baseline</td>
+<td>-5%</td>
+<td>-2%</td>
+</tr>
+<tr class="even">
+<td>Vicuna-bench</td>
+<td>+10–14%</td>
+<td>Baseline</td>
+<td>-3%</td>
+<td>-1%</td>
+</tr>
+<tr class="odd">
+<td>WizardLM testset</td>
+<td>+11–13%</td>
+<td>Baseline</td>
+<td>-4%</td>
+<td>-2%</td>
+</tr>
+<tr class="even">
+<td><strong>Fermi Tasks</strong></td>
+<td><strong>+40%</strong></td>
+<td>+15%</td>
+<td>+5%</td>
+<td>+8%</td>
+</tr>
+</tbody>
+</table>
+<p>(Results on Pythia-1B and Llama-2-7B; improvements vary by model and task category)</p>
+<hr>
+</section>
+<section id="the-system-pipeline" class="level2">
+<h2 class="anchored" data-anchor-id="the-system-pipeline">The System Pipeline</h2>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">graph LR
+    A["Multiple Agent Pairs&lt;br/&gt;(Different LLMs)"] --&gt;|Generate| B["Instruction + Response&lt;br/&gt;Candidates"]
+    B --&gt;|Evaluate| C["Dual-Model Evaluation&lt;br/&gt;(IFD + LLM Judge)"]
+    C --&gt;|Score &amp; Rank| D["Curated Data&lt;br/&gt;High Quality Pool"]
+    D --&gt;|Feedback| E["Evolutionary Update&lt;br/&gt;(Agent Pair Weights)"]
+    E --&gt;|Next Round| A
+    D --&gt;|Output| F["Star Instruct Dataset"]
+    
+    style A fill:#0d7c5f,stroke:#1a1a1a,color:#fff
+    style B fill:#6d5acd,stroke:#1a1a1a,color:#fff
+    style C fill:#d4563a,stroke:#1a1a1a,color:#fff
+    style D fill:#0d7c5f,stroke:#1a1a1a,color:#fff
+    style E fill:#6d5acd,stroke:#1a1a1a,color:#fff
+    style F fill:#0d7c5f,stroke:#1a1a1a,color:#fff
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<hr>
+</section>
+<section id="the-three-components" class="level2">
+<h2 class="anchored" data-anchor-id="the-three-components">The Three Components</h2>
+<section id="diverse-data-generation" class="level3">
+<h3 class="anchored" data-anchor-id="diverse-data-generation">1. Diverse Data Generation</h3>
+<p>Star-Agents doesn’t rely on a single LLM to both generate instructions <em>and</em> respond to them. Instead, it maintains a pool of instructor models and responder models:</p>
+<ul>
+<li><strong>Instructor agents</strong>: Phi-2, ChatGLM, Gemma, Mistral, Qwen, ChatGPT (subset)</li>
+<li><strong>Responder agents</strong>: Same pool, but assigned independently</li>
+</ul>
+<p>Why diversity matters: Different models have different inductive biases, reasoning styles, and knowledge bases. A math-focused model like Qwen might generate different (and complementary) reasoning traces than a general-purpose model. By pairing them in different combinations, you get a wider range of instruction complexity, style, and domain coverage.</p>
+<p><strong>In practice</strong>: At each generation step, the system randomly (or probability-weighted, after learning) selects an instructor-responder pair, generates a new instruction, and compares responses.</p>
+</section>
+<section id="dual-model-evaluation-ifd" class="level3">
+<h3 class="anchored" data-anchor-id="dual-model-evaluation-ifd">2. Dual-Model Evaluation (IFD)</h3>
+<p>Not all instruction-response pairs are equally valuable. An easy instruction that any model can follow teaches you nothing. An impossibly hard one is noise. The sweet spot is examples that challenge the <em>target</em> model but aren’t pure noise.</p>
+<p><strong>Instruction Following Difficulty (IFD)</strong> captures this by: - Running a <strong>small target model</strong> (e.g., Pythia-1B) on the instruction - Running a <strong>large reference model</strong> (e.g., ChatGPT, Llama-2-70B) on the same instruction - <strong>IFD Score</strong> = How much harder the target model found it relative to the reference</p>
+<p>High IFD = The instruction is challenging for the target model but solvable by the reference. Low IFD = Either trivial or too hard.</p>
+<p><strong>LLM Judge</strong>: In parallel, an LLM evaluates the quality of the response (correctness, clarity, helpfulness). This catches cases where the response is technically correct but poorly written.</p>
+<p><strong>Combined</strong>: IFD + LLM quality score = overall example score.</p>
+</section>
+<section id="evolutionary-sampling" class="level3">
+<h3 class="anchored" data-anchor-id="evolutionary-sampling">3. Evolutionary Sampling</h3>
+<p>After evaluation, which agent pairs should you use more? Star-Agents applies evolutionary algorithm-inspired updates:</p>
+<ul>
+<li>Agent pairs that produced <em>high-scoring</em> examples get higher sampling probability in the next round.</li>
+<li>Agent pairs that produced <em>low-scoring</em> examples get lower probability.</li>
+<li>Over many rounds, the system converges on a distribution favoring high-quality generators.</li>
+</ul>
+<p><strong>Pseudo-code</strong>:</p>
+<pre><code>For each round t:
+    1. For each agent pair (i, j):
+        Sample k examples
+        Evaluate them → get scores s_1, ..., s_k
+        Compute mean score μ_ij
+    2. Update probabilities:
+        p_ij(t+1) ∝ p_ij(t) × exp(β × μ_ij)
+          where β controls learning rate
+    3. Resample agent pairs according to new p for next round</code></pre>
+<p>This creates a <strong>positive feedback loop</strong>: good agent pairs generate more examples, which get evaluated, which reinforces that they’re good.</p>
+<hr>
+</section>
+</section>
+<section id="the-lineage" class="level2">
+<h2 class="anchored" data-anchor-id="the-lineage">The Lineage</h2>
+<p>Star-Agents sits at the intersection of several research threads:</p>
+<ul>
+<li><strong>Self-Instruct</strong> (Wang et al., 2023): The original idea that models can generate their own instruction-tuning data in a bootstrapping loop.</li>
+<li><strong>Evol-Instruct</strong> (WizardLM, Xu et al., 2023): Iteratively <em>evolve</em> instructions to make them harder and more diverse—Star-Agents borrows this iterative philosophy but adds multi-agent diversity and formal evaluation.</li>
+<li><strong>LIMA</strong> (Zhou et al., 2023): “Less is More in Alignment”—the insight that 1000 high-quality examples can rival 100K mediocre ones. Star-Agents is a method to find those 1000.</li>
+<li><strong>Data-Centric AI</strong> (Andriy Burkov, others): The emerging consensus that model &gt; data size is shifting to data quality &gt; model size for many tasks.</li>
+<li><strong>Quality Filtering</strong>: Recent work on filtering synthetic data (e.g., TinyStories, CulturaX) shows that automated filtering + diversity is more efficient than raw scale.</li>
+</ul>
+<p>Star-Agents unifies these themes: it’s <em>data-centric</em>, <em>evolutionary</em>, <em>multi-agent</em>, and <em>quality-focused</em>.</p>
+<hr>
+</section>
+<section id="rubber-ducking-the-jargon" class="level2">
+<h2 class="anchored" data-anchor-id="rubber-ducking-the-jargon">Rubber-Ducking the Jargon</h2>
+<ul>
+<li><strong>Instruction Tuning</strong>: Fine-tuning a model on instruction-response pairs (input: “Translate to Spanish”, output: “The translation is…”) to teach it to follow natural language commands.</li>
+<li><strong>IFD (Instruction Following Difficulty)</strong>: A metric comparing how easily a small model vs.&nbsp;a large model solves an instruction. High IFD = good learning signal.</li>
+<li><strong>Evolutionary Sampling</strong>: Iteratively favoring agent pairs that produce better outputs, inspired by natural selection.</li>
+<li><strong>Agent Pair</strong>: A combination of (instruction_generator, response_generator). Each pair is a possible “strategy” for generating data.</li>
+<li><strong>MT-bench</strong>: A benchmark of 80 multi-turn instruction-following tasks; evaluates both quality and diversity of responses.</li>
+<li><strong>Vicuna-bench</strong>: A set of 80 diverse instructions; typically evaluated by comparing model outputs against each other.</li>
+<li><strong>Data Curation</strong>: The process of selecting, filtering, and ranking data examples to maximize learning value.</li>
+</ul>
+<hr>
+</section>
+<section id="what-to-watch-out-for" class="level2">
+<h2 class="anchored" data-anchor-id="what-to-watch-out-for">What to Watch Out For</h2>
+<ol type="1">
+<li><p><strong>Limited Scale Testing</strong>: Star-Agents was evaluated on relatively small models (Pythia-1B, Llama-2-7B). Does it scale to 70B or 700B parameter models? Early indications are yes, but this wasn’t the focus of the paper.</p></li>
+<li><p><strong>Benchmark Bias</strong>: MT-bench and Vicuna-bench are themselves noisy and may not capture real-world utility. A model scoring higher on these benchmarks might not be better at your specific downstream task.</p></li>
+<li><p><strong>LLM Judge Bias</strong>: The LLM quality judge introduces its own biases. If your judge is Claude, it might over-reward certain writing styles or undervalue others that your actual users prefer.</p></li>
+<li><p><strong>Computational Cost</strong>: Running evaluations with both small and large models, plus LLM judge, adds overhead. The paper doesn’t deeply analyze the compute-benefit tradeoff.</p></li>
+<li><p><strong>Evolutionary Convergence</strong>: The evolutionary loop might converge prematurely to a local optimum, oversample certain agent pairs, or lose diversity over time if not carefully tuned.</p></li>
+<li><p><strong>Generalization</strong>: The generated data is optimized for the specific benchmark tasks. Does Star Instruct transfer well to tasks very different from MT-bench?</p></li>
+</ol>
+<hr>
+</section>
+<section id="so-what" class="level2">
+<h2 class="anchored" data-anchor-id="so-what">So What?</h2>
+<p><strong>Three takeaways</strong>:</p>
+<ol type="1">
+<li><p><strong>Data quality &gt; data quantity</strong> for instruction tuning, especially for smaller models. If you’re fine-tuning a 1B–7B parameter model, focus on curating or generating fewer high-quality examples rather than scraping more low-quality ones.</p></li>
+<li><p><strong>Automated curation is possible and practical</strong>. You don’t need a massive team of human annotators. A well-designed system of agent pairs + evaluation can do much of the work.</p></li>
+<li><p><strong>Diversity of data sources matters</strong>. Using multiple LLMs to generate candidates, rather than a single model, outperforms single-source approaches. This mirrors findings in ensemble learning and data augmentation.</p></li>
+</ol>
+<p><strong>For practitioners</strong>: If you’re building a fine-tuned model, consider investing in data quality (automated or manual). Consider using multiple open-source LLMs as generators to maximize diversity. And measure your progress not just on benchmark scores but on actual downstream performance.</p>
+<hr>
+</section>
+<section id="reproduction-implementation" class="level2">
+<h2 class="anchored" data-anchor-id="reproduction-implementation">Reproduction &amp; Implementation</h2>
+<section id="setup" class="level3">
+<h3 class="anchored" data-anchor-id="setup">Setup</h3>
+<p>You’ll need: - A small target model (Pythia-1B, TinyLlama, or similar) - A large reference model (Llama-2-70B, ChatGPT, or similar) for evaluation - Several diverse generator models (Mistral, Qwen, ChatGLM, etc.) - An evaluator LLM (GPT-4 or open-source like Llama-2-70B)</p>
+</section>
+<section id="pseudocode-the-main-loop" class="level3">
+<h3 class="anchored" data-anchor-id="pseudocode-the-main-loop">Pseudocode: The Main Loop</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> star_agents_loop(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    agent_pool: List[LLM],</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    target_model: LLM,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    reference_model: LLM,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    evaluator: LLM,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    rounds: <span class="bu">int</span> <span class="op">=</span> <span class="dv">100</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    examples_per_round: <span class="bu">int</span> <span class="op">=</span> <span class="dv">1000</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>):</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    agent_probs <span class="op">=</span> uniform_distribution(agent_pool)  <span class="co"># Equal initially</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    curated_data <span class="op">=</span> []</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="bu">round</span> <span class="kw">in</span> <span class="bu">range</span>(rounds):</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        candidates <span class="op">=</span> []</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Generation: sample agent pairs and generate examples</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(examples_per_round):</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>            instructor <span class="op">=</span> sample_with_replacement(agent_pool, probs<span class="op">=</span>agent_probs)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>            responder <span class="op">=</span> sample_with_replacement(agent_pool, probs<span class="op">=</span>agent_probs)</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>            instruction <span class="op">=</span> instructor.generate_instruction()</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>            response <span class="op">=</span> responder.respond(instruction)</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>            candidates.append((instruction, response, instructor, responder))</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Evaluation: compute IFD and quality scores</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>        scored_candidates <span class="op">=</span> []</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> instruction, response, inst_agent, resp_agent <span class="kw">in</span> candidates:</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>            target_difficulty <span class="op">=</span> target_model.solve(instruction)</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>            reference_difficulty <span class="op">=</span> reference_model.solve(instruction)</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>            ifd_score <span class="op">=</span> compute_ifd(target_difficulty, reference_difficulty)</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>            quality <span class="op">=</span> evaluator.score_quality(instruction, response)</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>            overall_score <span class="op">=</span> combine_scores(ifd_score, quality)</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>            scored_candidates.append({</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>                <span class="st">'instruction'</span>: instruction,</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>                <span class="st">'response'</span>: response,</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>                <span class="st">'score'</span>: overall_score,</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>                <span class="st">'inst_agent'</span>: inst_agent,</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>                <span class="st">'resp_agent'</span>: resp_agent,</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>            })</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Curation: keep top-k examples</span></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>        top_k <span class="op">=</span> <span class="bu">sorted</span>(scored_candidates, key<span class="op">=</span><span class="kw">lambda</span> x: x[<span class="st">'score'</span>], reverse<span class="op">=</span><span class="va">True</span>)[:<span class="dv">1000</span>]</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>        curated_data.extend(top_k)</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Evolutionary Update: adjust agent probabilities</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> agent <span class="kw">in</span> agent_pool:</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>            agent_examples <span class="op">=</span> [c <span class="cf">for</span> c <span class="kw">in</span> top_k </span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>                              <span class="cf">if</span> c[<span class="st">'inst_agent'</span>] <span class="op">==</span> agent <span class="kw">or</span> c[<span class="st">'resp_agent'</span>] <span class="op">==</span> agent]</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>            avg_score <span class="op">=</span> mean([e[<span class="st">'score'</span>] <span class="cf">for</span> e <span class="kw">in</span> agent_examples]) <span class="cf">if</span> agent_examples <span class="cf">else</span> <span class="dv">0</span></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>            agent_probs[agent] <span class="op">*=</span> exp(beta <span class="op">*</span> avg_score)</span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>        agent_probs <span class="op">/=</span> <span class="bu">sum</span>(agent_probs)  <span class="co"># Re-normalize</span></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> curated_data</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="ifd-calculation" class="level3">
+<h3 class="anchored" data-anchor-id="ifd-calculation">IFD Calculation</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_ifd(target_result: <span class="bu">str</span>, reference_result: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Simplified: 1 if target failed but reference succeeded, </span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">    0.5 if both succeeded or both failed,</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co">    0 if target succeeded but reference failed (shouldn't happen with a good reference).</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    target_correct <span class="op">=</span> is_correct(target_result)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    ref_correct <span class="op">=</span> is_correct(reference_result)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> target_correct <span class="kw">and</span> ref_correct:</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="fl">1.0</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> target_correct <span class="kw">and</span> ref_correct:</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="fl">0.5</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> <span class="kw">not</span> target_correct <span class="kw">and</span> <span class="kw">not</span> ref_correct:</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="fl">0.5</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="fl">0.0</span>  <span class="co"># Edge case</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="resources-links" class="level3">
+<h3 class="anchored" data-anchor-id="resources-links">Resources &amp; Links</h3>
+<ul>
+<li><strong>Paper</strong>: Zhou et al., “Star-Agents: Automatic Data Optimization with LLM Agents for Instruction Tuning” (NeurIPS 2024)</li>
+<li><strong>Related</strong>: Self-Instruct (Wang et al.), Evol-Instruct (WizardLM), LIMA (Zhou et al.)</li>
+<li><strong>Benchmarks</strong>: MT-bench (Zheng et al.), Vicuna-bench (Vicuna team)</li>
+<li><strong>Models</strong>: Hugging Face (Mistral, Qwen, Llama, etc.), OpenAI (ChatGPT as evaluator)</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="closing" class="level2">
+<h2 class="anchored" data-anchor-id="closing">Closing</h2>
+<p>Star-Agents is a elegant reminder that <strong>curation beats collection</strong>. In an era where we can generate infinite synthetic data, the bottleneck is no longer quantity but quality. By combining diversity, rigorous evaluation, and feedback-driven adaptation, this system shows that machines can do much of the curator’s work—and do it well.</p>
+<p>If you’re fine-tuning a small-to-medium model, you now have both a conceptual framework and a blueprint to try this yourself.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<script src="https://utteranc.es/client.js" repo="seanlewis08/blogComments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+<script src="animations.js"></script>
+
+
+
+
+</body></html>

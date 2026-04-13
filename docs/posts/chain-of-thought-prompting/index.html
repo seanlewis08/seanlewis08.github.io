@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Sean Lewis">
+<meta name="dcterms.date" content="2026-02-22">
+<meta name="description" content="Wei et al.’s landmark NeurIPS 2022 paper showed that simply asking large language models to reason step-by-step unlocks dramatic improvements in arithmetic, commonsense, and symbolic reasoning — but only above ~100B parameters.">
+
+<title>Chain-of-Thought Prompting: Teaching LLMs to Show Their Work – Sean Lewis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Sean Lewis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../projects.html"> 
+<span class="menu-text">Projects</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/seanlewis08"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/selew/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-gist" id="toc-the-gist" class="nav-link active" data-scroll-target="#the-gist">The Gist</a></li>
+  <li><a href="#why-it-matters-now" id="toc-why-it-matters-now" class="nav-link" data-scroll-target="#why-it-matters-now">Why It Matters Now</a></li>
+  <li><a href="#key-results" id="toc-key-results" class="nav-link" data-scroll-target="#key-results">Key Results</a></li>
+  <li><a href="#process-visualization" id="toc-process-visualization" class="nav-link" data-scroll-target="#process-visualization">Process Visualization</a></li>
+  <li><a href="#the-emergence-story" id="toc-the-emergence-story" class="nav-link" data-scroll-target="#the-emergence-story">The Emergence Story</a></li>
+  <li><a href="#the-lineage-where-this-fits" id="toc-the-lineage-where-this-fits" class="nav-link" data-scroll-target="#the-lineage-where-this-fits">The Lineage: Where This Fits</a></li>
+  <li><a href="#rubber-ducking-the-jargon" id="toc-rubber-ducking-the-jargon" class="nav-link" data-scroll-target="#rubber-ducking-the-jargon">Rubber-Ducking the Jargon</a></li>
+  <li><a href="#what-to-watch-out-for" id="toc-what-to-watch-out-for" class="nav-link" data-scroll-target="#what-to-watch-out-for">What to Watch Out For</a></li>
+  <li><a href="#so-what" id="toc-so-what" class="nav-link" data-scroll-target="#so-what">So What?</a></li>
+  <li><a href="#reproduction-implementation" id="toc-reproduction-implementation" class="nav-link" data-scroll-target="#reproduction-implementation">Reproduction &amp; Implementation</a>
+  <ul class="collapse">
+  <li><a href="#environment-setup" id="toc-environment-setup" class="nav-link" data-scroll-target="#environment-setup">Environment Setup</a></li>
+  <li><a href="#standard-vs.-chain-of-thought-prompt-format" id="toc-standard-vs.-chain-of-thought-prompt-format" class="nav-link" data-scroll-target="#standard-vs.-chain-of-thought-prompt-format">Standard vs.&nbsp;Chain-of-Thought Prompt Format</a></li>
+  <li><a href="#cot-evaluation-pipeline-pseudo-code" id="toc-cot-evaluation-pipeline-pseudo-code" class="nav-link" data-scroll-target="#cot-evaluation-pipeline-pseudo-code">CoT Evaluation Pipeline (Pseudo-code)</a></li>
+  <li><a href="#key-resources" id="toc-key-resources" class="nav-link" data-scroll-target="#key-resources">Key Resources</a></li>
+  </ul></li>
+  <li><a href="#further-exploration" id="toc-further-exploration" class="nav-link" data-scroll-target="#further-exploration">Further Exploration</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Chain-of-Thought Prompting: Teaching LLMs to Show Their Work</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">LLMs</div>
+    <div class="quarto-category">Prompting</div>
+    <div class="quarto-category">Reasoning</div>
+    <div class="quarto-category">NeurIPS</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Wei et al.’s landmark NeurIPS 2022 paper showed that simply asking large language models to reason step-by-step unlocks dramatic improvements in arithmetic, commonsense, and symbolic reasoning — but only above ~100B parameters.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Sean Lewis </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">February 22, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="the-gist" class="level2">
+<h2 class="anchored" data-anchor-id="the-gist">The Gist</h2>
+<p>What if you could get a language model to solve harder problems just by asking it to “think out loud”? That’s the elegantly simple insight behind <strong>chain-of-thought (CoT) prompting</strong>, demonstrated in Wei et al.’s NeurIPS 2022 paper. Instead of asking a model “What is 15% of 40?” and expecting the answer directly, you show it a few examples where the answer comes <em>after</em> the reasoning: “15% of 40. 40 × 0.15 = 6.” Then the model learns to do the same—walking through the problem step by step before committing to an answer.</p>
+<p>The results are striking. On the <strong>GSM8K</strong> benchmark (grade-school math word problems), PaLM 540B jumped from 17.9% accuracy with standard prompting to 57.1% with chain-of-thought—a near 3× improvement and new state-of-the-art at the time of publication. Similar gains appear across arithmetic reasoning, commonsense question-answering, and symbolic manipulation tasks. Crucially, this required no fine-tuning, no retraining, no new model weights—just a change in how you ask the question.</p>
+<p>Here’s the plot twist: the technique only works at scale. Below roughly 100 billion parameters, chain-of-thought prompting produces nonsensical chains and often <em>hurts</em> performance. This emergent behavior—where a capability suddenly appears in larger models—became a defining question in AI research and hinted that reasoning is latent in large language models, waiting to be unlocked by the right prompt structure.</p>
+</section>
+<section id="why-it-matters-now" class="level2">
+<h2 class="anchored" data-anchor-id="why-it-matters-now">Why It Matters Now</h2>
+<p>In early 2022, the prevailing wisdom was that language models were pattern-matchers, good at text generation and retrieval but fundamentally limited for multi-step reasoning. This paper upended that narrative. It showed, rigorously and reproducibly, that prompting alone—without architectural changes or training—could elicit reasoning behaviors in large models.</p>
+<p>This single finding launched an entire research direction. Self-Consistency (Wang et al., 2022) followed weeks later, showing that sampling multiple CoT chains and taking the majority answer further improves performance. Tree-of-Thought (Yao et al., 2023) extended the idea to explore branching reasoning paths. ReAct (Shunevo et al., 2023) combined reasoning with interleaved actions. Prompt-as-Program (Gu et al., 2023) and other work explored how to structure reasoning more explicitly. By 2024, chain-of-thought reasoning was standard practice for any hard task—you simply wasn’t asking your LLM correctly if you weren’t asking for step-by-step reasoning.</p>
+<p>The deeper significance: this paper provided empirical evidence that large language models contain latent reasoning capabilities. The models weren’t learning to reason <em>from</em> the chain-of-thought examples; they were already capable of reasoning, and the examples just showed them that reasoning was expected. That distinction shifted how researchers thought about model capabilities—not as fixed skills to be discovered but as latent potential to be elicited through the right interface.</p>
+</section>
+<section id="key-results" class="level2">
+<h2 class="anchored" data-anchor-id="key-results">Key Results</h2>
+<p>The improvements span multiple domains and benchmarks:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 19%">
+<col style="width: 19%">
+<col style="width: 17%">
+<col style="width: 31%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Benchmark</th>
+<th>Task Type</th>
+<th>Standard</th>
+<th>Chain-of-Thought</th>
+<th>Model</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>GSM8K</strong></td>
+<td>Arithmetic word problems</td>
+<td>17.9%</td>
+<td>57.1%</td>
+<td>PaLM 540B</td>
+</tr>
+<tr class="even">
+<td><strong>SVAMP</strong></td>
+<td>Solving word arithmetic problems</td>
+<td>69.4%</td>
+<td>79.0%</td>
+<td>PaLM 540B</td>
+</tr>
+<tr class="odd">
+<td><strong>ASDiv</strong></td>
+<td>Arithmetic story division</td>
+<td>73.9%</td>
+<td>79.0%</td>
+<td>PaLM 540B</td>
+</tr>
+<tr class="even">
+<td><strong>AQuA</strong></td>
+<td>Algebra question answering</td>
+<td>25.2%</td>
+<td>35.8%</td>
+<td>PaLM 540B</td>
+</tr>
+<tr class="odd">
+<td><strong>CommonsenseQA</strong></td>
+<td>Commonsense reasoning</td>
+<td>75.5%</td>
+<td>77.1%</td>
+<td>PaLM 540B</td>
+</tr>
+<tr class="even">
+<td><strong>StrategyQA</strong></td>
+<td>Multi-hop commonsense</td>
+<td>65.4%</td>
+<td>73.4%</td>
+<td>PaLM 540B</td>
+</tr>
+</tbody>
+</table>
+<p>The largest gains appear on arithmetic tasks (GSM8K: +39.2 points), where step-by-step reasoning is most directly applicable. Even on commonsense tasks where exact computation isn’t required, CoT provides consistent improvements. Across diverse model sizes and architectures, the pattern held: bigger models benefit more, and models below ~100B parameters see minimal or negative gains.</p>
+</section>
+<section id="process-visualization" class="level2">
+<h2 class="anchored" data-anchor-id="process-visualization">Process Visualization</h2>
+<p>Here’s how chain-of-thought prompting changes the interaction:</p>
+<pre class="mermaid"><code>graph LR
+    A["Question:&lt;br/&gt;If Sarah has 12 apples"] --&gt;|Standard Prompting| B["Output:&lt;br/&gt;6"]
+    C["Question:&lt;br/&gt;If Sarah has 12 apples&lt;br/&gt;&lt;br/&gt;Example: If John has 10 apples&lt;br/&gt;and gives away half, he has 10/2=5"] --&gt;|CoT Prompting| D["Step 1: Sarah starts with 12&lt;br/&gt;Step 2: She gives away half&lt;br/&gt;Step 3: 12/2 = 6&lt;br/&gt;Output: 6"]
+    
+    style A fill:#faf6f1,stroke:#4a4a4a
+    style B fill:#f5f5f5,stroke:#8a8a8a
+    style C fill:#faf6f1,stroke:#4a4a4a
+    style D fill:#f0faf7,stroke:#0d7c5f,color:#0d7c5f</code></pre>
+<p>The standard path (top) asks for an answer directly. The chain-of-thought path (bottom) shows the model an example with reasoning included, then lets the model follow the same pattern—<strong>expressing intermediate steps before the final answer</strong>. The model learns to mirror this structure, and in doing so, its accuracy dramatically improves.</p>
+</section>
+<section id="the-emergence-story" class="level2">
+<h2 class="anchored" data-anchor-id="the-emergence-story">The Emergence Story</h2>
+<p>One of the paper’s most important findings is the <strong>scaling threshold</strong>: chain-of-thought prompting doesn’t help at all model sizes. The researchers tested models ranging from 1 billion to 540 billion parameters and found a striking pattern:</p>
+<ul>
+<li><strong>Models below ~100B parameters</strong>: CoT prompting either made things worse or provided negligible improvement. The models generated plausible-sounding but nonsensical reasoning chains.</li>
+<li><strong>Models at 100B+ parameters</strong>: CoT prompting provided dramatic and consistent improvements.</li>
+<li><strong>PaLM 540B (largest tested)</strong>: Achieved the largest absolute improvements.</li>
+</ul>
+<p>This is an <strong>emergent ability</strong>—a capability that suddenly appears at scale rather than improving gradually. It suggests that at smaller scales, models lack the capacity to reliably generate useful intermediate reasoning steps, or the reasoning isn’t properly aligned with the final answer. But somewhere in the 100B+ regime, models develop the ability to express reasoning in ways that are both plausible and useful.</p>
+<p>This finding has profound implications. It means: 1. <strong>Reasoning isn’t explicitly taught</strong>—models learn it from scale and pretraining alone. 2. <strong>The interface matters as much as the weights</strong>—how you ask determines what capability you unlock. 3. <strong>There may be other emergent capabilities waiting</strong>—if reasoning is latent at scale, what else is?</p>
+<p>The emergence pattern became a major research focus in subsequent years, leading to work on mechanistic interpretability, capability evaluations at scale, and questions about what hidden skills live inside large models.</p>
+</section>
+<section id="the-lineage-where-this-fits" class="level2">
+<h2 class="anchored" data-anchor-id="the-lineage-where-this-fits">The Lineage: Where This Fits</h2>
+<p>Chain-of-thought prompting didn’t emerge from nowhere. It builds on:</p>
+<ul>
+<li><strong>Few-shot prompting (Brown et al., 2020, GPT-3)</strong>: The observation that language models can learn task structure from examples in the prompt itself, without any fine-tuning.</li>
+<li><strong>Scratchpad and intermediate reasoning work</strong>: Prior hints that models benefit from working space to write down intermediate computations.</li>
+</ul>
+<p>And it inspired a lineage of follow-on work:</p>
+<ul>
+<li><strong>Self-Consistency (Wang et al., 2022)</strong>: Sample multiple CoT paths, take the majority vote answer—further improvements without new models.</li>
+<li><strong>Tree-of-Thought (Yao et al., 2023)</strong>: Generalize CoT to explore multiple reasoning branches, not just a single linear chain.</li>
+<li><strong>ReAct (Shunevo et al., 2023)</strong>: Interleave reasoning with actions (API calls, searches), enabling agents.</li>
+<li><strong>Prompt-as-Program (Gu et al., 2023)</strong>: Structure reasoning more explicitly using pseudo-code or domain-specific languages.</li>
+<li><strong>Graph-of-Thought &amp; other variants</strong>: Further refinements on the basic idea of making reasoning explicit.</li>
+</ul>
+<p>By 2024, the assumption is reversed: you should ask for reasoning first, then see if you need anything else. “Show your work” became the default best practice.</p>
+</section>
+<section id="rubber-ducking-the-jargon" class="level2">
+<h2 class="anchored" data-anchor-id="rubber-ducking-the-jargon">Rubber-Ducking the Jargon</h2>
+<ul>
+<li><p><strong>Chain-of-thought (CoT) prompting</strong>: The practice of providing examples (in the prompt itself) that show intermediate reasoning steps before the final answer, teaching the model to do the same.</p></li>
+<li><p><strong>Few-shot prompting</strong>: Providing a small number of task examples in the prompt, allowing the model to infer the task structure without any gradient-based learning.</p></li>
+<li><p><strong>Greedy decoding</strong>: Generating text one token at a time by always picking the highest-probability token. (The alternative, sampling, picks randomly from the probability distribution.)</p></li>
+<li><p><strong>Emergent ability</strong>: A capability that appears sharply at a particular model scale rather than improving gradually as models get larger. Reasoning via CoT is one of the clearest examples.</p></li>
+<li><p><strong>Arithmetic reasoning benchmarks</strong>: Datasets like GSM8K (grade-school math), SVAMP (solving word arithmetic problems), and ASDiv (arithmetic story division) that test a model’s ability to solve math word problems.</p></li>
+<li><p><strong>Exemplars</strong>: The example task instances shown in the prompt. “Few-shot” means “a few exemplars.” “Zero-shot” means no exemplars, just instructions.</p></li>
+</ul>
+</section>
+<section id="what-to-watch-out-for" class="level2">
+<h2 class="anchored" data-anchor-id="what-to-watch-out-for">What to Watch Out For</h2>
+<p>Chain-of-thought is powerful, but it has limits:</p>
+<ol type="1">
+<li><p><strong>Scale dependency</strong>: The technique requires large models (100B+ parameters). On smaller models or fine-tuned variants, gains may be minimal or negative.</p></li>
+<li><p><strong>Correct chains ≠ correct reasoning</strong>: A model can generate a plausible reasoning chain that leads to the wrong answer. The chain looks like reasoning, but it’s not <em>sound</em> reasoning—it’s pattern matching on reasoning-like structure.</p></li>
+<li><p><strong>Benchmark specificity</strong>: Most gains have been measured on arithmetic and structured reasoning tasks. Performance on open-ended or creative tasks is less studied.</p></li>
+<li><p><strong>Exemplar annotation cost</strong>: While no fine-tuning is required, creating good CoT exemplars still requires human annotation—someone needs to write out the reasoning steps for the few-shot examples.</p></li>
+<li><p><strong>Faithfulness questions</strong>: When a model generates a reasoning chain, is that chain the actual “reasoning” the model used, or is it post-hoc rationalization? This remains an open question in interpretability research.</p></li>
+<li><p><strong>Generalization beyond training</strong>: CoT helps on benchmarks similar to the exemplars, but transferring to novel problem types is still an open challenge.</p></li>
+</ol>
+</section>
+<section id="so-what" class="level2">
+<h2 class="anchored" data-anchor-id="so-what">So What?</h2>
+<p>For practitioners:</p>
+<ol type="1">
+<li><p><strong>Always ask for reasoning</strong>: If your task requires multi-step logic, include examples of step-by-step reasoning in your prompt. It’s free (no retraining), and it often works.</p></li>
+<li><p><strong>Design exemplars carefully</strong>: The quality of your few-shot examples matters. Show diverse reasoning patterns, not just the “right” answer.</p></li>
+<li><p><strong>Combine with other techniques</strong>: CoT pairs well with Self-Consistency (multiple samples), retrieval-augmented generation (RAG), and tool use. Don’t stop at CoT; it’s a building block.</p></li>
+<li><p><strong>Test at your scale</strong>: If you’re using smaller models (&lt;100B), validate that CoT actually helps before relying on it. The scaling threshold is real.</p></li>
+<li><p><strong>Keep interpreting chains with skepticism</strong>: A well-written chain of reasoning is suggestive, but not proof. For high-stakes decisions, treat the chain as an explanation artifact, not ground truth.</p></li>
+</ol>
+</section>
+<section id="reproduction-implementation" class="level2">
+<h2 class="anchored" data-anchor-id="reproduction-implementation">Reproduction &amp; Implementation</h2>
+<section id="environment-setup" class="level3">
+<h3 class="anchored" data-anchor-id="environment-setup">Environment Setup</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Install dependencies for using large language models</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>pip install transformers torch datasets evaluate</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Or for API-based access:</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>pip install openai  <span class="co"># for GPT models</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>pip install google<span class="op">-</span>generativeai  <span class="co"># for Gemini</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="standard-vs.-chain-of-thought-prompt-format" class="level3">
+<h3 class="anchored" data-anchor-id="standard-vs.-chain-of-thought-prompt-format">Standard vs.&nbsp;Chain-of-Thought Prompt Format</h3>
+<p><strong>Standard prompt:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="an">Q:</span><span class="co"> If there are 3 cars in the parking lot and 2 more arrive, how many are there now?</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="an">A:</span><span class="co"> 5</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Chain-of-thought prompt (few-shot example):</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="an">Q:</span><span class="co"> If there are 3 cars in the parking lot and 2 more arrive, how many are there now?</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="an">A:</span><span class="co"> We start with 3 cars. 2 more arrive. 3 + 2 = 5. There are 5 cars now.</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>Q: Sarah has 12 apples. She gives half to her friend. How many does she have left?</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>A: Sarah starts with 12 apples. She gives half away, which is 12 / 2 = 6. So she gives away 6 and has 12 - 6 = 6 left.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The model sees the pattern and generates reasoning before the answer.</p>
+</section>
+<section id="cot-evaluation-pipeline-pseudo-code" class="level3">
+<h3 class="anchored" data-anchor-id="cot-evaluation-pipeline-pseudo-code">CoT Evaluation Pipeline (Pseudo-code)</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> evaluate_with_cot(model, test_set, exemplars):</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Evaluate a model on a test set using chain-of-thought prompting.</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">    Args:</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">        model: Language model (OpenAI API, HF transformer, etc.)</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">        test_set: List of {question, correct_answer} dicts</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">        exemplars: List of CoT examples to include in prompt</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns:</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co">        accuracy: Fraction of correct answers</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    correct <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> question, correct_answer <span class="kw">in</span> test_set:</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Build prompt with few-shot CoT examples</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>        prompt <span class="op">=</span> <span class="st">"You are a helpful assistant. Solve the following problem step-by-step.</span><span class="ch">\n\n</span><span class="st">"</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> example <span class="kw">in</span> exemplars:</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>            prompt <span class="op">+=</span> <span class="ss">f"Q: </span><span class="sc">{</span>example[<span class="st">'question'</span>]<span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>            prompt <span class="op">+=</span> <span class="ss">f"A: </span><span class="sc">{</span>example[<span class="st">'reasoning'</span>]<span class="sc">}</span><span class="ch">\n\n</span><span class="ss">"</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>        prompt <span class="op">+=</span> <span class="ss">f"Q: </span><span class="sc">{</span>question<span class="sc">}</span><span class="ch">\n</span><span class="ss">A:"</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Generate response</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>        response <span class="op">=</span> model.generate(prompt)</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Extract answer (simple approach: last number in response)</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>        predicted_answer <span class="op">=</span> extract_final_answer(response)</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> predicted_answer <span class="op">==</span> correct_answer:</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>            correct <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>    accuracy <span class="op">=</span> correct <span class="op">/</span> <span class="bu">len</span>(test_set)</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> accuracy</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> extract_final_answer(text):</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Extract numeric answer from model output."""</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Simple: find last number in text</span></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> re</span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>    numbers <span class="op">=</span> re.findall(<span class="vs">r'</span><span class="dv">\d</span><span class="op">+</span><span class="vs">'</span>, text)</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">int</span>(numbers[<span class="op">-</span><span class="dv">1</span>]) <span class="cf">if</span> numbers <span class="cf">else</span> <span class="va">None</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="key-resources" class="level3">
+<h3 class="anchored" data-anchor-id="key-resources">Key Resources</h3>
+<ul>
+<li><strong>Paper</strong>: <a href="https://arxiv.org/abs/2201.11903">Chain-of-Thought Prompting Elicits Reasoning in Large Language Models</a> (arXiv:2201.11903)</li>
+<li><strong>Benchmark (GSM8K)</strong>: <a href="https://huggingface.co/datasets/openai/gsm8k">Grade School Math 8K</a> on Hugging Face</li>
+<li><strong>Related work (Self-Consistency)</strong>: <a href="https://arxiv.org/abs/2203.11171">Self-Consistency Improves Chain of Thought Reasoning in Language Models</a></li>
+<li><strong>PaLM model</strong>: <a href="https://arxiv.org/abs/2204.02311">PaLM: Scaling Language Modeling with Pathways</a></li>
+</ul>
+</section>
+</section>
+<section id="further-exploration" class="level2">
+<h2 class="anchored" data-anchor-id="further-exploration">Further Exploration</h2>
+<p>If you found this interesting, consider exploring:</p>
+<ul>
+<li><strong>Self-Consistency</strong>: Sampling multiple CoT chains and voting on the answer—often achieves better accuracy than a single chain.</li>
+<li><strong>Tree-of-Thought</strong>: Expanding the linear chain into a tree structure, exploring multiple reasoning branches.</li>
+<li><strong>Interpretability of chains</strong>: Do the reasoning chains reflect actual model computation, or are they post-hoc rationalizations? See work by Chen et al.&nbsp;on faithfulness.</li>
+<li><strong>CoT in code generation</strong>: How does chain-of-thought prompting help with programming tasks? See papers on code reasoning and complex task decomposition.</li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<script src="https://utteranc.es/client.js" repo="seanlewis08/blogComments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+<script src="animations.js"></script>
+
+
+
+
+</body></html>

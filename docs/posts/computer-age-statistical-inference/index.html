@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Sean Lewis">
+<meta name="dcterms.date" content="2026-02-26">
+<meta name="description" content="Efron and Hastie’s masterwork traces 250 years of statistical inference into the computer age — from Bayes and Fisher through bootstrapping, LASSO, and deep learning. A book review of the text that bridges classical theory and modern data science.">
+
+<title>Computer Age Statistical Inference: The Grand Tour of Modern Statistics – Sean Lewis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Sean Lewis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../projects.html"> 
+<span class="menu-text">Projects</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/seanlewis08"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/selew/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-gist" id="toc-the-gist" class="nav-link active" data-scroll-target="#the-gist">The Gist</a></li>
+  <li><a href="#why-read-this-now" id="toc-why-read-this-now" class="nav-link" data-scroll-target="#why-read-this-now">Why Read This Now?</a></li>
+  <li><a href="#the-three-eras" id="toc-the-three-eras" class="nav-link" data-scroll-target="#the-three-eras">The Three Eras</a>
+  <ul class="collapse">
+  <li><a href="#part-i-classical-foundations-chapters-17" id="toc-part-i-classical-foundations-chapters-17" class="nav-link" data-scroll-target="#part-i-classical-foundations-chapters-17">Part I: Classical Foundations (Chapters 1–7)</a></li>
+  <li><a href="#part-ii-what-computers-made-possible-chapters-816" id="toc-part-ii-what-computers-made-possible-chapters-816" class="nav-link" data-scroll-target="#part-ii-what-computers-made-possible-chapters-816">Part II: What Computers Made Possible (Chapters 8–16)</a></li>
+  <li><a href="#part-iii-the-modern-frontier-chapters-1721" id="toc-part-iii-the-modern-frontier-chapters-1721" class="nav-link" data-scroll-target="#part-iii-the-modern-frontier-chapters-1721">Part III: The Modern Frontier (Chapters 17–21)</a></li>
+  </ul></li>
+  <li><a href="#the-flow-of-innovation" id="toc-the-flow-of-innovation" class="nav-link" data-scroll-target="#the-flow-of-innovation">The Flow of Innovation</a></li>
+  <li><a href="#the-big-ideas" id="toc-the-big-ideas" class="nav-link" data-scroll-target="#the-big-ideas">The Big Ideas</a>
+  <ul class="collapse">
+  <li><a href="#the-bootstrap-as-computer-age-standard-errors" id="toc-the-bootstrap-as-computer-age-standard-errors" class="nav-link" data-scroll-target="#the-bootstrap-as-computer-age-standard-errors">1. The Bootstrap as Computer-Age Standard Errors</a></li>
+  <li><a href="#empirical-bayes-as-the-frequentist-bayesian-bridge" id="toc-empirical-bayes-as-the-frequentist-bayesian-bridge" class="nav-link" data-scroll-target="#empirical-bayes-as-the-frequentist-bayesian-bridge">2. Empirical Bayes as the Frequentist-Bayesian Bridge</a></li>
+  <li><a href="#the-bias-variance-tradeoff-as-the-organizing-principle" id="toc-the-bias-variance-tradeoff-as-the-organizing-principle" class="nav-link" data-scroll-target="#the-bias-variance-tradeoff-as-the-organizing-principle">3. The Bias-Variance Tradeoff as the Organizing Principle</a></li>
+  <li><a href="#the-inference-crisis-in-high-dimensions" id="toc-the-inference-crisis-in-high-dimensions" class="nav-link" data-scroll-target="#the-inference-crisis-in-high-dimensions">4. The Inference Crisis in High Dimensions</a></li>
+  </ul></li>
+  <li><a href="#rubber-ducking-the-jargon" id="toc-rubber-ducking-the-jargon" class="nav-link" data-scroll-target="#rubber-ducking-the-jargon">Rubber-Ducking the Jargon</a></li>
+  <li><a href="#what-to-watch-out-for" id="toc-what-to-watch-out-for" class="nav-link" data-scroll-target="#what-to-watch-out-for">What to Watch Out For</a></li>
+  <li><a href="#so-what" id="toc-so-what" class="nav-link" data-scroll-target="#so-what">So What?</a></li>
+  <li><a href="#reproduction-implementation" id="toc-reproduction-implementation" class="nav-link" data-scroll-target="#reproduction-implementation">Reproduction &amp; Implementation</a>
+  <ul class="collapse">
+  <li><a href="#bootstrap-example-python" id="toc-bootstrap-example-python" class="nav-link" data-scroll-target="#bootstrap-example-python">Bootstrap Example (Python)</a></li>
+  <li><a href="#lasso-regression-python" id="toc-lasso-regression-python" class="nav-link" data-scroll-target="#lasso-regression-python">LASSO Regression (Python)</a></li>
+  <li><a href="#cross-validation-python" id="toc-cross-validation-python" class="nav-link" data-scroll-target="#cross-validation-python">Cross-Validation (Python)</a></li>
+  </ul></li>
+  <li><a href="#resources" id="toc-resources" class="nav-link" data-scroll-target="#resources">Resources</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Computer Age Statistical Inference: The Grand Tour of Modern Statistics</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">Statistics</div>
+    <div class="quarto-category">Machine Learning</div>
+    <div class="quarto-category">Inference</div>
+    <div class="quarto-category">Book Review</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Efron and Hastie’s masterwork traces 250 years of statistical inference into the computer age — from Bayes and Fisher through bootstrapping, LASSO, and deep learning. A book review of the text that bridges classical theory and modern data science.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Sean Lewis </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">February 26, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="the-gist" class="level2">
+<h2 class="anchored" data-anchor-id="the-gist">The Gist</h2>
+<p>This isn’t a research paper — it’s a <em>map</em>. “Computer Age Statistical Inference” (Efron &amp; Hastie, Cambridge University Press, 2016/2021) is the definitive account of how statistical thinking evolved from hand-computation to the algorithmic era. Written by two of the field’s architects — Bradley Efron (inventor of the bootstrap) and Trevor Hastie (co-creator of LASSO, GAMs, and “The Elements of Statistical Learning”) — the book traces 250 years of inference theory and practice.</p>
+<p>The book spans 21 chapters across three parts:</p>
+<ul>
+<li><strong>Part I (Classical Inference):</strong> Bayesian methods, frequentist foundations, Fisher’s synthesis, maximum likelihood estimation, and exponential families.</li>
+<li><strong>Part II (Early Computer Age):</strong> Empirical Bayes, James-Stein estimation, GLMs, survival analysis, bootstrap, jackknife, cross-validation, and MCMC.</li>
+<li><strong>Part III (21st Century):</strong> False discovery rates, LASSO, random forests, boosting, neural networks, SVMs, and post-selection inference.</li>
+</ul>
+<p>Written for master’s and first-year PhD students, yet remarkably accessible even for practitioners without deep mathematical background. The level is <em>graduate</em>, but the clarity is exceptional.</p>
+</section>
+<section id="why-read-this-now" class="level2">
+<h2 class="anchored" data-anchor-id="why-read-this-now">Why Read This Now?</h2>
+<p>In an era where machine learning practitioners often skip statistical foundations, this book does something rare: it shows that modern methods aren’t magic tricks — they’re <em>inevitable extensions</em> of classical inference. Neural networks, random forests, regularization, cross-validation — these emerged naturally from statistical thinking meeting computational possibility.</p>
+<p>Two reasons this matters:</p>
+<ol type="1">
+<li><p><strong>You become a better practitioner.</strong> Understanding the lineage of methods changes how you use them. You stop cargo-culting hyperparameter tuning and start reasoning about bias-variance tradeoffs. You understand why LASSO works, not just that it does.</p></li>
+<li><p><strong>The algorithms vs.&nbsp;inference distinction is more relevant than ever.</strong> As LLMs and large models dominate, distinguishing between “we can compute this” and “we can trust this” becomes critical. This book is your guide to that distinction.</p></li>
+</ol>
+</section>
+<section id="the-three-eras" class="level2">
+<h2 class="anchored" data-anchor-id="the-three-eras">The Three Eras</h2>
+<section id="part-i-classical-foundations-chapters-17" class="level3">
+<h3 class="anchored" data-anchor-id="part-i-classical-foundations-chapters-17">Part I: Classical Foundations (Chapters 1–7)</h3>
+<p>The book opens with Bayes’ theorem and traces forward. Efron and Hastie show how Bayes, frequentist, and Fisher’s approaches aren’t competing systems but <em>complementary perspectives</em>. Exponential families emerge as a unifying language. The math here is real, but the intuition is always kept in view.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 23%">
+<col style="width: 34%">
+<col style="width: 42%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Chapter</th>
+<th>Key Concept</th>
+<th>Why It Matters</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1–2</td>
+<td>Bayes, likelihood, frequentist logic</td>
+<td>The foundations. Nothing here is outdated.</td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td>Fisher and sufficiency</td>
+<td>Fisher’s genius at recognizing which statistics matter.</td>
+</tr>
+<tr class="odd">
+<td>4</td>
+<td>Exponential families</td>
+<td>The deep structure underlying nearly all statistical models.</td>
+</tr>
+<tr class="even">
+<td>5–7</td>
+<td>Hypothesis testing, confidence intervals, Bayesian credible sets</td>
+<td>How inference claims are actually made.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="part-ii-what-computers-made-possible-chapters-816" class="level3">
+<h3 class="anchored" data-anchor-id="part-ii-what-computers-made-possible-chapters-816">Part II: What Computers Made Possible (Chapters 8–16)</h3>
+<p>This is where the book shines. Computers didn’t replace statistical theory — they <em>liberated</em> it. Analytical solutions gave way to algorithmic ones. The bootstrap replaces the delta method. MCMC approximates intractable posteriors. Cross-validation bypasses the Cramer-Rao bound.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 29%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Chapter</th>
+<th>Key Concept</th>
+<th>Revolutionary Because</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>8</td>
+<td>Bootstrap &amp; jackknife</td>
+<td>No more analytical standard errors; just resample.</td>
+</tr>
+<tr class="even">
+<td>9</td>
+<td>Cross-validation &amp; model selection</td>
+<td>Empirical error rates beat theoretical bounds.</td>
+</tr>
+<tr class="odd">
+<td>10</td>
+<td>Maximum likelihood in the computer age</td>
+<td>Algorithms like Newton-Raphson become practical.</td>
+</tr>
+<tr class="even">
+<td>11–13</td>
+<td>GLMs, survival analysis, logistic regression</td>
+<td>Extensions that follow naturally from exponential families.</td>
+</tr>
+<tr class="odd">
+<td>14</td>
+<td>Empirical Bayes</td>
+<td>Frequentist and Bayesian: not enemies, partners.</td>
+</tr>
+<tr class="even">
+<td>15</td>
+<td>MCMC &amp; simulation</td>
+<td>Intractable becomes computable.</td>
+</tr>
+<tr class="odd">
+<td>16</td>
+<td>Smoothing &amp; GAMs</td>
+<td>Flexible fitting without overfitting (if you’re careful).</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="part-iii-the-modern-frontier-chapters-1721" class="level3">
+<h3 class="anchored" data-anchor-id="part-iii-the-modern-frontier-chapters-1721">Part III: The Modern Frontier (Chapters 17–21)</h3>
+<p>Where inference meets the data tsunami. Sparse methods (LASSO, elastic net), ensemble methods (random forests, boosting), and neural networks. The challenge: high-dimensional data breaks classical assumptions. The response: new inference frameworks.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 23%">
+<col style="width: 34%">
+<col style="width: 42%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Chapter</th>
+<th>Key Concept</th>
+<th>The Challenge</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>17</td>
+<td>False discovery rate (FDR)</td>
+<td>Multiple testing in the high-dimensional regime.</td>
+</tr>
+<tr class="even">
+<td>18</td>
+<td>LASSO &amp; sparse methods</td>
+<td>Fitting p &gt; n problems. Regularization as inference.</td>
+</tr>
+<tr class="odd">
+<td>19</td>
+<td>Random forests &amp; boosting</td>
+<td>Ensemble methods that work, but are hard to interpret.</td>
+</tr>
+<tr class="even">
+<td>20</td>
+<td>Neural networks</td>
+<td>Deep learning from a statistical lens.</td>
+</tr>
+<tr class="odd">
+<td>21</td>
+<td>Inference after selection</td>
+<td>Using the same data for model selection and inference? Here’s how.</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="the-flow-of-innovation" class="level2">
+<h2 class="anchored" data-anchor-id="the-flow-of-innovation">The Flow of Innovation</h2>
+<pre class="mermaid"><code>graph LR
+    A["Classical&lt;br/&gt;(1760–1950)&lt;br/&gt;Bayes, Fisher, Likelihood"] --&gt;|Computers arrive| B["Computer Age&lt;br/&gt;(1950–2000)&lt;br/&gt;Bootstrap, MCMC,&lt;br/&gt;Cross-validation"]
+    B --&gt;|Big Data, High-D| C["21st Century&lt;br/&gt;(2000–now)&lt;br/&gt;LASSO, Random Forests,&lt;br/&gt;FDR, Deep Learning"]
+
+    A --&gt;|Foundational| D["Exponential Families&lt;br/&gt;Bias-Variance Tradeoff&lt;br/&gt;Sufficiency"]
+    D --&gt; B
+    D --&gt; C
+
+    B --&gt;|Enables| E["Empirical Bayes&lt;br/&gt;James-Stein&lt;br/&gt;Regularization"]
+    E --&gt; C
+
+    C --&gt;|Modern Challenge| F["Post-Selection&lt;br/&gt;Inference&lt;br/&gt;Uncertainty in&lt;br/&gt;High Dimensions"]</code></pre>
+</section>
+<section id="the-big-ideas" class="level2">
+<h2 class="anchored" data-anchor-id="the-big-ideas">The Big Ideas</h2>
+<p>Four threads tie the entire book together:</p>
+<section id="the-bootstrap-as-computer-age-standard-errors" class="level3">
+<h3 class="anchored" data-anchor-id="the-bootstrap-as-computer-age-standard-errors">1. The Bootstrap as Computer-Age Standard Errors</h3>
+<p>Efron’s bootstrap is more than a computational trick — it’s a philosophical reframing. Instead of <em>deriving</em> the standard error analytically, you <em>estimate</em> it empirically by resampling. For any estimator, any distribution. This is the computer replacing calculus.</p>
+<p><strong>Example:</strong> Want the standard error of the median? Fisher says it’s intractable for most distributions. Efron says: resample 10,000 times, compute the median each time, take the standard deviation. Done.</p>
+</section>
+<section id="empirical-bayes-as-the-frequentist-bayesian-bridge" class="level3">
+<h3 class="anchored" data-anchor-id="empirical-bayes-as-the-frequentist-bayesian-bridge">2. Empirical Bayes as the Frequentist-Bayesian Bridge</h3>
+<p>The classical split: Bayesians specify priors (subjective), frequentists don’t (objective). Empirical Bayes says: estimate the prior <em>from the data</em> itself. Suddenly, frequentist methods look Bayesian, and Bayesian methods look frequentist. The boundary blurs.</p>
+<p><strong>Example:</strong> Estimating baseball player batting averages. Rare players have noisy estimates. Empirical Bayes shrinks rare players’ averages toward the population mean — automatically, without specifying a prior by hand.</p>
+</section>
+<section id="the-bias-variance-tradeoff-as-the-organizing-principle" class="level3">
+<h3 class="anchored" data-anchor-id="the-bias-variance-tradeoff-as-the-organizing-principle">3. The Bias-Variance Tradeoff as the Organizing Principle</h3>
+<p>Every method in this book — from ridge regression to random forests — is a solution to the bias-variance tradeoff. More flexibility means lower bias but higher variance. Regularization, ensemble averaging, cross-validation — they’re all strategies for finding the sweet spot.</p>
+<p><strong>Insight:</strong> Modern ML’s obsession with “generalization” is really just the bias-variance tradeoff in new clothing.</p>
+</section>
+<section id="the-inference-crisis-in-high-dimensions" class="level3">
+<h3 class="anchored" data-anchor-id="the-inference-crisis-in-high-dimensions">4. The Inference Crisis in High Dimensions</h3>
+<p>When p &gt; n (features exceed samples), classical inference breaks. Standard errors explode. Model selection becomes data snooping. FDR, post-selection inference, and regularized methods are all responses to this crisis. The book doesn’t pretend there’s a perfect solution — just honest tools for a hard problem.</p>
+</section>
+</section>
+<section id="rubber-ducking-the-jargon" class="level2">
+<h2 class="anchored" data-anchor-id="rubber-ducking-the-jargon">Rubber-Ducking the Jargon</h2>
+<p>If the terminology feels thick, here’s a translation:</p>
+<ul>
+<li><strong>MLE (Maximum Likelihood Estimation):</strong> Find the parameter values that make the data you observed most likely. The dominant inference method for 200+ years.</li>
+<li><strong>Exponential family:</strong> A mathematical family of distributions with special properties: conjugate priors, sufficient statistics, natural parameter space. Nearly all standard models belong here.</li>
+<li><strong>Empirical Bayes:</strong> Use the data itself to estimate the prior, then apply Bayes’ rule. Bridges frequentist and Bayesian thinking.</li>
+<li><strong>James-Stein estimation:</strong> A counterintuitive result: under squared-error loss, shrinking estimates toward a central value beats plain MLEs in high dimensions. Still weird and wonderful after 60 years.</li>
+<li><strong>Bootstrap:</strong> Resample your data (with replacement) many times, compute your statistic each time, use the distribution of those replicates to estimate the standard error. Works for <em>any</em> statistic, any distribution.</li>
+<li><strong>False Discovery Rate (FDR):</strong> Instead of controlling the probability of any false positive (like traditional multiple testing correction), control the <em>expected proportion</em> of false positives among those you call “significant.” Much less conservative, more powerful.</li>
+<li><strong>LASSO (Least Absolute Shrinkage and Selection Operator):</strong> Regularize regression by penalizing the sum of absolute coefficients. Drives weak coefficients to exactly zero. Solves the p &gt; n problem.</li>
+<li><strong>Post-Selection Inference:</strong> After selecting a model (say, LASSO picked 10 variables), can you still make valid confidence intervals for those variables? Yes — but it’s tricky and the book shows how.</li>
+</ul>
+</section>
+<section id="what-to-watch-out-for" class="level2">
+<h2 class="anchored" data-anchor-id="what-to-watch-out-for">What to Watch Out For</h2>
+<p>The book is brilliant, but it has limits worth knowing:</p>
+<ol type="1">
+<li><p><strong>Published 2016 (corrected 2021), so deep learning coverage is thin.</strong> Chapters 20 discusses neural networks, but it reads as “neural networks are back and we don’t fully understand them yet.” For modern deep learning intuition, you’ll need other sources. The statistical <em>principles</em> still apply, but the specifics have moved fast.</p></li>
+<li><p><strong>Assumes mathematical maturity.</strong> You need comfort with probability, linear algebra, and multivariable calculus. The book is clear, but it doesn’t stop to re-teach calculus. Suitable for graduate students and self-taught practitioners with solid math backgrounds.</p></li>
+<li><p><strong>Some chapters are dense.</strong> Parts of Chapters 4 (exponential families), 14 (empirical Bayes), and 21 (post-selection inference) are technical. Skim on first read, revisit when needed.</p></li>
+<li><p><strong>Better as a second exposure than a first.</strong> If you’re new to statistics entirely, start with “Statistical Rethinking” or “The Elements of Statistical Learning” first. This book assumes you’ve seen hypothesis testing and linear regression before. It’s the book you read to understand <em>why</em> those things work.</p></li>
+</ol>
+</section>
+<section id="so-what" class="level2">
+<h2 class="anchored" data-anchor-id="so-what">So What?</h2>
+<p>If you want to understand <em>why</em> modern ML methods work — not just <em>how to use</em> them — this is the book. It’s especially valuable for:</p>
+<ul>
+<li>Data scientists who learned ML first and statistics second (this fills the gap)</li>
+<li>Machine learning engineers wondering why regularization matters (it’s the bias-variance tradeoff)</li>
+<li>Statisticians transitioning to the “big data” era (here’s how classical thinking evolves)</li>
+<li>Researchers in high-dimensional settings (false discovery rate, post-selection inference)</li>
+</ul>
+<p>Reading this book changes your mental model. You stop seeing methods as isolated tricks and start seeing them as solutions to fundamental problems. That shift in thinking is worth the dense chapters.</p>
+</section>
+<section id="reproduction-implementation" class="level2">
+<h2 class="anchored" data-anchor-id="reproduction-implementation">Reproduction &amp; Implementation</h2>
+<p>The book includes many algorithms and examples. Here are a few you can implement yourself to cement understanding:</p>
+<section id="bootstrap-example-python" class="level3">
+<h3 class="anchored" data-anchor-id="bootstrap-example-python">Bootstrap Example (Python)</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy <span class="im">import</span> stats</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Data: observed measurements</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> np.array([<span class="fl">3.2</span>, <span class="fl">4.1</span>, <span class="fl">3.8</span>, <span class="fl">4.5</span>, <span class="fl">3.9</span>])</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Bootstrap</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>n_bootstrap <span class="op">=</span> <span class="dv">10000</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>bootstrap_medians <span class="op">=</span> []</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(n_bootstrap):</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    resample <span class="op">=</span> np.random.choice(data, size<span class="op">=</span><span class="bu">len</span>(data), replace<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    bootstrap_medians.append(np.median(resample))</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Standard error of the median</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>se_median <span class="op">=</span> np.std(bootstrap_medians)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Bootstrap SE of median: </span><span class="sc">{</span>se_median<span class="sc">:.4f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="lasso-regression-python" class="level3">
+<h3 class="anchored" data-anchor-id="lasso-regression-python">LASSO Regression (Python)</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> Lasso</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate high-dimensional data (p &gt; n)</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>n, p <span class="op">=</span> <span class="dv">50</span>, <span class="dv">200</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> np.random.randn(n, p)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>true_beta <span class="op">=</span> np.zeros(p)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>true_beta[:<span class="dv">10</span>] <span class="op">=</span> np.random.randn(<span class="dv">10</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> X <span class="op">@</span> true_beta <span class="op">+</span> np.random.randn(n) <span class="op">*</span> <span class="fl">0.1</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co"># LASSO with cross-validation</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LassoCV</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> LassoCV(cv<span class="op">=</span><span class="dv">5</span>).fit(X, y)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>selected <span class="op">=</span> np.where(model.coef_ <span class="op">!=</span> <span class="dv">0</span>)[<span class="dv">0</span>]</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"LASSO selected </span><span class="sc">{</span><span class="bu">len</span>(selected)<span class="sc">}</span><span class="ss"> variables"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="cross-validation-python" class="level3">
+<h3 class="anchored" data-anchor-id="cross-validation-python">Cross-Validation (Python)</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> cross_val_score</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_breast_cancer</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>X, y <span class="op">=</span> load_breast_cancer(return_X_y<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> LogisticRegression()</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>scores <span class="op">=</span> cross_val_score(model, X, y, cv<span class="op">=</span><span class="dv">5</span>, scoring<span class="op">=</span><span class="st">'accuracy'</span>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Cross-validation accuracy: </span><span class="sc">{</span>scores<span class="sc">.</span>mean()<span class="sc">:.3f}</span><span class="ss"> +/- </span><span class="sc">{</span>scores<span class="sc">.</span>std()<span class="sc">:.3f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</section>
+<section id="resources" class="level2">
+<h2 class="anchored" data-anchor-id="resources">Resources</h2>
+<ul>
+<li><strong>Book page:</strong> Cambridge University Press</li>
+<li><strong>Supplementary materials:</strong> <a href="https://web.stanford.edu/~hastie/CASI/">Statistics Department, Stanford University</a></li>
+<li><strong>R code:</strong> The book has an accompanying R package and code examples</li>
+<li><strong>Related reading:</strong>
+<ul>
+<li>“The Elements of Statistical Learning” (Hastie, Tibshirani, Friedman) — more applied, with detailed algorithms</li>
+<li>“An Introduction to Statistical Learning” (James, Witten, Hastie, Tibshirani) — more gentle introduction</li>
+<li>“Statistical Rethinking” (McElreath) — Bayesian approach to modern inference</li>
+</ul></li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<script src="https://utteranc.es/client.js" repo="seanlewis08/blogComments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+<script src="animations.js"></script>
+
+
+
+
+</body></html>

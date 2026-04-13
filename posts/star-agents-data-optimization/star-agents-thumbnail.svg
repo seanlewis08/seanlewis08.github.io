@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="450" fill="#FA8072"/>
+
+  <!-- Title -->
+  <text x="40" y="50" font-size="20px" font-weight="bold" fill="#1a1a1a" font-family="system-ui, sans-serif">
+    Star-Agents
+  </text>
+
+  <!-- Subtitle -->
+  <text x="40" y="75" font-size="12px" fill="#0d7c5f" font-family="system-ui, sans-serif">
+    Automatic data optimization for instruction tuning
+  </text>
+
+  <!-- Define arrow markers -->
+  <defs>
+    <marker id="arrowhead-accent" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#0d7c5f"/>
+    </marker>
+    <marker id="arrowhead-dashed" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#0d7c5f"/>
+    </marker>
+  </defs>
+
+  <!-- Agent circles at top (3 agents) -->
+  <!-- Agent 1 -->
+  <circle cx="150" cy="120" r="28" fill="white" stroke="#0d7c5f" stroke-width="2"/>
+  <text x="150" y="128" font-size="10px" fill="#1a1a1a" font-family="system-ui, sans-serif" text-anchor="middle" font-weight="500">
+    Agent
+  </text>
+  <text x="150" y="140" font-size="9px" fill="#4a4a4a" font-family="system-ui, sans-serif" text-anchor="middle">
+    Pair 1
+  </text>
+
+  <!-- Agent 2 -->
+  <circle cx="320" cy="100" r="28" fill="white" stroke="#6d5acd" stroke-width="2"/>
+  <text x="320" y="108" font-size="10px" fill="#1a1a1a" font-family="system-ui, sans-serif" text-anchor="middle" font-weight="500">
+    Agent
+  </text>
+  <text x="320" y="120" font-size="9px" fill="#4a4a4a" font-family="system-ui, sans-serif" text-anchor="middle">
+    Pair 2
+  </text>
+
+  <!-- Agent 3 -->
+  <circle cx="490" cy="120" r="28" fill="white" stroke="#d4563a" stroke-width="2"/>
+  <text x="490" y="128" font-size="10px" fill="#1a1a1a" font-family="system-ui, sans-serif" text-anchor="middle" font-weight="500">
+    Agent
+  </text>
+  <text x="490" y="140" font-size="9px" fill="#4a4a4a" font-family="system-ui, sans-serif" text-anchor="middle">
+    Pair 3
+  </text>
+
+  <!-- Arrows from agents to Evaluation -->
+  <!-- Agent 1 → Evaluation -->
+  <path d="M 170 145 Q 250 180 280 210" stroke="#0d7c5f" stroke-width="2" fill="none" marker-end="url(#arrowhead-accent)"/>
+
+  <!-- Agent 2 → Evaluation -->
+  <path d="M 330 130 Q 330 170 320 210" stroke="#6d5acd" stroke-width="2" fill="none" marker-end="url(#arrowhead-accent)"/>
+
+  <!-- Agent 3 → Evaluation -->
+  <path d="M 470 145 Q 390 180 360 210" stroke="#d4563a" stroke-width="2" fill="none" marker-end="url(#arrowhead-accent)"/>
+
+  <!-- Evaluation box (center) -->
+  <rect x="260" y="210" width="120" height="60" fill="white" stroke="#0d7c5f" stroke-width="2" rx="4"/>
+  <text x="320" y="235" font-size="12px" fill="#1a1a1a" font-family="system-ui, sans-serif" text-anchor="middle" font-weight="500">
+    Evaluation
+  </text>
+
+  <!-- Arrow from Evaluation to Curated Data -->
+  <path d="M 320 270 L 320 310" stroke="#0d7c5f" stroke-width="2.5" fill="none" marker-end="url(#arrowhead-accent)"/>
+
+  <!-- Curated Data box (bottom-center) -->
+  <rect x="260" y="310" width="120" height="50" fill="white" stroke="#0d7c5f" stroke-width="2" rx="4"/>
+  <text x="320" y="338" font-size="12px" fill="#1a1a1a" font-family="system-ui, sans-serif" text-anchor="middle" font-weight="500">
+    Curated Data
+  </text>
+
+  <!-- Dashed feedback loop from Curated Data back to agents -->
+  <path d="M 260 335 Q 100 280 120 140" stroke="#0d7c5f" stroke-width="2" fill="none" stroke-dasharray="5,5" marker-end="url(#arrowhead-dashed)"/>
+
+  <!-- Callout: 12% improvement -->
+  <rect x="560" y="180" width="100" height="60" fill="white" stroke="#0d7c5f" stroke-width="1.5" rx="4"/>
+  <text x="610" y="205" font-size="16px" fill="#0d7c5f" font-family="system-ui, sans-serif" text-anchor="middle" font-weight="bold">
+    +12%
+  </text>
+  <text x="610" y="225" font-size="9px" fill="#4a4a4a" font-family="system-ui, sans-serif" text-anchor="middle">
+    Avg Improvement
+  </text>
+
+  <!-- Callout: 40% on Fermi -->
+  <rect x="560" y="260" width="100" height="60" fill="white" stroke="#0d7c5f" stroke-width="1.5" rx="4"/>
+  <text x="610" y="285" font-size="16px" fill="#0d7c5f" font-family="system-ui, sans-serif" text-anchor="middle" font-weight="bold">
+    +40%
+  </text>
+  <text x="610" y="305" font-size="9px" fill="#4a4a4a" font-family="system-ui, sans-serif" text-anchor="middle">
+    on Fermi Tasks
+  </text>
+
+  <!-- Footer -->
+  <text x="40" y="425" font-size="11px" fill="#8a8a8a" font-family="system-ui, sans-serif">
+    Zhou et al. (2024) · NeurIPS · Tianjin University + Huawei
+  </text>
+</svg>

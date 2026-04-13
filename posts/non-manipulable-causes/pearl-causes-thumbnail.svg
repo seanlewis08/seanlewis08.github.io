@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="450" fill="#FA8072"/>
+
+  <!-- Title -->
+  <text x="40" y="50" font-size="20px" font-weight="bold" fill="#1a1a1a" font-family="system-ui, sans-serif">
+    Non-Manipulable Causes
+  </text>
+
+  <!-- Subtitle -->
+  <text x="40" y="75" font-size="12px" fill="#0d7c5f" font-family="system-ui, sans-serif">
+    Causal effects without physical intervention
+  </text>
+
+  <!-- Define arrow markers -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#0d7c5f"/>
+    </marker>
+    <marker id="arrowhead-coral" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#d4563a"/>
+    </marker>
+    <marker id="arrowhead-dim" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4a4a4a"/>
+    </marker>
+  </defs>
+
+  <!-- Causal Graph Section -->
+  <!-- Race node (left) -->
+  <circle cx="180" cy="200" r="35" fill="white" stroke="#0d7c5f" stroke-width="2"/>
+  <text x="180" y="207" font-size="13px" fill="#1a1a1a" font-family="system-ui, sans-serif" text-anchor="middle" font-weight="500">
+    Race
+  </text>
+
+  <!-- Qualifications node (top-center) -->
+  <circle cx="400" cy="140" r="40" fill="white" stroke="#0d7c5f" stroke-width="2"/>
+  <text x="400" y="148" font-size="12px" fill="#1a1a1a" font-family="system-ui, sans-serif" text-anchor="middle" font-weight="500">
+    Qualifications
+  </text>
+
+  <!-- Hiring node (right) -->
+  <circle cx="620" cy="200" r="35" fill="white" stroke="#0d7c5f" stroke-width="2"/>
+  <text x="620" y="207" font-size="13px" fill="#1a1a1a" font-family="system-ui, sans-serif" text-anchor="middle" font-weight="500">
+    Hiring
+  </text>
+
+  <!-- Confounder path (Race → Qualifications, dashed) -->
+  <path d="M 215 185 Q 300 162 360 145" stroke="#4a4a4a" stroke-width="1.5" fill="none" stroke-dasharray="3,3" marker-end="url(#arrowhead-dim)"/>
+
+  <!-- Qualifications → Hiring (solid green arrow) -->
+  <path d="M 435 160 Q 520 170 585 190" stroke="#0d7c5f" stroke-width="2.5" fill="none" marker-end="url(#arrowhead)"/>
+
+  <!-- Race → Hiring (dashed coral arrow - cut) -->
+  <path d="M 215 200 L 585 200" stroke="#d4563a" stroke-width="2.5" fill="none" stroke-dasharray="5,5" marker-end="url(#arrowhead-coral)"/>
+
+  <!-- Cut mark (X) on the dashed arrow -->
+  <g transform="translate(400, 200)">
+    <circle cx="0" cy="0" r="8" fill="none" stroke="#d4563a" stroke-width="1.5"/>
+    <line x1="-4" y1="-4" x2="4" y2="4" stroke="#d4563a" stroke-width="1.5"/>
+    <line x1="4" y1="-4" x2="-4" y2="4" stroke="#d4563a" stroke-width="1.5"/>
+  </g>
+
+  <!-- do(X=x) label -->
+  <text x="420" y="185" font-size="11px" fill="#0d7c5f" font-family="system-ui, sans-serif" font-weight="500">
+    do(X=x)
+  </text>
+
+  <!-- Footer -->
+  <text x="40" y="425" font-size="11px" fill="#8a8a8a" font-family="system-ui, sans-serif">
+    Pearl (2018) · Technical Report R-483
+  </text>
+</svg>

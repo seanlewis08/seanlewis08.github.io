@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Sean Lewis">
+<meta name="dcterms.date" content="2026-03-01">
+<meta name="description" content="Chaduvula et al.&nbsp;from the Vector Institute and Mayo Clinic argue that traditional XAI tools (SHAP, LIME) break down for agentic AI systems. Their Minimal Explanation Packet framework and TAU-bench evaluation reveal that state tracking consistency — not individual feature importance — is the strongest predictor of agent failure.">
+
+<title>From Features to Actions: Rethinking Explainability for AI Agents – Sean Lewis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="../../site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="../../site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="../../site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Sean Lewis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../projects.html"> 
+<span class="menu-text">Projects</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/seanlewis08"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/selew/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-gist" id="toc-the-gist" class="nav-link active" data-scroll-target="#the-gist">The Gist</a></li>
+  <li><a href="#why-it-matters-now" id="toc-why-it-matters-now" class="nav-link" data-scroll-target="#why-it-matters-now">Why It Matters Now</a></li>
+  <li><a href="#the-numbers" id="toc-the-numbers" class="nav-link" data-scroll-target="#the-numbers">The Numbers</a>
+  <ul class="collapse">
+  <li><a href="#tau-bench-airline-results" id="toc-tau-bench-airline-results" class="nav-link" data-scroll-target="#tau-bench-airline-results">TAU-bench Airline Results</a></li>
+  <li><a href="#assistantbench-results" id="toc-assistantbench-results" class="nav-link" data-scroll-target="#assistantbench-results">AssistantBench Results</a></li>
+  <li><a href="#failure-predictors-tau-bench" id="toc-failure-predictors-tau-bench" class="nav-link" data-scroll-target="#failure-predictors-tau-bench">Failure Predictors (TAU-bench)</a></li>
+  </ul></li>
+  <li><a href="#static-vs.-agentic-a-visual-distinction" id="toc-static-vs.-agentic-a-visual-distinction" class="nav-link" data-scroll-target="#static-vs.-agentic-a-visual-distinction">Static vs.&nbsp;Agentic: A Visual Distinction</a></li>
+  <li><a href="#the-mep-framework-three-parts" id="toc-the-mep-framework-three-parts" class="nav-link" data-scroll-target="#the-mep-framework-three-parts">The MEP Framework: Three Parts</a>
+  <ul class="collapse">
+  <li><a href="#explanation-artifact" id="toc-explanation-artifact" class="nav-link" data-scroll-target="#explanation-artifact">1. Explanation Artifact</a></li>
+  <li><a href="#linked-evidence-context" id="toc-linked-evidence-context" class="nav-link" data-scroll-target="#linked-evidence-context">2. Linked Evidence &amp; Context</a></li>
+  <li><a href="#verification-signals" id="toc-verification-signals" class="nav-link" data-scroll-target="#verification-signals">3. Verification Signals</a></li>
+  </ul></li>
+  <li><a href="#the-lineage-where-this-fits" id="toc-the-lineage-where-this-fits" class="nav-link" data-scroll-target="#the-lineage-where-this-fits">The Lineage: Where This Fits</a></li>
+  <li><a href="#rubber-ducking-the-jargon" id="toc-rubber-ducking-the-jargon" class="nav-link" data-scroll-target="#rubber-ducking-the-jargon">Rubber-Ducking the Jargon</a></li>
+  <li><a href="#what-to-watch-out-for" id="toc-what-to-watch-out-for" class="nav-link" data-scroll-target="#what-to-watch-out-for">What to Watch Out For</a></li>
+  <li><a href="#so-what" id="toc-so-what" class="nav-link" data-scroll-target="#so-what">So What?</a></li>
+  <li><a href="#reproduction-implementation" id="toc-reproduction-implementation" class="nav-link" data-scroll-target="#reproduction-implementation">Reproduction &amp; Implementation</a>
+  <ul class="collapse">
+  <li><a href="#setting-up-tau-bench" id="toc-setting-up-tau-bench" class="nav-link" data-scroll-target="#setting-up-tau-bench">Setting Up TAU-bench</a></li>
+  <li><a href="#pseudo-code-generating-an-mep" id="toc-pseudo-code-generating-an-mep" class="nav-link" data-scroll-target="#pseudo-code-generating-an-mep">Pseudo-Code: Generating an MEP</a></li>
+  <li><a href="#resource-links" id="toc-resource-links" class="nav-link" data-scroll-target="#resource-links">Resource Links</a></li>
+  </ul></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">From Features to Actions: Rethinking Explainability for AI Agents</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">AI Agents</div>
+    <div class="quarto-category">Explainability</div>
+    <div class="quarto-category">XAI</div>
+    <div class="quarto-category">LLMs</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Chaduvula et al.&nbsp;from the Vector Institute and Mayo Clinic argue that traditional XAI tools (SHAP, LIME) break down for agentic AI systems. Their Minimal Explanation Packet framework and TAU-bench evaluation reveal that state tracking consistency — not individual feature importance — is the strongest predictor of agent failure.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Sean Lewis </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 1, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="the-gist" class="level2">
+<h2 class="anchored" data-anchor-id="the-gist">The Gist</h2>
+<p>Traditional explainable AI (XAI) tools like SHAP and LIME do one thing well: they attribute importance to input features to explain a single prediction. But agentic AI systems don’t work that way. They don’t make one prediction and stop. Instead, they execute multi-step action sequences: they call tools, observe results, reason about what they see, and decide on the next action. Explaining <em>why an agent failed</em> isn’t about which feature mattered most—it’s about understanding where the decision chain broke.</p>
+<p><strong>Chaduvula et al.</strong> from the Vector Institute and Mayo Clinic make this distinction formal in a new paper (arXiv:2602.06841, Feb 2026). They draw a line between:</p>
+<ul>
+<li><strong>Static XAI</strong>: Feature attribution for single-pass predictions (SHAP, LIME, attention visualization)</li>
+<li><strong>Agentic XAI</strong>: Trace-based explanations for action sequences in agent trajectories</li>
+</ul>
+<p>Their solution is the <strong>Minimal Explanation Packet (MEP)</strong> framework—a structured way to document and verify agent behavior across multiple steps. They evaluate it on two benchmarks: TAU-bench Airline and AssistantBench, using GPT-5 Medium as an automated judge.</p>
+<p><strong>Key finding</strong>: State Tracking Consistency is the strongest predictor of agent failure (effect size Δ=0.333, relative risk RR=0.51). The agent’s ability to remember and apply what it has learned matters more than any individual feature.</p>
+<hr>
+</section>
+<section id="why-it-matters-now" class="level2">
+<h2 class="anchored" data-anchor-id="why-it-matters-now">Why It Matters Now</h2>
+<p>AI agents are moving from research playgrounds into production. They’re triaging patient calls at health systems, handling customer support tickets, running multi-step research tasks, and managing workflows. When they go wrong—and they will—we need to know why.</p>
+<p>The old XAI toolkit doesn’t cut it for agents:</p>
+<ul>
+<li><strong>SHAP</strong> tells you which patient symptoms mattered for a triage decision, but it can’t explain why the agent <em>looped infinitely</em> trying to refill a prescription.</li>
+<li><strong>LIME</strong> can approximate a single prediction, but agents make dozens of decisions in sequence; local linear approximations don’t capture the emergent failures of chains.</li>
+<li><strong>Attention visualization</strong> shows which tokens influenced the output, but not whether the agent <em>correctly remembered and applied information from five steps ago</em>.</li>
+</ul>
+<p>This is a gap in practice. Healthcare systems, banks, and logistics companies are deploying agents, and auditors are asking for explanations. Regulators are too. The MEP framework gives you a structured language to answer: “Why did that agent take that sequence of actions?”</p>
+<hr>
+</section>
+<section id="the-numbers" class="level2">
+<h2 class="anchored" data-anchor-id="the-numbers">The Numbers</h2>
+<section id="tau-bench-airline-results" class="level3">
+<h3 class="anchored" data-anchor-id="tau-bench-airline-results">TAU-bench Airline Results</h3>
+<ul>
+<li><strong>Model</strong>: o4-mini-2025-04-16 (a lightweight agent model)</li>
+<li><strong>Task Accuracy</strong>: 56%</li>
+<li><strong>Explanation Quality</strong>: Evaluated on 6 rubric categories using GPT-5 Medium</li>
+</ul>
+</section>
+<section id="assistantbench-results" class="level3">
+<h3 class="anchored" data-anchor-id="assistantbench-results">AssistantBench Results</h3>
+<ul>
+<li><strong>Model</strong>: GPT-4.1</li>
+<li><strong>Task Accuracy</strong>: 17.39%</li>
+<li><strong>Benchmark</strong>: More general assistant tasks, higher complexity</li>
+</ul>
+</section>
+<section id="failure-predictors-tau-bench" class="level3">
+<h3 class="anchored" data-anchor-id="failure-predictors-tau-bench">Failure Predictors (TAU-bench)</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Rubric Category</th>
+<th>Effect Size (Δ)</th>
+<th>Relative Risk (RR)</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>State Tracking Consistency</strong></td>
+<td>0.333</td>
+<td>0.51</td>
+<td>Strongest predictor. Poor state tracking = 2x failure risk.</td>
+</tr>
+<tr class="even">
+<td>Trace Completeness</td>
+<td>0.267</td>
+<td>0.62</td>
+<td>Missing steps in explanation → higher failure.</td>
+</tr>
+<tr class="odd">
+<td>Evidence Grounding</td>
+<td>0.201</td>
+<td>0.69</td>
+<td>Unexplained assertions → moderate failure risk.</td>
+</tr>
+<tr class="even">
+<td>Action Justification</td>
+<td>0.189</td>
+<td>0.71</td>
+<td>Weak reasoning → slight increase in failures.</td>
+</tr>
+<tr class="odd">
+<td>Verification Signal Clarity</td>
+<td>0.156</td>
+<td>0.76</td>
+<td>Harder to spot mistakes → lower failure risk.</td>
+</tr>
+<tr class="even">
+<td>Artifact Coherence</td>
+<td>0.134</td>
+<td>0.81</td>
+<td>Least predictive of failure.</td>
+</tr>
+</tbody>
+</table>
+<p>The standout: agents that lose track of their state (what they’ve learned, what they’ve tried, what the current situation is) fail far more often than those with other weaknesses.</p>
+<hr>
+</section>
+</section>
+<section id="static-vs.-agentic-a-visual-distinction" class="level2">
+<h2 class="anchored" data-anchor-id="static-vs.-agentic-a-visual-distinction">Static vs.&nbsp;Agentic: A Visual Distinction</h2>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">graph TB
+    subgraph Static["Static XAI (Single Prediction)"]
+        Input["Input Features"]
+        Model["Model"]
+        Pred["Prediction"]
+        SHAP["SHAP/LIME&lt;br/&gt;Feature Attribution"]
+
+        Input --&gt; Model
+        Model --&gt; Pred
+        Pred --&gt; SHAP
+    end
+
+    subgraph Agentic["Agentic XAI (Action Trajectory)"]
+        Goal["Goal"]
+        Agent["Agent Loop"]
+        Act1["Action₁"]
+        Obs1["Observation₁"]
+        Act2["Action₂"]
+        Obs2["Observation₂"]
+        DotDot["..."]
+        Outcome["Outcome"]
+        MEP["MEP Framework&lt;br/&gt;(Artifact + Evidence + Verification)"]
+
+        Goal --&gt; Agent
+        Agent --&gt; Act1
+        Act1 --&gt; Obs1
+        Obs1 --&gt; Act2
+        Act2 --&gt; Obs2
+        Obs2 --&gt; DotDot
+        DotDot --&gt; Outcome
+        Outcome --&gt; MEP
+    end
+
+    style Static fill:#f9f9f9,stroke:#ccc
+    style Agentic fill:#e8f5e9,stroke:#0d7c5f,stroke-width:3px
+    style MEP fill:#0d7c5f,color:#fff,stroke:#0d7c5f
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<p><strong>Left (Static)</strong>: Input → Model → Prediction → SHAP says “features A and B drove this output.”</p>
+<p><strong>Right (Agentic)</strong>: Goal → Agent takes actions, observes results, reasons, repeats → Outcome → MEP explains “Agent did X because of state Y, evidenced by Z, verifiable by checking Q.”</p>
+<hr>
+</section>
+<section id="the-mep-framework-three-parts" class="level2">
+<h2 class="anchored" data-anchor-id="the-mep-framework-three-parts">The MEP Framework: Three Parts</h2>
+<p>The Minimal Explanation Packet is structured around three components, designed to be both human-interpretable and machine-verifiable:</p>
+<section id="explanation-artifact" class="level3">
+<h3 class="anchored" data-anchor-id="explanation-artifact">1. Explanation Artifact</h3>
+<p><em>What happened, in chronological order.</em></p>
+<p>A structured log of the agent’s action trajectory:</p>
+<pre><code>Step 1: [Agent Query] "What flights are available on 2026-03-15?"
+Step 2: [Tool Call] search_flights(date="2026-03-15", from="ORD", to="LAX")
+Step 3: [Tool Return] 3 flights found: UA123, AA456, DL789
+Step 4: [Reasoning] "All three are nonstop. I should check prices."
+Step 5: [Tool Call] get_price(flight_id="UA123")
+Step 6: [Tool Return] $285
+Step 7: [Tool Call] get_price(flight_id="AA456")
+Step 8: [Tool Return] $312
+...
+Final: [Agent Action] "I recommend AA456 at $312 (best value)."</code></pre>
+<p>This is <em>not</em> a natural language narrative. It’s a structured trace with clear labels: what the agent queried, what tools it called, what it returned, and how the agent interpreted those returns. This explicitness is key—it makes state tracking visible.</p>
+</section>
+<section id="linked-evidence-context" class="level3">
+<h3 class="anchored" data-anchor-id="linked-evidence-context">2. Linked Evidence &amp; Context</h3>
+<p><em>Why did it take each action?</em></p>
+<p>For each step, you document: - <strong>What the agent knew at that point</strong> (current state) - <strong>What evidence justified the next action</strong> (ground truth from the tool return, or prior knowledge) - <strong>Any assumptions made</strong> (e.g., “Assumed prices are in USD”)</p>
+<pre><code>Step 4 → Step 5 Justification:
+- State: Agent knows 3 nonstop flights exist but no price data yet.
+- Evidence: Tool returned flight IDs but not fares.
+- Decision: "Query prices for each flight to recommend the cheapest."
+- Assumption: Price data is available via get_price(); user prefers lower fare.</code></pre>
+</section>
+<section id="verification-signals" class="level3">
+<h3 class="anchored" data-anchor-id="verification-signals">3. Verification Signals</h3>
+<p><em>How would you check this explanation is correct?</em></p>
+<p>Propose tests an external auditor could run:</p>
+<ul>
+<li><strong>Counterfactual</strong>: If the agent had skipped step 5 (checking prices), would it still recommend AA456? No → the price check was necessary.</li>
+<li><strong>Trace Consistency</strong>: Do all references to “3 flights” remain correct throughout? Does the agent ever claim to know a price it hasn’t queried?</li>
+<li><strong>Output Justification</strong>: Is the final recommendation defensible given the evidence in steps 1–8?</li>
+</ul>
+<p>This is the “how to spot a lie” layer. It lets you catch hallucinated tool returns or logical gaps.</p>
+<hr>
+</section>
+</section>
+<section id="the-lineage-where-this-fits" class="level2">
+<h2 class="anchored" data-anchor-id="the-lineage-where-this-fits">The Lineage: Where This Fits</h2>
+<p>This paper sits at the intersection of several research streams:</p>
+<p><strong>Feature Attribution (2010s–2020s)</strong> - SHAP (Lundberg &amp; Lee 2017): Unified framework for local feature importance - LIME (Ribeiro et al.&nbsp;2016): Local interpretable model-agnostic explanations - Attention visualization (Bahdanau et al.&nbsp;2014, Vaswani et al.&nbsp;2017): Which tokens matter?</p>
+<p><strong>Agent &amp; Tool-Use Research (2023–2025)</strong> - ReAct (Yao et al.&nbsp;2022): Chain reasoning + action in language models - WebShop (Yao et al.&nbsp;2022): Multi-step web agent environment - TAU-bench (Llm-agents et al.&nbsp;2024): Systematic evaluation of agent reasoning - SWE-bench (Jimenez et al.&nbsp;2023): Agent performance on software engineering tasks</p>
+<p><strong>System-Level Explainability</strong> - Chaduvula et al.&nbsp;(2026) bridges from feature-level (SHAP) to system-level (agent traces) - The shift: <em>Why</em> a model predicts X is less important than <em>why</em> an agent chose sequence X→Y→Z.</p>
+<hr>
+</section>
+<section id="rubber-ducking-the-jargon" class="level2">
+<h2 class="anchored" data-anchor-id="rubber-ducking-the-jargon">Rubber-Ducking the Jargon</h2>
+<p><strong>Static XAI</strong>: Traditional explainability (SHAP, LIME) that treats the model as a black box and explains single predictions via input feature importance.</p>
+<p><strong>Agentic XAI</strong>: Explainability for agents that must account for multi-step action sequences, state evolution, and tool interactions.</p>
+<p><strong>MEP (Minimal Explanation Packet)</strong>: A three-part framework: (1) structured trace of actions, (2) evidence and context for each step, (3) verification signals to check the explanation.</p>
+<p><strong>Explanation Artifact</strong>: The chronological log of what the agent did: queries, tool calls, returns, reasoning steps.</p>
+<p><strong>State Tracking Consistency</strong>: How well the agent remembers and applies information learned earlier. Top predictor of failure in TAU-bench.</p>
+<p><strong>TAU-bench</strong>: Airline, hotel, and multi-domain task benchmarks for evaluating reasoning and tool use in agents.</p>
+<p><strong>Relative Risk (RR)</strong>: A statistic showing how much an outcome changes with a condition. RR=0.51 means poor state tracking cuts success rate in half.</p>
+<p><strong>Rubric-Based Evaluation</strong>: Instead of automated metrics, a human rubric (or GPT-5) scores explanations on 6 categories (coherence, completeness, etc.).</p>
+<hr>
+</section>
+<section id="what-to-watch-out-for" class="level2">
+<h2 class="anchored" data-anchor-id="what-to-watch-out-for">What to Watch Out For</h2>
+<ol type="1">
+<li><p><strong>Very New Framework</strong>: This paper is from February 2026. The MEP framework is a proposal, not yet standard practice. Adoption will depend on community buy-in and tooling.</p></li>
+<li><p><strong>GPT-5 Medium as Judge</strong>: The authors use GPT-5 Medium to score explanations. This is convenient but introduces bias—the judge is evaluating agents on the same domain it’s trained on. How reproducible are these scores? How does judge bias affect relative rankings?</p></li>
+<li><p><strong>Limited Benchmarks</strong>: Only two benchmarks tested (TAU-bench Airline, AssistantBench). Airline tasks are relatively structured. What about open-ended creative tasks, or adversarial settings where agents face disinformation?</p></li>
+<li><p><strong>Weak Agents</strong>: 56% accuracy on TAU-bench Airline and 17.39% on AssistantBench are low. Before you optimize explanations, you might want to first improve the agents themselves. The paper doesn’t address this chicken-and-egg problem.</p></li>
+<li><p><strong>No Formal Semantics</strong>: “State Tracking Consistency” is evaluated rubric-style, not formally defined. How reproducible is this measure across different raters or rubrics?</p></li>
+<li><p><strong>Scalability</strong>: Generating MEPs requires structured logging at every step. For agents with hundreds of tool calls, are MEPs still interpretable to humans? The paper doesn’t discuss scalability.</p></li>
+</ol>
+<hr>
+</section>
+<section id="so-what" class="level2">
+<h2 class="anchored" data-anchor-id="so-what">So What?</h2>
+<p>If you’re building or deploying agents—in healthcare, customer service, research, or finance—here are the takeaways:</p>
+<ol type="1">
+<li><p><strong>Don’t Use Static XAI for Agents</strong>: SHAP and LIME don’t capture the sources of agent failure. Your auditors will ask “Why did it do that?” and feature attribution won’t answer it.</p></li>
+<li><p><strong>Track State Explicitly</strong>: Agents that maintain and apply learned context succeed more often. Build state management into your agents from the start. Log what the agent knows at each step.</p></li>
+<li><p><strong>Adopt Trace-Based Explanations</strong>: Use the MEP framework (or something like it) as a template. At minimum:</p>
+<ul>
+<li>Log <em>every</em> tool call and return (structured, not prose).</li>
+<li>Justify each action with reference to prior steps.</li>
+<li>Build in verification checks (counterfactuals, trace consistency).</li>
+</ul></li>
+<li><p><strong>Audit for State Consistency</strong>: If you’re investigating agent failures, look first for gaps in state tracking. Did the agent forget a constraint? Did it contradict itself? Did it reuse information without verifying it?</p></li>
+<li><p><strong>Expect Tool Failures</strong>: Agents call external tools (databases, APIs, web searches). Document what the tool returned, what the agent expected, and where they diverged. This is where many failures hide.</p></li>
+</ol>
+<hr>
+</section>
+<section id="reproduction-implementation" class="level2">
+<h2 class="anchored" data-anchor-id="reproduction-implementation">Reproduction &amp; Implementation</h2>
+<section id="setting-up-tau-bench" class="level3">
+<h3 class="anchored" data-anchor-id="setting-up-tau-bench">Setting Up TAU-bench</h3>
+<p>TAU-bench is available on Hugging Face. To run the Airline benchmark:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Clone and install</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/llm-agents/tau-bench</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> tau-bench</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-e</span> .</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Run a single agent</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="ex">tau-bench</span> <span class="at">--benchmark</span> airline <span class="dt">\</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">--model</span> o4-mini-2025-04-16 <span class="dt">\</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>          <span class="at">--num-episodes</span> 10 <span class="dt">\</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>          <span class="at">--output</span> results.json</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="pseudo-code-generating-an-mep" class="level3">
+<h3 class="anchored" data-anchor-id="pseudo-code-generating-an-mep">Pseudo-Code: Generating an MEP</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Agent:</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>):</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.state <span class="op">=</span> {}</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.trace <span class="op">=</span> []</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> step(<span class="va">self</span>, query):</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""One step of agent reasoning."""</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Log the query</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.trace.append({</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>            <span class="st">"step"</span>: <span class="bu">len</span>(<span class="va">self</span>.trace) <span class="op">+</span> <span class="dv">1</span>,</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>            <span class="st">"type"</span>: <span class="st">"query"</span>,</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>            <span class="st">"content"</span>: query</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>        })</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Decide which tool to call</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>        tool_name, tool_args <span class="op">=</span> <span class="va">self</span>.decide(query)</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.trace.append({</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>            <span class="st">"step"</span>: <span class="bu">len</span>(<span class="va">self</span>.trace) <span class="op">+</span> <span class="dv">1</span>,</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>            <span class="st">"type"</span>: <span class="st">"tool_call"</span>,</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>            <span class="st">"tool"</span>: tool_name,</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>            <span class="st">"args"</span>: tool_args</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>        })</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Call the tool and log the return</span></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>        result <span class="op">=</span> <span class="va">self</span>.call_tool(tool_name, tool_args)</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.trace.append({</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>            <span class="st">"step"</span>: <span class="bu">len</span>(<span class="va">self</span>.trace) <span class="op">+</span> <span class="dv">1</span>,</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>            <span class="st">"type"</span>: <span class="st">"tool_return"</span>,</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>            <span class="st">"result"</span>: result</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>        })</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Update state based on result</span></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.state.update(<span class="va">self</span>.extract_facts(result))</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Log reasoning</span></span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>        reasoning <span class="op">=</span> <span class="va">self</span>.reason(query, result, <span class="va">self</span>.state)</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.trace.append({</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>            <span class="st">"step"</span>: <span class="bu">len</span>(<span class="va">self</span>.trace) <span class="op">+</span> <span class="dv">1</span>,</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>            <span class="st">"type"</span>: <span class="st">"reasoning"</span>,</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>            <span class="st">"content"</span>: reasoning,</span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>            <span class="st">"state_snapshot"</span>: <span class="bu">dict</span>(<span class="va">self</span>.state)</span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>        })</span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> reasoning</span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> generate_mep(<span class="va">self</span>):</span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Build the Minimal Explanation Packet."""</span></span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>        artifact <span class="op">=</span> <span class="va">self</span>.trace  <span class="co"># The structured log</span></span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>        evidence <span class="op">=</span> {}</span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i, entry <span class="kw">in</span> <span class="bu">enumerate</span>(<span class="va">self</span>.trace):</span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> entry[<span class="st">"type"</span>] <span class="op">==</span> <span class="st">"tool_call"</span>:</span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>                <span class="co"># Link this call to its justification</span></span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a>                evidence[i] <span class="op">=</span> {</span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"prior_state"</span>: <span class="va">self</span>.trace[i<span class="op">-</span><span class="dv">1</span>].get(<span class="st">"state_snapshot"</span>, {}),</span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"prior_result"</span>: <span class="va">self</span>.trace[i<span class="op">-</span><span class="dv">1</span>].get(<span class="st">"result"</span>),</span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"decision"</span>: <span class="ss">f"Calling </span><span class="sc">{</span>entry[<span class="st">'tool'</span>]<span class="sc">}</span><span class="ss"> to resolve: </span><span class="sc">{</span><span class="va">self</span><span class="sc">.</span>trace[i<span class="op">-</span><span class="dv">2</span>]<span class="sc">.</span>get(<span class="st">'content'</span>)<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a>                }</span>
+<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a>        verification <span class="op">=</span> {</span>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>            <span class="st">"counterfactuals"</span>: [</span>
+<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a>                <span class="ss">f"If step </span><span class="sc">{</span>i<span class="sc">}</span><span class="ss"> had been skipped, would the final output change?"</span>,</span>
+<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a>                <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(<span class="va">self</span>.trace))</span>
+<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a>            ],</span>
+<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a>            <span class="st">"state_consistency"</span>: <span class="va">self</span>.check_state_consistency(),</span>
+<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a>            <span class="st">"trace_completeness"</span>: <span class="va">self</span>.check_trace_completeness()</span>
+<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> {</span>
+<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a>            <span class="st">"artifact"</span>: artifact,</span>
+<span id="cb4-71"><a href="#cb4-71" aria-hidden="true" tabindex="-1"></a>            <span class="st">"evidence"</span>: evidence,</span>
+<span id="cb4-72"><a href="#cb4-72" aria-hidden="true" tabindex="-1"></a>            <span class="st">"verification"</span>: verification</span>
+<span id="cb4-73"><a href="#cb4-73" aria-hidden="true" tabindex="-1"></a>        }</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="resource-links" class="level3">
+<h3 class="anchored" data-anchor-id="resource-links">Resource Links</h3>
+<ul>
+<li><strong>Paper</strong>: arXiv:2602.06841 (Chaduvula et al., 2026)</li>
+<li><strong>TAU-bench</strong>: https://github.com/llm-agents/tau-bench</li>
+<li><strong>SHAP</strong>: https://github.com/slundberg/shap</li>
+<li><strong>LIME</strong>: https://github.com/marcotcr/lime</li>
+<li><strong>ReAct</strong>: https://github.com/ysymyth/ReAct</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<p>Chaduvula, S., Chen, Y., Rao, P., &amp; Reitter, D. (2026). From Features to Actions: Explainability in Agentic AI. <em>arXiv preprint arXiv:2602.06841</em>.</p>
+<p>Lundberg, S. M., &amp; Lee, S.-I. (2017). A unified approach to interpreting model predictions. <em>Advances in Neural Information Processing Systems</em>, 30.</p>
+<p>Ribeiro, M. T., Singh, S., &amp; Guestrin, C. (2016). “Why should I trust you?”: Explaining the predictions of any classifier. In <em>Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining</em>, 1135–1144.</p>
+<p>Yao, S., Yu, D., Zhao, J., Shafran, I., Griffiths, T. L., Cao, Y., &amp; Narasimhan, K. (2022). ReAct: Synergizing reasoning and acting in language models. <em>arXiv preprint arXiv:2210.03629</em>.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<script src="https://utteranc.es/client.js" repo="seanlewis08/blogComments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+<script src="animations.js"></script>
+
+
+
+
+</body></html>

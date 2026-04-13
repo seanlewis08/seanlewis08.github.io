@@ -1,0 +1,57 @@
+<svg viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="450" fill="#FA8072"/>
+
+  <!-- Title -->
+  <text x="400" y="40" font-family="system-ui, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#1a1a1a">
+    MLAgentBench
+  </text>
+
+  <!-- Subtitle -->
+  <text x="400" y="70" font-family="system-ui, sans-serif" font-size="12" text-anchor="middle" fill="#0d7c5f">
+    Testing AI agents on real ML research
+  </text>
+
+  <!-- LEFT Bar: Canonical Tasks -->
+  <g>
+    <!-- Bar background -->
+    <rect x="150" y="120" width="80" height="200" fill="none" stroke="#4a4a4a" stroke-width="1"/>
+
+    <!-- Filled bar (90%) -->
+    <rect x="150" y="140" width="80" height="180" fill="#0d7c5f" opacity="0.75"/>
+
+    <!-- Percentage text -->
+    <text x="190" y="235" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="white">
+      ~90%
+    </text>
+
+    <!-- Label below -->
+    <text x="190" y="335" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#1a1a1a">
+      Canonical Tasks
+    </text>
+  </g>
+
+  <!-- RIGHT Bar: Research Tasks -->
+  <g>
+    <!-- Bar background -->
+    <rect x="570" y="120" width="80" height="200" fill="none" stroke="#4a4a4a" stroke-width="1"/>
+
+    <!-- Filled bar (15%) -->
+    <rect x="570" y="290" width="80" height="30" fill="#6d5acd" opacity="0.75"/>
+
+    <!-- Percentage text -->
+    <text x="610" y="310" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="white">
+      ~15%
+    </text>
+
+    <!-- Label below -->
+    <text x="610" y="335" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#1a1a1a">
+      Research Tasks
+    </text>
+  </g>
+
+  <!-- Footer -->
+  <text x="400" y="420" font-family="system-ui, sans-serif" font-size="11" text-anchor="middle" fill="#8a8a8a">
+    Huang et al. (2024) · ICLR · 15 ML Tasks
+  </text>
+</svg>

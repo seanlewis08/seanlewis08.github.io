@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Sean Lewis">
+<meta name="dcterms.date" content="2026-02-25">
+<meta name="description" content="Yao et al.’s ICLR 2023 paper introduced ReAct — interleaving reasoning traces with actions in language models. The key insight: chain-of-thought alone hallucinates (56% error rate), but grounding reasoning in real actions nearly eliminates it. ReAct became the blueprint for modern AI agents.">
+
+<title>ReAct: When Language Models Learn to Think and Do – Sean Lewis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Sean Lewis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../projects.html"> 
+<span class="menu-text">Projects</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/seanlewis08"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/selew/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-gist" id="toc-the-gist" class="nav-link active" data-scroll-target="#the-gist">The Gist</a></li>
+  <li><a href="#why-it-matters-now" id="toc-why-it-matters-now" class="nav-link" data-scroll-target="#why-it-matters-now">Why It Matters Now</a></li>
+  <li><a href="#the-hallucination-problem-how-react-fixed-it" id="toc-the-hallucination-problem-how-react-fixed-it" class="nav-link" data-scroll-target="#the-hallucination-problem-how-react-fixed-it">The Hallucination Problem &amp; How ReAct Fixed It</a>
+  <ul class="collapse">
+  <li><a href="#why-cot-hallucinates" id="toc-why-cot-hallucinates" class="nav-link" data-scroll-target="#why-cot-hallucinates">Why CoT Hallucinates</a></li>
+  <li><a href="#reacts-grounding-strategy" id="toc-reacts-grounding-strategy" class="nav-link" data-scroll-target="#reacts-grounding-strategy">ReAct’s Grounding Strategy</a></li>
+  <li><a href="#the-numbers" id="toc-the-numbers" class="nav-link" data-scroll-target="#the-numbers">The Numbers</a></li>
+  </ul></li>
+  <li><a href="#the-lineage-from-cot-to-modern-agents" id="toc-the-lineage-from-cot-to-modern-agents" class="nav-link" data-scroll-target="#the-lineage-from-cot-to-modern-agents">The Lineage: From CoT to Modern Agents</a></li>
+  <li><a href="#rubber-ducking-the-jargon" id="toc-rubber-ducking-the-jargon" class="nav-link" data-scroll-target="#rubber-ducking-the-jargon">Rubber-Ducking the Jargon</a></li>
+  <li><a href="#what-to-watch-out-for" id="toc-what-to-watch-out-for" class="nav-link" data-scroll-target="#what-to-watch-out-for">What to Watch Out For</a></li>
+  <li><a href="#so-what" id="toc-so-what" class="nav-link" data-scroll-target="#so-what">So What?</a></li>
+  <li><a href="#reproduction-implementation" id="toc-reproduction-implementation" class="nav-link" data-scroll-target="#reproduction-implementation">Reproduction &amp; Implementation</a>
+  <ul class="collapse">
+  <li><a href="#setting-up" id="toc-setting-up" class="nav-link" data-scroll-target="#setting-up">Setting Up</a></li>
+  <li><a href="#example-react-prompt-format" id="toc-example-react-prompt-format" class="nav-link" data-scroll-target="#example-react-prompt-format">Example ReAct Prompt Format</a></li>
+  <li><a href="#pseudo-code-for-the-loop" id="toc-pseudo-code-for-the-loop" class="nav-link" data-scroll-target="#pseudo-code-for-the-loop">Pseudo-Code for the Loop</a></li>
+  <li><a href="#key-resources" id="toc-key-resources" class="nav-link" data-scroll-target="#key-resources">Key Resources</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">ReAct: When Language Models Learn to Think and Do</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">AI Agents</div>
+    <div class="quarto-category">Reasoning</div>
+    <div class="quarto-category">LLMs</div>
+    <div class="quarto-category">ICLR</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Yao et al.’s ICLR 2023 paper introduced ReAct — interleaving reasoning traces with actions in language models. The key insight: chain-of-thought alone hallucinates (56% error rate), but grounding reasoning in real actions nearly eliminates it. ReAct became the blueprint for modern AI agents.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Sean Lewis </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">February 25, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="the-gist" class="level2">
+<h2 class="anchored" data-anchor-id="the-gist">The Gist</h2>
+<p><strong>ReAct</strong> (Reasoning + Acting) was the breakthrough paper that showed language models don’t have to choose between two worlds: pure reasoning or pure action.</p>
+<p>Before ReAct, you had a fork in the road:</p>
+<ul>
+<li><strong>Chain-of-Thought (CoT):</strong> Models think step-by-step but stay in their own heads. Result: eloquent hallucinations.</li>
+<li><strong>Action-only agents:</strong> Models just act—call APIs, search, click—without explicit reasoning. Result: rigid, hard to debug.</li>
+</ul>
+<p>ReAct merged these paths into a <strong>Thought → Action → Observation loop</strong>. The model reasons about what to do, takes an action (like searching Wikipedia), observes the result, and uses that <em>real</em> observation to refine its next thought. It’s the difference between a student writing an essay in a vacuum versus one that can look things up as they write.</p>
+<p>The payoff is massive:</p>
+<ul>
+<li><strong>HotpotQA (multi-hop question answering):</strong> CoT’s hallucination rate: 56%. ReAct’s: ~0%.</li>
+<li><strong>ALFWorld (interactive household simulation):</strong> Action-only baseline: 45% success. ReAct: 71%.</li>
+<li><strong>Fever (fact verification):</strong> ReAct competitive with CoT but far more faithful to retrieved facts.</li>
+</ul>
+<p>This wasn’t just incremental—it reframed what agents could be.</p>
+</section>
+<section id="why-it-matters-now" class="level2">
+<h2 class="anchored" data-anchor-id="why-it-matters-now">Why It Matters Now</h2>
+<p>If you’ve used Claude’s tool calling, GPT-4’s function calling, or any LangChain agent, you’ve been using ReAct’s DNA.</p>
+<p>The Thought-Action-Observation loop is now the canonical design pattern for agentic AI. When you see:</p>
+<pre><code>Thought: I need to find the population of Nairobi
+Action: Search["Nairobi population"]
+Observation: [Wikipedia result: ~4.3 million]
+Thought: Now I have the data, let me verify this...</code></pre>
+<p>…you’re looking at ReAct’s legacy, even if the paper isn’t cited.</p>
+<p>The reason ReAct became foundational is subtle: it proved that <strong>grounding reasoning in reality works</strong>. Not just theoretically—empirically, on real benchmarks. That insight reshaped how ML engineers think about building systems that need to be both intelligent and trustworthy.</p>
+</section>
+<section id="the-hallucination-problem-how-react-fixed-it" class="level2">
+<h2 class="anchored" data-anchor-id="the-hallucination-problem-how-react-fixed-it">The Hallucination Problem &amp; How ReAct Fixed It</h2>
+<section id="why-cot-hallucinates" class="level3">
+<h3 class="anchored" data-anchor-id="why-cot-hallucinates">Why CoT Hallucinates</h3>
+<p>Chain-of-Thought is powerful but fragile. When a model has to reason entirely in its own latent space, without access to external facts, it tends to confabulate. On HotpotQA—a benchmark that requires retrieving multiple Wikipedia passages to answer—CoT achieved a 56% hallucination rate. That’s not a typo. More than half the time, the model confidently stated false facts.</p>
+<p>The reason is simple: the model was trained to predict plausible continuations of text. Without real information to anchor its reasoning, it predicts <em>plausible-sounding</em> answers. A question like “Which basketball player co-wrote a book with a chess grandmaster?” requires two separate facts. CoT might invent them both.</p>
+</section>
+<section id="reacts-grounding-strategy" class="level3">
+<h3 class="anchored" data-anchor-id="reacts-grounding-strategy">ReAct’s Grounding Strategy</h3>
+<p>ReAct’s solution was to interrupt the reasoning loop with <strong>observations from external reality</strong>. Instead of:</p>
+<pre><code>Q: Which basketball player co-wrote a book with a chess grandmaster?
+Reasoning: Michael Jordan wrote books... Magnus Carlsen wrote books...
+Answer: Michael Jordan and Magnus Carlsen</code></pre>
+<p>ReAct does:</p>
+<pre><code>Thought: I need to find basketball players who co-wrote books.
+Action: Search["basketball player co-wrote book"]
+Observation: [Result 1: Josh McRoberts... Result 2: ...]
+Thought: Let me check if any of these co-wrote with a chess grandmaster.
+Action: Search["chess grandmaster autobiography co-author"]
+Observation: [Result: Hans Niemann... Hans Ree... ]
+Thought: No match yet. Let me search more specifically.
+Action: Search["[player name] chess grandmaster book"]
+...</code></pre>
+<p>The observation forces the model to work with <em>real data</em>. If a fact isn’t in the search results, the model can’t invent it credibly. The hallucination rate plummeted to near-zero.</p>
+</section>
+<section id="the-numbers" class="level3">
+<h3 class="anchored" data-anchor-id="the-numbers">The Numbers</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Task</th>
+<th>CoT</th>
+<th>ReAct</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>HotpotQA</strong></td>
+<td>56% hallucination</td>
+<td>~0% hallucination</td>
+</tr>
+<tr class="even">
+<td><strong>ALFWorld</strong></td>
+<td>N/A (action-only)</td>
+<td>71% success</td>
+</tr>
+<tr class="odd">
+<td><strong>Fever</strong></td>
+<td>Competitive</td>
+<td>Competitive (more faithful)</td>
+</tr>
+</tbody>
+</table>
+<p>The mechanism is straightforward: <strong>ground your reasoning in real observations, and you eliminate hallucination</strong>.</p>
+</section>
+</section>
+<section id="the-lineage-from-cot-to-modern-agents" class="level2">
+<h2 class="anchored" data-anchor-id="the-lineage-from-cot-to-modern-agents">The Lineage: From CoT to Modern Agents</h2>
+<p>ReAct built directly on Wei et al.’s <strong>Chain-of-Thought</strong> (2022), which showed that prompting models to reason step-by-step improved accuracy. But CoT was reasoning-only. The parallel thread was tool-use in language models—Toolformer, and later, function calling APIs.</p>
+<p>ReAct’s genius was <em>combining</em> them: let models reason <em>and</em> call tools in a tight feedback loop.</p>
+<p>The lineage:</p>
+<ol type="1">
+<li><strong>Chain-of-Thought (Wei et al., 2022):</strong> Prove that reasoning helps.</li>
+<li><strong>ReAct (Yao et al., 2023):</strong> Prove that grounded reasoning + action eliminates hallucination.</li>
+<li><strong>Toolformer (Schick et al., 2023):</strong> Fine-tune models to call tools mid-generation.</li>
+<li><strong>Function Calling APIs (OpenAI, Anthropic, 2023):</strong> Productize the ReAct loop.</li>
+<li><strong>Modern Agents (LangChain, AutoGPT, Claude SDK):</strong> Industrialize the loop.</li>
+</ol>
+<p>Each step built on the insight: the model’s internal reasoning is most powerful when anchored to external reality.</p>
+</section>
+<section id="rubber-ducking-the-jargon" class="level2">
+<h2 class="anchored" data-anchor-id="rubber-ducking-the-jargon">Rubber-Ducking the Jargon</h2>
+<ul>
+<li><strong>ReAct:</strong> Reasoning + Acting. The core contribution.</li>
+<li><strong>Reasoning trace:</strong> The intermediate thoughts the model generates. “I need to find X.”</li>
+<li><strong>Action space:</strong> The set of available actions. In the paper: web search, Wikipedia lookup, database queries, code execution.</li>
+<li><strong>Observation:</strong> The result of an action. The actual data returned.</li>
+<li><strong>HotpotQA:</strong> Benchmark requiring multi-hop reasoning over Wikipedia. “Which film was released first, A or B?” → search for A’s release date, search for B’s, compare.</li>
+<li><strong>ALFWorld:</strong> Simulated household environment. “Put the clean mug in the cupboard.” The model must take actions in a text-based sim.</li>
+<li><strong>Grounding:</strong> Anchoring reasoning in real external data (the opposite of hallucination).</li>
+<li><strong>Hallucination rate:</strong> Percentage of generated answers that contain false facts.</li>
+</ul>
+</section>
+<section id="what-to-watch-out-for" class="level2">
+<h2 class="anchored" data-anchor-id="what-to-watch-out-for">What to Watch Out For</h2>
+<p>ReAct is beautiful, but it has limits worth knowing:</p>
+<ol type="1">
+<li><p><strong>Model-specific:</strong> Tested on PaLM-540B and Davinci-003. Smaller models might struggle with the multi-step reasoning format. (Though subsequent work shows the pattern scales.)</p></li>
+<li><p><strong>Action space is constrained:</strong> The paper tests web search, Wikipedia lookup, calculator, and code execution. Not every task has a clean action set. What if you need to reason about something truly novel?</p></li>
+<li><p><strong>ALFWorld is simulated:</strong> It’s a text-based household sim, not the real world. The 71% success is impressive but doesn’t guarantee real-world performance.</p></li>
+<li><p><strong>Prompting is brittle:</strong> The format of the Thought-Action-Observation prompt matters. Small changes in phrasing can shift success rates. The paper is sensitive to how you ask the model to format its reasoning.</p></li>
+<li><p><strong>Doesn’t solve the “when” problem:</strong> ReAct doesn’t tell you when to reason vs.&nbsp;when to act. Should you search first or think first? The paper doesn’t provide a principled answer. Modern agents often solve this with learned routing policies.</p></li>
+<li><p><strong>Limited to language models:</strong> Only tested with autoregressive LLMs at inference time. What about reasoning-optimized models that think before responding?</p></li>
+</ol>
+</section>
+<section id="so-what" class="level2">
+<h2 class="anchored" data-anchor-id="so-what">So What?</h2>
+<p>If you’re building an agent—a chatbot that answers questions, a code assistant, an automation system—ReAct’s template is your starting point:</p>
+<ol type="1">
+<li>Generate a thought (what do I need to do?).</li>
+<li>Propose an action (how do I get the information?).</li>
+<li>Observe the result (what did I learn?).</li>
+<li>Repeat until you reach an answer or conclusion.</li>
+</ol>
+<p>And the key lesson: <strong>ground your reasoning in real data</strong>. Don’t let the model think in a vacuum. Every step should be anchored to something external—a search result, a code execution output, a database query. That’s how you get from “confidently wrong” to “actually correct.”</p>
+</section>
+<section id="reproduction-implementation" class="level2">
+<h2 class="anchored" data-anchor-id="reproduction-implementation">Reproduction &amp; Implementation</h2>
+<section id="setting-up" class="level3">
+<h3 class="anchored" data-anchor-id="setting-up">Setting Up</h3>
+<p>To reproduce ReAct experiments locally, you’ll need:</p>
+<ol type="1">
+<li>A language model API or local model (the paper uses PaLM-540B and text-davinci-003).</li>
+<li>Environment access: Wikipedia (via API), a web search tool, a calculator, optionally a code interpreter.</li>
+<li>Benchmark datasets: HotpotQA, ALFWorld, Fever.</li>
+</ol>
+</section>
+<section id="example-react-prompt-format" class="level3">
+<h3 class="anchored" data-anchor-id="example-react-prompt-format">Example ReAct Prompt Format</h3>
+<p>Here’s how you’d prompt a model to use ReAct (simplified):</p>
+<pre><code>You will answer questions by interleaving Thought, Action, and Observation steps.
+Use the following format:
+
+Question: the input question you must answer
+Thought: you should always think about what to do
+Action: the action to take, should be one of [Search[query], Lookup[topic], Calculator[expression], Finish[answer]]
+Observation: the result of the action
+... (Thought/Action/Observation can repeat N times)
+Thought: I now know the final answer
+Finish[answer]
+
+Begin!
+
+Question: What is the elevation of the second-highest mountain in North America?
+Thought: I need to find the second-highest mountain in North America and its elevation.
+Action: Search[second highest mountain North America]
+Observation: Mount Logan is the highest at 20,310 ft. The second highest is Mount Saint Elias...
+...</code></pre>
+</section>
+<section id="pseudo-code-for-the-loop" class="level3">
+<h3 class="anchored" data-anchor-id="pseudo-code-for-the-loop">Pseudo-Code for the Loop</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> react_agent(question, model, tools):</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Run the ReAct loop until the agent outputs Finish[answer].</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    context <span class="op">=</span> <span class="ss">f"Question: </span><span class="sc">{</span>question<span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    max_steps <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> step <span class="kw">in</span> <span class="bu">range</span>(max_steps):</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Generate thought + action</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>        response <span class="op">=</span> model.generate(</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>            prompt<span class="op">=</span>context,</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>            stop_at<span class="op">=</span>[<span class="st">"Observation:"</span>]</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>        context <span class="op">+=</span> response</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Parse action</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>        action <span class="op">=</span> parse_action(response)</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> action.<span class="bu">type</span> <span class="op">==</span> <span class="st">"Finish"</span>:</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> action.answer</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Execute action and observe</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>        observation <span class="op">=</span> tools[action.<span class="bu">type</span>](action.arg)</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>        context <span class="op">+=</span> <span class="ss">f"</span><span class="ch">\n</span><span class="ss">Observation: </span><span class="sc">{</span>observation<span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="st">"Max steps reached"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="key-resources" class="level3">
+<h3 class="anchored" data-anchor-id="key-resources">Key Resources</h3>
+<ul>
+<li><strong>Original Paper:</strong> arXiv:2210.03629 – <a href="https://arxiv.org/abs/2210.03629">ReAct: Synergizing Reasoning and Acting in Language Models</a></li>
+<li><strong>GitHub:</strong> <a href="https://github.com/ysymyth/ReAct">ysymyth/ReAct</a> – Official implementation, datasets, and prompts.</li>
+<li><strong>HotpotQA Benchmark:</strong> <a href="https://hotpotqa.github.io/">hotpotqa.github.io</a></li>
+<li><strong>ALFWorld Environment:</strong> <a href="https://www.allenai.org/alfworld">alfworld.github.io</a></li>
+<li><strong>Further Reading:</strong> Follow-up work on multi-agent ReAct (Sap et al., 2023) and structured reasoning (Yang et al., 2023).</li>
+</ul>
+<hr>
+<p><strong>Takeaway:</strong> ReAct showed that the best way to make language models reliable is to let them think out loud <em>while</em> grounding that thinking in real external data. It’s a simple idea—almost obvious in hindsight—but it fundamentally changed how we build AI agents.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<script src="https://utteranc.es/client.js" repo="seanlewis08/blogComments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+<script src="animations.js"></script>
+
+
+
+
+</body></html>

@@ -259,6 +259,20 @@ body:has(.quarto-title-meta) {
 /* ── Blog Listing ── */
 .quarto-listing { margin-top: 1.5rem; }
 
+/* Salmon highlight for new paper posts (temp review marker) */
+div.quarto-post:has(a[href*="chain-of-thought-prompting"]),
+div.quarto-post:has(a[href*="plan-and-solve-prompting"]),
+div.quarto-post:has(a[href*="benchmarking-llm-agents"]),
+div.quarto-post:has(a[href*="react-reasoning-acting"]),
+div.quarto-post:has(a[href*="computer-age-statistical-inference"]),
+div.quarto-post:has(a[href*="non-manipulable-causes"]),
+div.quarto-post:has(a[href*="hypothesis-generation-llms"]),
+div.quarto-post:has(a[href*="explainability-agentic-ai"]),
+div.quarto-post:has(a[href*="star-agents-data-optimization"]),
+div.quarto-post:has(a[href*="agentic-ai-alzheimers"]) {
+  background: #FA8072 !important;
+}
+
 div.quarto-post {
   background: var(--bg-card);
   border: 1px solid var(--border);

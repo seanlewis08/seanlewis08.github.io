@@ -2,6 +2,16 @@
   {
     "listing": "/blog.html",
     "items": [
+      "/posts/agentic-ai-alzheimers/index.html",
+      "/posts/star-agents-data-optimization/index.html",
+      "/posts/explainability-agentic-ai/index.html",
+      "/posts/hypothesis-generation-llms/index.html",
+      "/posts/non-manipulable-causes/index.html",
+      "/posts/computer-age-statistical-inference/index.html",
+      "/posts/react-reasoning-acting/index.html",
+      "/posts/benchmarking-llm-agents/index.html",
+      "/posts/plan-and-solve-prompting/index.html",
+      "/posts/chain-of-thought-prompting/index.html",
       "/posts/evaluating-agents-md/index.html",
       "/posts/causal-forests/index.html",
       "/posts/ai-job-loss-comparative-advantage/index.html",

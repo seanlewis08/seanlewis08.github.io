@@ -1,0 +1,96 @@
+<svg viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif">
+  <!-- Background -->
+  <rect width="800" height="450" fill="#FA8072"/>
+
+  <!-- Title -->
+  <text x="400" y="40" font-size="32" font-weight="bold" text-anchor="middle" fill="#1a1a1a">
+    Agentic AI for Alzheimer's
+  </text>
+
+  <!-- Subtitle -->
+  <text x="400" y="70" font-size="16" text-anchor="middle" fill="#666">
+    Automated hypothesis testing at scale
+  </text>
+
+  <!-- Outer Loop Label -->
+  <text x="100" y="130" font-size="13" font-weight="600" fill="#0d7c5f">Outer Loop</text>
+
+  <!-- Data Prep Agent -->
+  <g>
+    <rect x="70" y="150" width="140" height="80" rx="8" fill="#0d7c5f" stroke="#1a1a1a" stroke-width="2"/>
+    <text x="140" y="178" font-size="14" font-weight="bold" text-anchor="middle" fill="#fff">Data Prep Agent</text>
+    <text x="140" y="198" font-size="11" text-anchor="middle" fill="#fff">Clean & Structure</text>
+    <text x="140" y="214" font-size="11" text-anchor="middle" fill="#fff">NACC Dataset</text>
+  </g>
+
+  <!-- Arrow: Data Prep → Planning -->
+  <path d="M 210 190 L 260 190" stroke="#1a1a1a" stroke-width="2.5" fill="none" marker-end="url(#arrowhead)"/>
+
+  <!-- Planning Agent -->
+  <g>
+    <rect x="260" y="150" width="140" height="80" rx="8" fill="#0d7c5f" stroke="#1a1a1a" stroke-width="2"/>
+    <text x="330" y="178" font-size="14" font-weight="bold" text-anchor="middle" fill="#fff">Planning Agent</text>
+    <text x="330" y="198" font-size="11" text-anchor="middle" fill="#fff">Design Statistical</text>
+    <text x="330" y="214" font-size="11" text-anchor="middle" fill="#fff">Test Plan</text>
+  </g>
+
+  <!-- Inner Loop Label -->
+  <text x="510" y="130" font-size="13" font-weight="600" fill="#6d5acd">Inner Loop (Iterative)</text>
+
+  <!-- Arrow: Planning → Scientist -->
+  <path d="M 400 190 L 450 190" stroke="#1a1a1a" stroke-width="2.5" fill="none" marker-end="url(#arrowhead)"/>
+
+  <!-- Scientist Agent -->
+  <g>
+    <rect x="450" y="150" width="140" height="80" rx="8" fill="#6d5acd" stroke="#1a1a1a" stroke-width="2"/>
+    <text x="520" y="178" font-size="14" font-weight="bold" text-anchor="middle" fill="#fff">Scientist Agent</text>
+    <text x="520" y="198" font-size="11" text-anchor="middle" fill="#fff">Execute Code &</text>
+    <text x="520" y="214" font-size="11" text-anchor="middle" fill="#fff">Compute Results</text>
+  </g>
+
+  <!-- Bidirectional Arrow: Scientist ↔ Critic -->
+  <path d="M 590 210 L 640 250" stroke="#1a1a1a" stroke-width="2.5" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M 640 250 L 590 210" stroke="#1a1a1a" stroke-width="2.5" fill="none" marker-end="url(#arrowhead)"/>
+
+  <!-- Critic Agent -->
+  <g>
+    <rect x="640" y="210" width="140" height="80" rx="8" fill="#6d5acd" stroke="#1a1a1a" stroke-width="2"/>
+    <text x="710" y="238" font-size="14" font-weight="bold" text-anchor="middle" fill="#fff">Critic Agent</text>
+    <text x="710" y="258" font-size="11" text-anchor="middle" fill="#fff">Validate & Approve</text>
+    <text x="710" y="274" font-size="11" text-anchor="middle" fill="#fff">or Iterate</text>
+  </g>
+
+  <!-- Results Box -->
+  <g>
+    <rect x="450" y="310" width="280" height="90" rx="8" fill="#f5f5f5" stroke="#1a1a1a" stroke-width="2"/>
+
+    <!-- Results Title -->
+    <text x="590" y="335" font-size="14" font-weight="bold" text-anchor="middle" fill="#1a1a1a">Results</text>
+
+    <!-- Key Result: 42/100 verified -->
+    <g>
+      <rect x="470" y="345" width="100" height="50" rx="6" fill="#0d7c5f"/>
+      <text x="520" y="368" font-size="18" font-weight="bold" text-anchor="middle" fill="#fff">42/100</text>
+      <text x="520" y="387" font-size="11" text-anchor="middle" fill="#fff">Verified</text>
+    </g>
+
+    <!-- Negative Control: 85% correct -->
+    <g>
+      <rect x="590" y="345" width="120" height="50" rx="6" fill="#6d5acd"/>
+      <text x="650" y="368" font-size="18" font-weight="bold" text-anchor="middle" fill="#fff">85.2%</text>
+      <text x="650" y="387" font-size="11" text-anchor="middle" fill="#fff">Neg. Controls</text>
+    </g>
+  </g>
+
+  <!-- Footer -->
+  <text x="400" y="435" font-size="12" text-anchor="middle" fill="#666">
+    Saichandran et al. (2025) · Boston University · medRxiv
+  </text>
+
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#1a1a1a"/>
+    </marker>
+  </defs>
+</svg>

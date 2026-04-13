@@ -1,0 +1,123 @@
+<svg viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="450" fill="#FA8072"/>
+
+  <!-- Title -->
+  <text x="400" y="40" font-family="system-ui, sans-serif" font-size="36" font-weight="600" text-anchor="middle" fill="#1a1a1a">
+    Computer Age Statistical Inference
+  </text>
+
+  <!-- Subtitle -->
+  <text x="400" y="70" font-family="system-ui, sans-serif" font-size="18" text-anchor="middle" fill="#666666">
+    Algorithms, Evidence, and Data Science
+  </text>
+
+  <!-- Dividing line -->
+  <line x1="50" y1="95" x2="750" y2="95" stroke="#ddd" stroke-width="1"/>
+
+  <!-- Era 1: Classical (1760–1950) -->
+  <g>
+    <!-- Box -->
+    <rect x="50" y="130" width="200" height="200" rx="8" fill="#e8ebe9" stroke="#999" stroke-width="2"/>
+
+    <!-- Title -->
+    <text x="150" y="160" font-family="system-ui, sans-serif" font-size="18" font-weight="600" text-anchor="middle" fill="#1a1a1a">
+      Classical
+    </text>
+    <text x="150" y="183" font-family="system-ui, sans-serif" font-size="13" text-anchor="middle" fill="#666">
+      (1760–1950)
+    </text>
+
+    <!-- Icons/Methods -->
+    <circle cx="110" cy="220" r="6" fill="#0d7c5f" opacity="0.3"/>
+    <text x="125" y="225" font-family="system-ui, sans-serif" font-size="12" fill="#333">Bayes</text>
+
+    <circle cx="110" cy="250" r="6" fill="#0d7c5f" opacity="0.3"/>
+    <text x="125" y="255" font-family="system-ui, sans-serif" font-size="12" fill="#333">Fisher</text>
+
+    <circle cx="110" cy="280" r="6" fill="#0d7c5f" opacity="0.3"/>
+    <text x="125" y="285" font-family="system-ui, sans-serif" font-size="12" fill="#333">MLE</text>
+
+    <circle cx="110" cy="310" r="6" fill="#0d7c5f" opacity="0.3"/>
+    <text x="125" y="315" font-family="system-ui, sans-serif" font-size="12" fill="#333">Exp. Families</text>
+  </g>
+
+  <!-- Arrow 1 -->
+  <g>
+    <path d="M 260 230 Q 310 220 350 230" stroke="#0d7c5f" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <polygon points="360 232 348 226 354 239" fill="#0d7c5f"/>
+  </g>
+
+  <!-- Era 2: Computer Age (1950–2000) -->
+  <g>
+    <!-- Box -->
+    <rect x="370" y="130" width="200" height="200" rx="8" fill="#f0e8fb" stroke="#6d5acd" stroke-width="2"/>
+
+    <!-- Title -->
+    <text x="470" y="160" font-family="system-ui, sans-serif" font-size="18" font-weight="600" text-anchor="middle" fill="#1a1a1a">
+      Computer Age
+    </text>
+    <text x="470" y="183" font-family="system-ui, sans-serif" font-size="13" text-anchor="middle" fill="#666">
+      (1950–2000)
+    </text>
+
+    <!-- Icons/Methods -->
+    <circle cx="430" cy="220" r="6" fill="#6d5acd"/>
+    <text x="445" y="225" font-family="system-ui, sans-serif" font-size="12" fill="#333">Bootstrap</text>
+
+    <circle cx="430" cy="250" r="6" fill="#6d5acd"/>
+    <text x="445" y="255" font-family="system-ui, sans-serif" font-size="12" fill="#333">Cross-val</text>
+
+    <circle cx="430" cy="280" r="6" fill="#6d5acd"/>
+    <text x="445" y="285" font-family="system-ui, sans-serif" font-size="12" fill="#333">MCMC</text>
+
+    <circle cx="430" cy="310" r="6" fill="#6d5acd"/>
+    <text x="445" y="315" font-family="system-ui, sans-serif" font-size="12" fill="#333">Emp. Bayes</text>
+  </g>
+
+  <!-- Arrow 2 -->
+  <g>
+    <path d="M 580 230 Q 630 220 670 230" stroke="#0d7c5f" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <polygon points="680 232 668 226 674 239" fill="#0d7c5f"/>
+  </g>
+
+  <!-- Era 3: 21st Century (2000–now) -->
+  <g>
+    <!-- Box -->
+    <rect x="690" y="130" width="200" height="200" rx="8" fill="#e6f5f0" stroke="#0d7c5f" stroke-width="2"/>
+
+    <!-- Title -->
+    <text x="790" y="160" font-family="system-ui, sans-serif" font-size="18" font-weight="600" text-anchor="middle" fill="#1a1a1a">
+      21st Century
+    </text>
+    <text x="790" y="183" font-family="system-ui, sans-serif" font-size="13" text-anchor="middle" fill="#666">
+      (2000–now)
+    </text>
+
+    <!-- Icons/Methods -->
+    <circle cx="750" cy="220" r="6" fill="#0d7c5f"/>
+    <text x="765" y="225" font-family="system-ui, sans-serif" font-size="12" fill="#333">LASSO</text>
+
+    <circle cx="750" cy="250" r="6" fill="#0d7c5f"/>
+    <text x="765" y="255" font-family="system-ui, sans-serif" font-size="12" fill="#333">FDR</text>
+
+    <circle cx="750" cy="280" r="6" fill="#0d7c5f"/>
+    <text x="765" y="285" font-family="system-ui, sans-serif" font-size="12" fill="#333">Forests</text>
+
+    <circle cx="750" cy="310" r="6" fill="#0d7c5f"/>
+    <text x="765" y="315" font-family="system-ui, sans-serif" font-size="12" fill="#333">Deep Learn</text>
+  </g>
+
+  <!-- Timeline base -->
+  <line x1="80" y1="360" x2="860" y2="360" stroke="#ccc" stroke-width="2"/>
+
+  <!-- Timeline markers -->
+  <circle cx="150" cy="360" r="4" fill="#0d7c5f" opacity="0.4"/>
+  <circle cx="470" cy="360" r="4" fill="#6d5acd" opacity="0.7"/>
+  <circle cx="790" cy="360" r="4" fill="#0d7c5f"/>
+
+  <!-- Footer -->
+  <text x="400" y="410" font-family="system-ui, sans-serif" font-size="13" text-anchor="middle" fill="#999">
+    Efron &amp; Hastie (2016) · Cambridge University Press
+  </text>
+</svg>
