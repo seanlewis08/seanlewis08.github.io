@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+  <rect width="800" height="450" fill="#FA8072"/>
+
+  <!-- Title -->
+  <text x="400" y="38" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="bold" fill="#1a1a1a">Introduction to Double/Debiased Machine Learning</text>
+  <text x="400" y="58" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#0d7c5f" font-weight="600">Neyman Orthogonal Scores + Cross-Fitting = Valid Inference with ML</text>
+
+  <!-- Two bias boxes -->
+  <rect x="30" y="80" width="355" height="80" rx="10" fill="#ffffff" stroke="#d4563a" stroke-width="1.5"/>
+  <text x="207" y="100" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="bold" fill="#d4563a">REGULARIZATION BIAS</text>
+  <text x="207" y="118" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">ML learners shrink estimates toward zero.</text>
+  <text x="207" y="133" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">Score derivative w.r.t. nuisance is nonzero,</text>
+  <text x="207" y="148" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">so bias propagates at rate √n.</text>
+
+  <rect x="415" y="80" width="355" height="80" rx="10" fill="#ffffff" stroke="#d4563a" stroke-width="1.5"/>
+  <text x="592" y="100" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="bold" fill="#d4563a">OVERFITTING BIAS</text>
+  <text x="592" y="118" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">Same data used to fit nuisance and evaluate</text>
+  <text x="592" y="133" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">the score creates dependence. Product of</text>
+  <text x="592" y="148" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">errors is not mean zero even if each is.</text>
+
+  <!-- Arrow down to solution -->
+  <line x1="400" y1="165" x2="400" y2="190" stroke="#0d7c5f" stroke-width="2"/>
+  <polygon points="396,190 400,200 404,190" fill="#0d7c5f"/>
+
+  <!-- Solution: Two ingredient boxes -->
+  <rect x="30" y="205" width="355" height="75" rx="10" fill="#ffffff" stroke="#0d7c5f" stroke-width="1.5"/>
+  <text x="207" y="225" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="bold" fill="#0d7c5f">FIX 1: NEYMAN ORTHOGONAL SCORES</text>
+  <text x="207" y="243" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">Choose score m(W;θ,η) whose derivative</text>
+  <text x="207" y="258" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">w.r.t. η vanishes at η₀. Small nuisance errors</text>
+  <text x="207" y="273" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">have only second-order impact on θ̂.</text>
+
+  <rect x="415" y="205" width="355" height="75" rx="10" fill="#ffffff" stroke="#6d5acd" stroke-width="1.5"/>
+  <text x="592" y="225" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="bold" fill="#6d5acd">FIX 2: CROSS-FITTING</text>
+  <text x="592" y="243" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">Split data into K folds. Fit nuisance on K-1</text>
+  <text x="592" y="258" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">folds, evaluate score on held-out fold.</text>
+  <text x="592" y="273" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">Breaks dependence between η̂ and scores.</text>
+
+  <!-- Results table -->
+  <rect x="30" y="300" width="740" height="110" rx="10" fill="#ffffff" stroke="#e5e5e5" stroke-width="1"/>
+  <text x="400" y="322" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" fill="#1a1a1a">ATE Simulation: 401(k) Eligibility on Net Financial Assets</text>
+
+  <!-- Table headers -->
+  <text x="80" y="345" font-family="system-ui, sans-serif" font-size="9" font-weight="600" fill="#8a8a8a">Estimator</text>
+  <text x="280" y="345" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" font-weight="600" fill="#8a8a8a">Bias</text>
+  <text x="420" y="345" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" font-weight="600" fill="#8a8a8a">Std. Dev.</text>
+  <text x="560" y="345" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" font-weight="600" fill="#8a8a8a">Coverage</text>
+
+  <line x1="50" y1="350" x2="750" y2="350" stroke="#e5e5e5" stroke-width="1"/>
+
+  <!-- DML row -->
+  <text x="80" y="368" font-family="system-ui, sans-serif" font-size="10" font-weight="700" fill="#0d7c5f">DML (AIPW + x-fit)</text>
+  <text x="280" y="368" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#0d7c5f">47</text>
+  <text x="420" y="368" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#0d7c5f">627</text>
+  <text x="560" y="368" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#0d7c5f">0.945</text>
+
+  <!-- IPW row -->
+  <text x="80" y="388" font-family="system-ui, sans-serif" font-size="10" fill="#4a4a4a">IPW (no x-fit)</text>
+  <text x="280" y="388" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#d4563a">747</text>
+  <text x="420" y="388" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#4a4a4a">837</text>
+  <text x="560" y="388" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#d4563a">0.853</text>
+
+  <!-- RA row -->
+  <text x="80" y="400" font-family="system-ui, sans-serif" font-size="10" fill="#4a4a4a">RA (no x-fit)</text>
+  <text x="280" y="400" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#d4563a">644</text>
+  <text x="420" y="400" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#4a4a4a">605</text>
+  <text x="560" y="400" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#d4563a">0.815</text>
+
+  <!-- Footer -->
+  <text x="400" y="435" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#8a8a8a">Ahrens, Chernozhukov, Hansen, Kozbur, Schaffer, Wiemann (Feb 2026) · arXiv:2504.08324v2</text>
+</svg>

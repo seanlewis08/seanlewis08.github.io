@@ -1,0 +1,241 @@
+---
+title: "Introduction to Double/Debiased Machine Learning"
+date: "2026-03-07"
+categories: [Causal Inference, Machine Learning, Econometrics]
+description: "DML combines Neyman orthogonal scores with cross-fitting to enable valid statistical inference about low-dimensional causal parameters while using flexible ML methods to estimate high-dimensional nuisance functions. This review covers the theory, two simulation illustrations, and three empirical applications including staggered adoption designs and non-tabular text data."
+image: intro-dml-thumbnail.svg
+---
+
+> 📄 **[Read the Full Paper](/papers-hosted/intro-dml.pdf){target="_blank"}**
+
+## The Gist
+
+You want to estimate a treatment effect, but the relationship between outcomes and confounders is complicated enough that you need machine learning to model it. Naively plugging ML estimates into your causal estimator breaks inference: your confidence intervals will be too narrow, your standard errors will be wrong, and your point estimates may be substantially biased. Double/Debiased Machine Learning (DML) fixes this.
+
+The problem boils down to two sources of bias that arise when you replace parametric nuisance models with flexible ML estimators. **Regularization bias** occurs because ML methods (lasso, random forests, boosting) deliberately introduce bias to control variance, and that bias propagates into your target parameter estimate at rate √n. **Overfitting bias** arises because the same data used to fit the nuisance function is also used to evaluate the moment condition, creating a statistical dependence that prevents the product of estimation errors from being mean zero.
+
+DML eliminates both problems with two ingredients. **Neyman orthogonal scores** are moment conditions whose derivative with respect to the nuisance parameter vanishes at the true value. This makes the target parameter estimator locally insensitive to small errors in nuisance estimation, neutralizing regularization bias. **Cross-fitting** partitions data into K folds, fits nuisance parameters on K−1 folds, and evaluates the score on the held-out fold. This breaks the dependence between nuisance estimation error and the score, neutralizing overfitting bias.
+
+The resulting DML estimator is √n-consistent, asymptotically normal, and semiparametrically efficient under relatively weak conditions on the quality of nuisance estimation (convergence faster than n^{−1/4} in a suitable norm). Standard errors can be computed as if the nuisance functions were known, which is a remarkable practical simplification.
+
+---
+
+## Why It Matters Now
+
+DML has become the standard framework for incorporating machine learning into causal inference in economics. The methodology was formalized in Chernozhukov et al. (2018), and this review by six of the leading contributors to the DML ecosystem (including the original `ddml` R package authors) provides the most comprehensive practical guide to date.
+
+Three things make this review particularly valuable. First, it treats DML as a **general estimation blueprint** covering six different target parameters: linear regression coefficients, partially linear regression coefficients, linear IV, partially linear IV, average treatment effects, and average structural derivatives. Table 1 of the paper provides ready-to-use Neyman orthogonal scores for all six, making it a reference card for applied researchers.
+
+Second, the empirical applications are unusually rich. The **hospital admission** example (Section 5) demonstrates DML in a staggered difference-in-differences design with conditional parallel trends, showing how cross-fitting variability can be diagnosed and summarized via median aggregation. The **monopsony** example (Section 6) uses DeBERTa v3 embeddings as covariates (replacing Doc2Vec), showing DML with non-tabular text data and revealing that DML estimates can range from −3.9 to 2.1 depending on the choice of nuisance estimator.
+
+Third, the paper is explicit about **what DML cannot do**: it cannot tell you what parameters to estimate, it cannot validate your identifying assumptions, and results can be highly sensitive to the choice of ML learner. The monopsony application is a cautionary tale showing that 12 different learners yield qualitatively different conclusions about labor supply elasticity.
+
+---
+
+## How It Works
+
+The DML algorithm is a three-step procedure that is the same regardless of the specific target parameter:
+
+```{mermaid}
+%%| fig-cap: "DML estimation and inference pipeline"
+%%| fig-width: 8
+
+graph TD
+    A["Data: {Wᵢ : i = 1,...,n}"] --> B["Step 1: Randomly partition<br/>into K folds of equal size"]
+    B --> C["Step 2: For each fold k,<br/>fit nuisance η̂₋ₖ on<br/>all data EXCLUDING fold k"]
+    C --> D["Step 3: Construct DML estimator<br/>by solving cross-fitted<br/>score equation"]
+    D --> E["Estimate: θ̂_DML"]
+    D --> F["Standard errors:<br/>computed as if η₀ were known"]
+    E --> G["Valid inference:<br/>√n(θ̂ − θ₀) → N(0, Σ)"]
+    F --> G
+```
+
+### The Partially Linear Model as Workhorse
+
+The paper repeatedly uses the partially linear regression model (PLR) as its core illustration, and it is the most common DML application in practice:
+
+$$Y = \theta_0 D + g_0(X) + \varepsilon, \quad \text{E}[D\varepsilon] = \text{E}[\varepsilon|X] = 0$$
+
+Here θ₀ is the treatment effect (a scalar), g₀(X) captures the arbitrarily complex relationship between controls and outcome, and the two zero-mean conditions are identifying assumptions.
+
+Two moment conditions identify θ₀. The **naive** score uses only the outcome regression:
+
+$$m_{\text{naive}}(W; \theta, \eta) = (Y - g(X) - \theta D) \cdot D$$
+
+The **Neyman orthogonal** score partials out covariates from *both* Y and D (a generalization of Frisch-Waugh-Lovell):
+
+$$m_{\text{PLM}}(W; \theta, \eta) = [(Y - \ell(X)) - \theta(D - r(X))] \cdot (D - r(X))$$
+
+where ℓ(X) = E[Y|X] and r(X) = E[D|X]. Both scores identify the same θ₀. But only the second is Neyman orthogonal, meaning small errors in estimating ℓ and r have only second-order effects on θ̂. The naive score is not orthogonal because errors in g(X) that are correlated with D directly bias the estimate (the classic omitted variable problem in a new guise).
+
+### Why Non-Orthogonal Scores Fail
+
+The Taylor expansion of the plug-in estimator around the true parameters reveals a first-order impact term (⋆):
+
+$$\sqrt{n}(\hat{\theta} - \theta_0) = \underbrace{\text{CLT term}}_{\text{converges to normal}} + \underbrace{(\star) \text{: first-order nuisance impact}}_{\text{DML must eliminate this}} + \text{higher-order terms}$$
+
+For Neyman orthogonal scores, the key derivative ∂m/∂η evaluated at η₀ is mean zero, so (⋆) vanishes under mild convergence conditions. For non-orthogonal scores, this derivative is generally *not* mean zero, making (⋆) of order √n times the nuisance estimation error, which can dominate the CLT term entirely.
+
+### Why Cross-Fitting Is Also Necessary
+
+Even with a Neyman orthogonal score, (⋆) does not vanish if the nuisance estimator η̂ and the score are evaluated on the *same* data. The product (∂m/∂η)(η̂ − η₀) may not be mean zero due to statistical dependence, even when each factor is individually mean zero or converging. Cross-fitting breaks this dependence by construction: η̂₋ₖ is trained on data excluding fold k, so it is independent of the scores evaluated on fold k.
+
+---
+
+## Key Results
+
+### IV Simulation: Cross-Fitting Eliminates Overfitting Bias
+
+The first simulation uses a many-instrument IV setting (200 instruments, 6 relevant, n = 1000). Without cross-fitting, both 2SLS and boosted trees are severely biased (average bias around 0.32–0.37) with zero confidence interval coverage. With cross-fitting, SSIV and DML with boosted trees are approximately unbiased with near-nominal coverage:
+
+| Estimator | Bias | Std. Dev. | Coverage |
+|---|---|---|---|
+| Oracle IV (infeasible) | −0.008 | 0.077 | 0.957 |
+| 2SLS (no x-fit) | 0.323 | 0.045 | 0.000 |
+| Boosted Trees (no x-fit) | 0.374 | 0.037 | 0.000 |
+| SSIV (x-fit) | −0.033 | 0.173 | 0.938 |
+| **DML + Boosted Trees** | **−0.020** | **0.108** | **0.959** |
+
+DML with boosted trees achieves lower variance than SSIV (0.108 vs 0.173) while maintaining coverage, reflecting the advantage of a flexible, regularized first stage.
+
+### ATE Simulation: Only DML Achieves Nominal Coverage
+
+The ATE simulation is calibrated to the classic Poterba, Venti, and Wise (1995) 401(k) dataset (n = 9,915; true ATE ≈ 6,889). It compares six estimators varying in their use of Neyman orthogonal scores and cross-fitting:
+
+| Estimator | Neyman Orth. | Cross-Fit | Bias | Coverage |
+|---|---|---|---|---|
+| **DML (AIPW + x-fit)** | **Yes** | **Yes** | **47** | **0.945** |
+| AIPW (no x-fit) | Yes | No | 142 | 0.911 |
+| RA + x-fit | No | Yes | 595 | 0.834 |
+| IPW + x-fit | No | Yes | 756 | 0.851 |
+| RA (no x-fit) | No | No | 644 | 0.815 |
+| IPW (no x-fit) | No | No | 747 | 0.853 |
+
+Only the DML estimator (combining both ingredients) achieves near-nominal 95% coverage. Dropping either ingredient degrades performance substantially.
+
+### Monopsony Application: Learner Sensitivity
+
+In the Dube et al. (2020) reanalysis of monopsony power on Amazon MTurk, 12 candidate nuisance estimators (OLS, lasso, ridge, three random forest specs, three XGBoost specs, three neural nets) produce DML estimates of the labor supply elasticity ranging from −3.9 to 2.1. Stacking (model averaging via constrained least squares) produces a preferred estimate of −0.054 (s.e. = 0.020), consistent with the original study's estimates in the 0.03–0.20 range. XGBoost specifications achieve cross-fitted R² values of 85%/74% for outcome/treatment, while neural networks achieve below 4%/22%, explaining their instability.
+
+---
+
+## Lineage
+
+```{mermaid}
+%%| fig-cap: "DML intellectual lineage"
+%%| fig-width: 8
+
+graph LR
+    A["Neyman (1959)<br/>Orthogonal scores"] --> D["Chernozhukov et al. (2018)<br/>DML framework"]
+    B["Frisch-Waugh-Lovell<br/>Partialling out"] --> D
+    C["Sample splitting<br/>Angrist & Krueger (1995)"] --> D
+    E["Robinson (1988)<br/>Partially linear model"] --> D
+    D --> F["ddml R package<br/>Wiemann et al. (2023)"]
+    D --> G["DoubleML Python<br/>Bach et al. (2024)"]
+    D --> H["This review:<br/>Ahrens et al. (2026)"]
+    I["TMLE / van der Laan<br/>(2006, 2011)"] -.->|"Related"| D
+    J["Robins et al. (2017)<br/>Debiased ML"] -.->|"Related"| D
+```
+
+The core DML framework was formalized in Chernozhukov, Chetverikov, Demirer, Duflo, Hansen, Newey, and Robins (2018). This review connects DML back to classical ideas: Neyman (1959) orthogonal scores, the Frisch-Waugh-Lovell theorem for partialling out, Robinson's (1988) partially linear model, and split-sample IV estimation from Angrist and Krueger (1995). On the applied side, it builds on Dobkin et al. (2018) for hospital admission analysis, Sun and Abraham (2021) for staggered designs, and Dube et al. (2020) for monopsony estimation with text data.
+
+---
+
+## Rubber-Ducking the Jargon
+
+**Neyman orthogonal score.** A moment condition m(W; θ, η) whose expected derivative with respect to the nuisance parameter η vanishes at the true value η₀, in all directions. Formally: ∂/∂λ E[m(W; θ₀, η₀ + λΔη)]|_{λ=0} = 0 for all perturbations Δη. This means small errors in estimating η have only second-order effects on θ̂. In the PLR model, this corresponds to residualizing both Y and D on X before running the final regression, rather than only adjusting Y.
+
+**Cross-fitting.** A K-fold procedure where the data is randomly split into K roughly equal parts. For each fold k, nuisance parameters are estimated using all data *except* fold k, and the score for fold k is evaluated using those out-of-fold estimates. This is structurally identical to K-fold cross-validation but serves a different purpose: it ensures independence between nuisance estimation errors and the scores, which is necessary for valid inference.
+
+**Regularization bias.** Bias introduced when ML estimators trade off bias for variance (e.g., lasso shrinks coefficients toward zero, random forests average over limited-depth trees). In the DML context, this bias in nuisance estimation contaminates the target parameter estimate unless the score is Neyman orthogonal.
+
+**Overfitting bias.** Bias arising from the statistical dependence between nuisance estimation error and the data used to evaluate the moment condition. Unlike standard "overfitting" (inflated prediction accuracy), here overfitting in nuisance estimation leads to bias in the *target* parameter estimate. Cross-fitting breaks this dependence.
+
+**AIPW (augmented inverse probability weighting).** The doubly robust score for the ATE: it combines an outcome regression adjustment with inverse propensity weighting, and remains consistent if *either* the outcome model or the propensity score is correctly specified. It is the unique Neyman orthogonal score for the ATE (up to efficiency equivalence).
+
+**Median aggregation.** A strategy for addressing the algorithmic randomness introduced by cross-fitting: repeat the DML procedure S times with different random splits, then report the median point estimate and a standard error that accounts for both sampling uncertainty and split-to-split variation. This reduces dependence on any single random partition and serves as a diagnostic for stability.
+
+**Super learner / stacking.** A model averaging approach that combines multiple candidate ML learners into a weighted average, with weights chosen to minimize cross-validated prediction error. In the monopsony application, stacking assigns large weights only to XGBoost specifications, producing a DML estimate consistent across alternative selection strategies.
+
+---
+
+## What to Watch Out For
+
+**Learner sensitivity is real and consequential.** The monopsony application is a cautionary example: the same DML procedure with the same data produces labor supply elasticity estimates ranging from −3.9 to 2.1 depending on the nuisance learner. The theory tells you that DML delivers valid inference *if* the nuisance estimator converges at rate n^{−1/4}. In practice, there is no guarantee that any particular learner achieves this rate for your data. Always report results from multiple learners and use diagnostics (cross-fitted R², confidence with validation via CVC tests) to assess learner quality.
+
+**Cross-fitting introduces algorithmic randomness.** The DML estimator depends on the random partition into folds, and different splits can yield meaningfully different point estimates and standard errors in finite samples. The hospital admission application shows estimates for group 9's first-period treatment effect ranging from 3,204 to 3,486 across five random splits (roughly 30% of the standard error). Repeat the procedure multiple times and report the median aggregate.
+
+**Non-orthogonal scores fail silently.** The IPW score for the ATE and the naive score for the PLR coefficient are not Neyman orthogonal. They will produce point estimates that may look reasonable, but the confidence intervals will systematically undercover. The ATE simulation shows IPW achieving only 85% coverage at the nominal 95% level, and the bias can be an order of magnitude larger than DML. There is no diagnostic that will tell you "this score is non-orthogonal" after the fact; you need to check the orthogonality condition analytically or use a known orthogonal score from Table 1.
+
+**DML does not validate identifying assumptions.** DML assumes you have already defined a target parameter and established the conditions under which it is identified from the observed data. For the ATE, this means overlap and unconfoundedness must hold. For the PLR coefficient, exogeneity conditions must hold. DML makes nuisance estimation flexible, not identification.
+
+**Off-the-shelf ML can fail DML's rate requirements.** Random forests with default tuning may not converge fast enough for DML in high-dimensional settings (Chi et al., 2022). Deep regression trees may be pointwise inconsistent (Cattaneo, Klusowski, and Yu, 2025). No known method achieves the n^{−1/4} rate for fully nonparametric nuisance functions without additional structural assumptions. This is not a theoretical curiosity; it means DML results should be interpreted with caution when nuisance functions are highly complex.
+
+---
+
+## So What?
+
+For applied researchers, the paper consolidates the practical DML workflow into a clear sequence. First, define your target parameter and verify identification. Second, select a Neyman orthogonal score (Table 1 provides six common ones). Third, choose K (typically 5–10), select candidate learners (always try multiple), and run the cross-fitted DML procedure. Fourth, repeat S times to assess split-to-split variability and report the median aggregate. Fifth, examine diagnostics: cross-fitted R² for nuisance performance, CVC p-values for learner comparison, and stacking weights for model combination.
+
+The honest message of this review is that DML is powerful but not automatic. The framework gives you valid inference *when its conditions hold*, and the practical challenge is verifying that those conditions are approximately satisfied. Divergent estimates across learners, poor cross-fitted R² values, and high split-to-split variability are all warning signs that the DML conditions may not be met for your application.
+
+For methodologists, the open problems are clear. Better guidance on which learners achieve sufficient convergence rates for which data structures. Better finite-sample corrections for small K and small n. Better handling of dependent data (panel settings, clustered observations). And better integration of DML with sensitivity analysis tools when identifying assumptions are questionable.
+
+---
+
+## Reproduction & Implementation
+
+The paper uses three software ecosystems:
+
+**R (`ddml`):**
+```r
+library(ddml)
+
+# Partially linear model with DML
+fit <- ddml_plm(
+  y = Y, D = D, X = X,
+  learners = list("lasso", "rf", "xgboost"),
+  sample_folds = 5,
+  n_rep = 10  # median aggregation over 10 splits
+)
+summary(fit)
+```
+
+**Python (`DoubleML`):**
+```python
+from doubleml import DoubleMLPLR, DoubleMLData
+from sklearn.ensemble import RandomForestRegressor
+
+dml_data = DoubleMLData(df, y_col='Y', d_cols='D', x_cols=X_cols)
+
+dml_plr = DoubleMLPLR(
+    dml_data,
+    ml_l=RandomForestRegressor(n_estimators=1000, min_samples_leaf=10),
+    ml_m=RandomForestRegressor(n_estimators=1000, min_samples_leaf=10),
+    n_folds=5,
+    n_rep=10
+)
+dml_plr.fit()
+print(dml_plr.summary)
+```
+
+**Stata (`ddml`):**
+```stata
+ddml init plm, y(Y) d(D) mname(m1)
+ddml E[Y|X]: pystacked $X, type(reg)
+ddml E[D|X]: pystacked $X, type(reg)
+ddml crossfit, shortstack
+ddml estimate, robust
+```
+
+Full replication code and additional examples are available at [dmlguide.github.io](https://dmlguide.github.io).
+
+### References
+
+Ahrens, A., Chernozhukov, V., Hansen, C., Kozbur, D., Schaffer, M. E., & Wiemann, T. (2026). Introduction to Double/Debiased Machine Learning. *arXiv:2504.08324v2*.
+
+Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey, W., & Robins, J. (2018). Double/debiased machine learning for treatment and structural parameters. *The Econometrics Journal*, 21(1), C1–C68.
+
+Dobkin, C., Finkelstein, A., Kluender, R., & Notowidigdo, M. J. (2018). The economic consequences of hospital admissions. *American Economic Review*, 108(2), 308–352.
+
+Dube, A., Jacobs, J., Naidu, S., & Suri, S. (2020). Monopsony in online labor markets. *American Economic Review: Insights*, 2(1), 33–46.
