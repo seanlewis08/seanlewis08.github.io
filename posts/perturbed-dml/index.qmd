@@ -2,7 +2,7 @@
 title: "Perturbed Double Machine Learning: Valid Inference When Your Nuisance Estimators Are Too Slow"
 date: "2026-03-05"
 categories: [Causal Inference, Machine Learning, Semiparametric Statistics]
-description: "Standard double machine learning requires nuisance estimators that converge at n^{-1/4} or faster for valid confidence intervals. Zheng, Bonvini, and Guo show how to get honest coverage even when that rate is unattainable --- by injecting calibrated noise, re-estimating many times, and keeping only the perturbations that behave well."
+description: "Standard double machine learning requires nuisance estimators that converge at n^{-1/4} or faster for valid confidence intervals. Zheng, Bonvini, and Guo show how to get honest coverage even when that rate is unattainable by injecting calibrated noise, re-estimating many times, and keeping only the perturbations that behave well."
 image: perturbed-dml-thumbnail.svg
 ---
 
@@ -10,9 +10,9 @@ image: perturbed-dml-thumbnail.svg
 
 ## The Gist
 
-Double/Debiased Machine Learning (DML) is the workhorse for estimating causal parameters when you have high-dimensional confounders. It works beautifully --- *if* your nuisance estimators (the ML models estimating propensity scores, outcome regressions, etc.) converge fast enough. The magic number is **n^{-1/4}**: if your nuisance estimates hit that convergence rate, cross-fitting plus Neyman orthogonality gives you root-n normal inference and valid Wald confidence intervals.
+Double/Debiased Machine Learning (DML) is the workhorse for estimating causal parameters when you have high-dimensional confounders. It works beautifully, *if* your nuisance estimators (the ML models estimating propensity scores, outcome regressions, etc.) converge fast enough. The magic number is **n^{-1/4}**: if your nuisance estimates hit that convergence rate, cross-fitting plus Neyman orthogonality gives you root-n normal inference and valid Wald confidence intervals.
 
-The problem: **that rate is often unattainable.** In high-dimensional sparse models with many relevant covariates, Lasso converges at rate s·log(p)/n, where s is the sparsity level. If s grows with n --- even modestly --- you blow past the n^{-1/2} product rate, and standard DML confidence intervals undercover. The authors show a concrete example where Wald intervals from DML achieve only **71.4% coverage** at nominal 95%.
+The problem: **that rate is often unattainable.** In high-dimensional sparse models with many relevant covariates, Lasso converges at rate s·log(p)/n, where s is the sparsity level. If s grows with n, even modestly, you blow past the n^{-1/2} product rate, and standard DML confidence intervals undercover. The authors show a concrete example where Wald intervals from DML achieve only **71.4% coverage** at nominal 95%.
 
 **Perturbed DML** fixes this with a three-step procedure:
 
@@ -30,7 +30,7 @@ Result: **96.4% coverage** in the same setting where standard DML got 71.4%, wit
 
 This matters because **the gap between DML theory and DML practice is real and consequential.**
 
-DML has become the default approach for causal inference in tech, economics, and policy evaluation. The `DoubleML` package in R and Python, EconML from Microsoft, and CausalML from Uber all implement it. But practitioners routinely use these tools in settings where the theoretical guarantees don't hold --- high-dimensional genomics data, complex treatment effect heterogeneity, or flexible ML models whose convergence rates are unknown.
+DML has become the default approach for causal inference in tech, economics, and policy evaluation. The `DoubleML` package in R and Python, EconML from Microsoft, and CausalML from Uber all implement it. But practitioners routinely use these tools in settings where the theoretical guarantees don't hold: high-dimensional genomics data, complex treatment effect heterogeneity, or flexible ML models whose convergence rates are unknown.
 
 The standard advice is "use cross-fitting and hope your ML is good enough." Perturbed DML replaces hope with a procedure: you can now **construct valid confidence intervals without knowing or verifying the convergence rate of your nuisance estimators.** That's a fundamental shift from "assume regularity" to "achieve validity regardless."
 
@@ -82,19 +82,19 @@ The paper establishes three main theoretical guarantees:
 
 ### 1. Valid Coverage Without Fast Convergence
 
-Standard DML requires the nuisance bias term T_n to vanish --- specifically, √n · T_n → 0. This fails when nuisance estimators are slow. Perturbed DML achieves valid coverage **even when T_n doesn't vanish**, because the filtering step retains at least one perturbation where the perturbed nuisance is close enough to the truth.
+Standard DML requires the nuisance bias term T_n to vanish, specifically, √n · T_n → 0. This fails when nuisance estimators are slow. Perturbed DML achieves valid coverage **even when T_n doesn't vanish**, because the filtering step retains at least one perturbation where the perturbed nuisance is close enough to the truth.
 
 **Theorem (informal):** Under mild conditions, the perturbed DML confidence interval achieves coverage ≥ 1 - α - o(1), even when standard DML Wald intervals undercover.
 
 ### 2. Minimax Optimal Length
 
-The CI isn't just valid --- it's tight. The length scales as:
+The CI isn't just valid; it's tight. The length scales as:
 
 $$
 \text{CI length} \approx \frac{1}{\sqrt{n}} + \frac{s \log p}{n}
 $$
 
-The first term is the parametric rate (unavoidable). The second is the cost of not knowing the nuisance --- and it matches the **minimax lower bound**. You can't do better without additional assumptions.
+The first term is the parametric rate (unavoidable). The second is the cost of not knowing the nuisance, and it matches the **minimax lower bound**. You can't do better without additional assumptions.
 
 ### 3. Practical Interval Width
 
@@ -121,7 +121,7 @@ For at least one of the M draws, ξ_m approximately cancels the estimation error
 
 The filtering step is what makes this practical. Without filtering, you'd take a union of M intervals and get something enormous. The filter uses the original DML estimate β̂ as an anchor: perturbations whose β̂_m is far from β̂ are likely bad (the perturbation made things worse, not better), so you throw them out. The threshold π* = 0.95 keeps roughly 5% of perturbations.
 
-**Why not just pick the "best" perturbation?** Because you don't know which one is best --- you don't know η₀. The union-then-filter approach avoids the selection problem entirely.
+**Why not just pick the "best" perturbation?** Because you don't know which one is best because you don't know η₀. The union-then-filter approach avoids the selection problem entirely.
 
 ---
 
@@ -132,9 +132,9 @@ Perturbed DML sits at the intersection of several research threads:
 - **Chernozhukov et al. (2018)**: The original DML paper establishing cross-fitting + Neyman orthogonality for semiparametric inference. The foundation that perturbed DML builds on.
 - **Stability-based inference (Meinshausen et al., 2010)**: The idea of perturbing estimation and using stability of results for inference. Perturbed DML borrows the "perturb many times, aggregate" philosophy.
 - **Sample splitting and cross-fitting**: Standard tools for avoiding Donsker conditions. Perturbed DML uses K-fold cross-fitting inside each perturbation.
-- **Honest confidence intervals (Armstrong & Kolesár, 2018, 2021)**: CI_B (the bias-aware interval) achieves valid coverage under slow convergence but at the cost of extreme width. Perturbed DML is a direct competitor --- same coverage, much shorter.
+- **Honest confidence intervals (Armstrong & Kolesár, 2018, 2021)**: CI_B (the bias-aware interval) achieves valid coverage under slow convergence but at the cost of extreme width. Perturbed DML is a direct competitor: same coverage, much shorter.
 - **Debiased/double ML extensions**: Work by Chernozhukov, Newey, and others on relaxing conditions for DML validity.
-- **Influence function theory (Hájek, van der Vaart)**: The semiparametric efficiency theory underpinning DML --- influence functions, efficient scores, and the connection between orthogonality and bias reduction.
+- **Influence function theory (Hájek, van der Vaart)**: The semiparametric efficiency theory underpinning DML: influence functions, efficient scores, and the connection between orthogonality and bias reduction.
 
 ---
 
@@ -152,7 +152,7 @@ Perturbed DML sits at the intersection of several research threads:
 
 **Cross-fitting**: Split data into K folds. Estimate nuisances on K-1 folds, evaluate the estimating equation on the held-out fold. Rotate and average. Prevents the nuisance estimator from "seeing" the data it's evaluated on.
 
-**Projection parameter β**: When the partially linear model Y = Dβ + g(X) + ε might be misspecified, β is defined as the *projection* --- the best linear approximation of the relationship between D and Y after removing the effect of X. It's well-defined even if the true model isn't linear in D.
+**Projection parameter β**: When the partially linear model Y = Dβ + g(X) + ε might be misspecified, β is defined as the *projection*, the best linear approximation of the relationship between D and Y after removing the effect of X. It's well-defined even if the true model isn't linear in D.
 
 **Perturbation**: Adding controlled random noise to the estimation procedure. In Lasso, this means perturbing the penalty; in general ML, it means adding noise to residuals or the loss function.
 
@@ -166,7 +166,7 @@ Perturbed DML sits at the intersection of several research threads:
 
 **The filtering threshold π\* matters.** Too aggressive (π* close to 1) and you keep almost nothing, needing enormous M. Too lenient (π* close to 0) and you keep bad perturbations, inflating the CI. The default π* = 0.95 works well in simulations, but there's no automatic tuning procedure.
 
-**It doesn't fix point estimation.** Perturbed DML improves *confidence intervals*, not the point estimate. Your β̂ is still the original DML estimate. If the nuisance is badly estimated, the point estimate is still biased --- you just get wider (honest) intervals that account for it.
+**It doesn't fix point estimation.** Perturbed DML improves *confidence intervals*, not the point estimate. Your β̂ is still the original DML estimate. If the nuisance is badly estimated, the point estimate is still biased, but you get wider (honest) intervals that account for it.
 
 **The theory assumes sparsity or smoothness.** The Lasso results require the true model to be sparse. The general ML results (Section 4) require the perturbation to be "rich enough" to span the nuisance estimation error. If your ML model is fundamentally misspecified (not just slow), perturbation won't save you.
 
@@ -178,9 +178,9 @@ Perturbed DML sits at the intersection of several research threads:
 
 ## So What?
 
-**If you use DML in practice (DoubleML, EconML, CausalML):** You should worry about whether your nuisance estimators converge fast enough. If you're not sure --- and you probably aren't --- perturbed DML gives you honest CIs with minimal overhead. Wrap your existing pipeline in a perturbation loop.
+**If you use DML in practice (DoubleML, EconML, CausalML):** You should worry about whether your nuisance estimators converge fast enough. If you're not sure (and you probably aren't) perturbed DML gives you honest CIs with minimal overhead. Wrap your existing pipeline in a perturbation loop.
 
-**If you work in high-dimensional causal inference:** This paper directly addresses the most common failure mode of DML. The fact that it achieves minimax optimal CI length while maintaining coverage is a strong theoretical result. It's not just a patch --- it's optimal.
+**If you work in high-dimensional causal inference:** This paper directly addresses the most common failure mode of DML. The fact that it achieves minimax optimal CI length while maintaining coverage is a strong theoretical result. It's not just a patch; it's optimal.
 
 **If you're a methods developer:** The perturbation-and-filter paradigm is general. The authors apply it to Lasso, GAMs, and XGBoost, but the framework extends to any nuisance estimator. There's room for follow-up work on neural network nuisances, heterogeneous treatment effects, and dynamic settings.
 
@@ -325,7 +325,7 @@ def perturbed_dml(dml_data, M=500, pi_star=0.95,
     }
 ```
 
-**Real-data replication:** The gun ownership analysis uses county-level panel data (195 US counties, 1980--1999, n = 3,900) with p = 195 control variables. The treatment is gun ownership rate (proxied by firearm suicide rate), and the outcome is log homicide rate.
+**Real-data replication:** The gun ownership analysis uses county-level panel data (195 US counties, 1980–1999, n = 3,900) with p = 195 control variables. The treatment is gun ownership rate (proxied by firearm suicide rate), and the outcome is log homicide rate.
 
 **Dependencies:** R packages `glmnet`, `mgcv`, `xgboost`; Python packages `doubleml`, `scikit-learn`, `xgboost`.
 
@@ -335,10 +335,10 @@ def perturbed_dml(dml_data, M=500, pi_star=0.95,
 
 Zheng, M., Bonvini, M., & Guo, Z. (2026). Perturbed Double Machine Learning: Nonstandard Inference Beyond the Parametric Length. *arXiv:2511.01222v2*. [📄 Read the Full Paper](/papers-hosted/perturbed-dml.pdf){target="_blank"}
 
-Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey, W., & Robins, J. (2018). Double/Debiased Machine Learning for Treatment and Structural Parameters. *The Econometrics Journal*, 21(1), C1--C68.
+Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey, W., & Robins, J. (2018). Double/Debiased Machine Learning for Treatment and Structural Parameters. *The Econometrics Journal*, 21(1), C1–C68.
 
-Armstrong, T. B., & Kolesár, M. (2021). Finite-Sample Optimal Estimation and Inference on Average Treatment Effects Under Unconfoundedness. *Econometrica*, 89(3), 1141--1177.
+Armstrong, T. B., & Kolesár, M. (2021). Finite-Sample Optimal Estimation and Inference on Average Treatment Effects Under Unconfoundedness. *Econometrica*, 89(3), 1141–1177.
 
-Meinshausen, N., Meier, L., & Bühlmann, P. (2009). p-Values for High-Dimensional Regression. *Journal of the American Statistical Association*, 104(488), 1671--1681.
+Meinshausen, N., Meier, L., & Bühlmann, P. (2009). p-Values for High-Dimensional Regression. *Journal of the American Statistical Association*, 104(488), 1671–1681.
 
-Bach, P., Chernozhukov, V., Kurz, M. S., & Spindler, M. (2022). DoubleML -- An Object-Oriented Implementation of Double Machine Learning in Python. *Journal of Machine Learning Research*, 23(53), 1--6.
+Bach, P., Chernozhukov, V., Kurz, M. S., & Spindler, M. (2022). DoubleML: An Object-Oriented Implementation of Double Machine Learning in Python. *Journal of Machine Learning Research*, 23(53), 1–6.

@@ -1,0 +1,302 @@
+---
+title: "Kernel Debiased Estimation: Semiparametric Efficiency Without Deriving the Influence Function"
+date: "2026-03-06"
+categories: [Causal Inference, Semiparametric Statistics, Kernel Methods]
+description: "ULFS-KDPE constructs a single data-adaptive distributional flow in a reproducing kernel Hilbert space that simultaneously debiases all pathwise differentiable parameters, achieving semiparametric efficiency without ever requiring an explicit influence function."
+image: kernel-debiased-thumbnail.svg
+---
+
+> 📄 **[Read the Full Paper](/papers-hosted/kernel-debiased-estimation.pdf){target="_blank"}**
+
+## The Gist
+
+If you want to estimate a causal parameter efficiently in a nonparametric model, the standard recipe is: (1) derive the efficient influence function (EIF), (2) construct an estimator whose influence function matches the EIF, and (3) prove it achieves the semiparametric efficiency bound. This is what TMLE, one-step estimators, and double machine learning all do. The problem is step (1). Deriving the EIF is analytically demanding, parameter-specific, and sometimes intractable in complex models.
+
+**ULFS-KDPE** (Universal Least Favorable Submodel, Kernel Debiased Plug-in Estimator) eliminates the need for step (1) entirely. Instead of deriving and solving the EIF equation for a specific target parameter, it constructs a **single data-adaptive flow** in a reproducing kernel Hilbert space (RKHS) that simultaneously debiases *all* pathwise differentiable parameters whose canonical gradients lie in the RKHS closure.
+
+The key idea: define a density path (a continuous-time flow on probability distributions) whose velocity field at each point is the **kernel natural gradient** of the empirical bias. This flow follows the direction of steepest descent in the RKHS norm, driving all empirical score equations toward zero simultaneously. When the flow converges, you evaluate your target parameter at the final distribution to get the debiased plug-in estimate.
+
+The result: a plug-in estimator that is regular, asymptotically linear, and semiparametrically efficient under standard conditions, with no parameter-specific derivation required. In simulations, it achieves lower bias and RMSE than TMLE and iterative KDPE, especially under positivity violations.
+
+---
+
+## Why It Matters Now
+
+This matters because **the bottleneck in modern causal inference is increasingly the influence function, not the data.**
+
+TMLE is the gold standard for efficient estimation in causal inference. But every time you want to estimate a new parameter (the ATE, the risk ratio, the odds ratio, a conditional effect, a mediation effect), you need the EIF for that specific parameter. For the ATE in a simple binary treatment setting, the EIF is well-known. For more complex parameters in longitudinal, mediation, or competing-risks settings, deriving the EIF is a research paper in itself.
+
+ULFS-KDPE sidesteps this entirely. You fit **one** debiased distribution, and then you can evaluate *any* pathwise differentiable parameter at that distribution. Want the ATE? Plug in. Want the risk ratio? Plug in the same distribution. Want the odds ratio? Same distribution, different functional. No re-targeting, no re-derivation, no parameter-specific updates.
+
+This also matters for stability. Classical TMLE and iterative KDPE rely on *locally* least favorable submodels, where each update is optimal only infinitesimally at the current distribution. This can lead to convergence failures and overshooting, especially under near-positivity violations (when propensity scores approach 0 or 1). ULFS-KDPE uses a *globally* least favorable submodel, where the score matches the canonical gradient at *every point* along the path. This produces a monotonically increasing log-likelihood and principled stopping criteria tied to the geometry of the flow.
+
+---
+
+## How It Works
+
+The algorithm is built on three layers of structure:
+
+```{mermaid}
+%%| fig-cap: "ULFS-KDPE conceptual flow"
+%%| fig-width: 8
+
+graph TD
+    A["Initial density estimate p̂₀<br/>(e.g., from Super Learner)"] --> B["Compute mean-zero kernel K⁽ᵗ⁾<br/>and Gram matrix G⁽ᵗ⁾"]
+    B --> C["Compute empirical mean embedding<br/>m_n⁽ᵗ⁾ = (1/n) Σ k_Oᵢ⁽ᵗ⁾"]
+    C --> D["Form RKHS direction<br/>D(p̂ₜ) = Ĉₜ m_n⁽ᵗ⁾"]
+    D --> E["Euler step on log-density:<br/>log p̂ₜ₊Δ = log p̂ₜ + Δ · D(p̂ₜ)"]
+    E --> F["Renormalize to get<br/>valid density p̂ₜ₊Δ"]
+    F --> G{Stopping criterion<br/>met?}
+    G -->|No| B
+    G -->|Yes| H["Evaluate Ψ(P̂_T)<br/>= debiased estimate"]
+
+    style A fill:#f0ebe4,stroke:#0d7c5f,color:#1a1a1a
+    style D fill:#f0ebe4,stroke:#6d5acd,color:#1a1a1a
+    style H fill:#f0ebe4,stroke:#d4563a,color:#1a1a1a
+    style G fill:#ffffff,stroke:#0d7c5f,color:#1a1a1a
+```
+
+### The Three Key Ideas
+
+**1. Universal Least Favorable Submodel (ULFS).** Classical TMLE targets along a *locally* least favorable submodel, where the score equals the canonical gradient only at the starting distribution. The ULFS requires the score to equal the canonical gradient at *every* distribution along the path. Geometrically, the path always follows the direction of maximal change in the target parameter per unit of information, everywhere along its trajectory. This avoids the overshooting and convergence issues of iterative local targeting.
+
+**2. Kernel Hilbert Space Embedding.** Instead of working with the EIF directly, the method embeds the debiasing problem into an RKHS with a Gaussian kernel. The empirical mean embedding (the average of centered kernel sections at the observed data points) serves as a Riesz representer for the empirical deviation functional. Its RKHS norm measures the worst-case empirical moment violation. Driving this norm to zero simultaneously solves all empirical score equations indexed by functions in the RKHS.
+
+**3. Kernel Natural Gradient Flow.** The update direction at each step is not just the mean embedding itself, but a preconditioned version: the empirical covariance operator applied to the mean embedding. This produces a *kernel natural gradient flow*, which follows steepest descent in the empirical moment geometry. The log-likelihood is monotonically nondecreasing along this flow, providing a Lyapunov function for convergence analysis.
+
+---
+
+## Core Results
+
+### Theoretical Guarantees
+
+The paper establishes four main results:
+
+| **Result** | **What It Says** |
+|---|---|
+| **Theorem 6.1** (Existence & Uniqueness) | The density-valued ODE has a unique solution in Hölder space C^{1,α}, preserving positivity and normalization |
+| **Theorem 6.3** (Finite-Time Convergence) | The empirical RKHS score reaches any target accuracy δ_n in finite time |
+| **Lemma 6.2** (Lyapunov Monotonicity) | The empirical log-likelihood P_n[log p_t] is nondecreasing; stationarity occurs iff the mean embedding vanishes |
+| **Theorem 6.4** (Efficiency) | Under standard conditions, the estimator is regular, asymptotically linear, and semiparametrically efficient |
+
+### Simulation Results
+
+The simulations compare ULFS-KDPE against iterative KDPE, TMLE, and one-step TMLE across two data-generating processes (n = 300, 500 replications):
+
+| **DGP** | **Parameter** | **Method** | **Bias (×100)** | **Variance** | **RMSE** |
+|---|---|---|---|---|---|
+| DGP1 (well-behaved) | ATE | ULFS-KDPE | -0.824 | 0.0561 | 0.0567 |
+| | | KDPE | -1.438 | 0.0546 | 0.0565 |
+| | | TMLE | -0.004 | 0.0618 | 0.0618 |
+| | | One-step TMLE | -0.247 | 0.0605 | 0.0606 |
+| DGP1 | Odds Ratio | ULFS-KDPE | -0.499 | 0.3951 | 0.3954 |
+| | | KDPE | -5.010 | 0.3683 | 0.3717 |
+| | | TMLE | 6.193 | 0.4464 | 0.4510 |
+| DGP2 (positivity issues) | ATE | ULFS-KDPE | -0.779 | 0.0772 | 0.0777 |
+| | | KDPE | 0.034 | 0.0750 | 0.0751 |
+| | | TMLE | 0.128 | 0.1203 | 0.1204 |
+| | | One-step TMLE | 0.009 | 0.1176 | 0.1177 |
+| DGP2 | Odds Ratio | ULFS-KDPE | 8.729 | 0.9505 | 0.9552 |
+| | | KDPE | 17.575 | 0.9621 | 0.9784 |
+| | | TMLE | 49.752 | 1.6948 | 1.7674 |
+
+The pattern: ULFS-KDPE achieves comparable or lower RMSE than TMLE in well-behaved settings, and substantially outperforms all methods under positivity violations (DGP2), especially for nonlinear parameters like the risk ratio and odds ratio where TMLE's variance inflates dramatically.
+
+A critical advantage: ULFS-KDPE converges in all 500 simulations when the iteration limit is set to 150+, while iterative KDPE fails to converge in 111+ out of 500 simulations (343/500 convergence for KDPE vs 475+/500 for ULFS-KDPE).
+
+---
+
+## Five Stopping Criteria
+
+The paper proposes five complementary stopping rules, each monitoring a different aspect of the flow:
+
+| **Criterion** | **What It Monitors** | **Reliability** |
+|---|---|---|
+| **(SC1) Density plateau** | Has the density stopped changing? | Most reliable |
+| **(SC2) Score plateau** | Has the directional score stopped increasing? | Reliable |
+| **(SC3) Vanishing RKHS direction** | Is the update direction near zero? | Cheap to compute |
+| **(SC4) Variance-dominated updates** | Are updates adding noise, not signal? | Guards against overfitting |
+| **(SC5) EIF approximately solved** | Is the classical TMLE score equation solved? | Optional (requires EIF) |
+
+SC1 (density stabilization) is the most reliable across all settings. SC5 is available only when the EIF is known, which somewhat defeats the purpose of the influence-function-free approach, but can serve as a diagnostic.
+
+---
+
+## The Lineage
+
+ULFS-KDPE sits at the intersection of three research programs:
+
+- **Targeted Maximum Likelihood Estimation (van der Laan & Rubin, 2006; van der Laan & Rose, 2011)**: The original framework for constructing efficient plug-in estimators by fluctuating initial estimates along locally least favorable submodels. ULFS-KDPE replaces local targeting with global targeting along the ULFS.
+- **Kernel Debiased Plug-in Estimation (Cho et al., 2024)**: The predecessor method that embeds debiasing in an RKHS, constructing data-adaptive fluctuations that approximately solve empirical score equations without explicit EIF derivation. ULFS-KDPE improves on KDPE by replacing iterative local updates with a single globally-defined flow.
+- **Universal Least Favorable Submodels (Luo & van der Laan, 2024)**: The theoretical framework defining distributional paths that enforce least favorability globally. ULFS-KDPE provides the first computationally tractable realization of this concept using kernel methods.
+- **Highly Adaptive Lasso (van der Laan, 2017; Benkeser & van der Laan, 2016)**: HAL-MLE solves score equations over a rich basis function class. Like ULFS-KDPE, it enables √n-rate bias correction without parameter-specific targeting, but scales poorly in high dimensions.
+- **Reproducing Kernel Hilbert Space theory (Aronszajn, 1950; Berlinet & Thomas-Agnan, 2004)**: The mathematical foundation: kernel mean embeddings, Riesz representers in RKHS, and the reproducing property that makes infinite-dimensional computations finite.
+
+---
+
+## Rubber-Ducking the Jargon
+
+**Pathwise differentiability**: A parameter Ψ is pathwise differentiable if it responds smoothly to small perturbations of the data distribution. Formally, for any smooth one-dimensional submodel passing through the true distribution, the parameter changes at a rate given by the inner product of its canonical gradient with the submodel's score. This is the necessary condition for √n-estimability.
+
+**Efficient influence function (EIF)**: The unique function in the tangent space that determines the best possible asymptotic variance for any regular estimator. If your estimator's influence function equals the EIF, you've achieved the semiparametric efficiency bound. Classical methods require deriving this function analytically for each parameter.
+
+**Reproducing kernel Hilbert space (RKHS)**: A Hilbert space of functions where point evaluation is a continuous linear functional. The "reproducing property" means you can evaluate any function in the space by taking an inner product with a kernel section. The Gaussian kernel's RKHS is dense in L², meaning it can approximate any square-integrable function.
+
+**Mean-zero RKHS**: The subspace of RKHS functions that have zero expectation under a given distribution. Restricting to this subspace ensures that the debiasing direction automatically preserves the normalization of the density (no need for a separate normalization constraint).
+
+**Kernel mean embedding**: The element of the RKHS that represents the expectation functional. The *empirical* mean embedding is the average of kernel sections at observed data points: m_n = (1/n) Σ k_{O_i}. Its norm measures the worst-case discrepancy between empirical and population moments over the RKHS unit ball.
+
+**Least favorable submodel**: A one-dimensional family of distributions through the initial estimate whose score (derivative of log-density) equals the canonical gradient of the target parameter. "Least favorable" because estimation along this submodel is hardest, meaning updates along it produce maximal bias reduction per unit of information. *Locally* least favorable: the score condition holds only at the starting point. *Universal*: the score condition holds everywhere along the path.
+
+**Plug-in estimator**: An estimator of the form Ψ(P̂_n), where P̂_n is an estimate of the entire data distribution and Ψ is the parameter functional. TMLE and ULFS-KDPE are plug-in estimators; one-step estimators and DML are not.
+
+**Lyapunov function**: A quantity that monotonically increases (or decreases) along the trajectory of a dynamical system, guaranteeing convergence. Here, the empirical log-likelihood P_n[log p_t] serves as a Lyapunov function for the ULFS flow.
+
+---
+
+## What to Watch Out For
+
+**Computational cost scales as O(n²) per iteration.** Each step requires forming the n×n centered Gram matrix G^{(t)} and computing matrix-vector products. With n = 300 (as in the simulations), this is trivial. With n = 50,000, it's prohibitive without approximations. The authors note that random feature approximations or low-rank kernels may help, but this is left to future work.
+
+**Bandwidth selection is not addressed.** The Gaussian kernel bandwidth σ is a tuning parameter that controls the smoothness of the RKHS and the approximation quality. The paper uses a fixed bandwidth across simulations but provides no guidance on data-adaptive selection. This is a gap, since bandwidth affects both the set of parameters that can be debiased and the finite-sample performance.
+
+**The simulations are small-scale.** All results use n = 300 with a single covariate. Modern causal inference applications routinely involve thousands of observations and dozens of confounders. The scaling behavior in these regimes is unknown.
+
+**Convergence of KDPE is compared somewhat unfairly.** ULFS-KDPE's advantage in convergence rate (475/500 vs 343/500) partly reflects that the two methods use different update schemes (global flow vs iterative local targeting), different step sizes, and different stopping criteria. A more controlled comparison might narrow this gap.
+
+**The theory requires the RKHS to approximate the true influence function well.** Assumption 4 requires that the canonical gradient at the estimated distribution can be approximated by elements in the RKHS with controlled norm. If the true influence function is very rough or has features that the Gaussian kernel cannot capture at the chosen bandwidth, the efficiency guarantee weakens.
+
+---
+
+## So What?
+
+**If you build TMLE pipelines:** ULFS-KDPE offers a promising alternative when you need to estimate multiple parameters from the same data without re-targeting for each one. One debiased distribution, many functionals. This is especially valuable in exploratory analyses where the target parameter isn't fixed in advance.
+
+**If you work on challenging observational studies (near-positivity violations):** The simulation results show clear advantages over TMLE and KDPE in the positivity-violation regime (DGP2). The RKHS-regularized flow avoids the variance inflation that plagues EIF-based methods when propensity scores are extreme.
+
+**If you develop semiparametric methods:** The universal least favorable submodel concept, combined with kernel embedding, opens a new design space for efficient estimators. The theoretical framework (density-valued ODE on Hölder spaces, Lyapunov analysis via log-likelihood) is independently interesting and may apply to other estimation problems.
+
+**If you're a practitioner who doesn't want to derive influence functions:** This is the paper's core promise. If it scales computationally, it could democratize efficient semiparametric estimation by removing the hardest step from the workflow.
+
+---
+
+## Reproduction & Implementation
+
+### Environment Setup
+
+The simulations use R with the following packages:
+
+```r
+# Core dependencies
+install.packages(c("sl3", "tmle3"))  # Super Learner and TMLE frameworks
+
+# Learner library
+install.packages(c("glmnet", "randomForest", "xgboost"))
+
+# Kernel computations (custom, from paper)
+# Gaussian kernel, mean-zero projection, Gram matrix operations
+```
+
+### Algorithm Pseudocode
+
+```python
+import numpy as np
+from scipy.spatial.distance import cdist
+
+def ulfs_kdpe(O, psi_func, p0, sigma, delta=0.01,
+              max_iter=200, tol=1e-6):
+    """
+    ULFS-KDPE: Kernel Debiased Plug-in Estimation
+    via Universal Least Favorable Submodel.
+
+    O: array (n, d) of observations
+    psi_func: callable, target parameter functional
+    p0: initial density estimate (array of length n)
+    sigma: Gaussian kernel bandwidth
+    delta: Euler step size
+    """
+    n = len(O)
+    log_p = np.log(np.maximum(p0, 1e-8))
+
+    for t in range(max_iter):
+        p_t = np.exp(log_p)
+        p_t = p_t / p_t.sum()  # renormalize
+
+        # 1. Compute Gaussian kernel matrix
+        dists = cdist(O, O, 'sqeuclidean')
+        K = np.exp(-dists / (2 * sigma**2))
+
+        # 2. Compute kernel mean embedding m_P
+        m_P = K @ p_t  # kernel mean embedding values
+
+        # 3. Center kernel: K_P = K - outer(m_P)/||m_P||^2
+        m_norm_sq = p_t @ m_P
+        K_centered = K - np.outer(m_P, m_P) / m_norm_sq
+
+        # 4. Gram matrix of centered kernel at data points
+        G = K_centered[np.ix_(range(n), range(n))]
+
+        # 5. Coefficient vector alpha = (1/n) * G @ 1
+        alpha = G @ np.ones(n) / n
+
+        # 6. RKHS direction at data points
+        D_vals = G @ alpha / n
+
+        # 7. Euler step on log-density
+        log_p = log_p + delta * D_vals
+
+        # 8. Renormalize
+        p_t = np.exp(log_p)
+        p_t = p_t / p_t.sum()
+
+        # 9. Check stopping: density plateau
+        if t > 0:
+            change = np.mean((log_p - log_p_prev)**2)
+            if change < tol:
+                break
+        log_p_prev = log_p.copy()
+
+    # Evaluate target parameter at final distribution
+    return psi_func(p_t)
+```
+
+### Simulation Setup
+
+The paper uses two DGPs, both observational with binary treatment and binary outcome:
+
+**DGP1** (well-behaved): X ~ Unif(0,1), treatment probability includes sin() terms to create nonlinearity, outcome model is also nonlinear.
+
+**DGP2** (positivity issues): X ~ 0.9·Unif(-1,1) + 0.1·Unif(-2,2), creating near-violations when X approaches ±2 and propensity scores approach 0 or 1.
+
+Target parameters: ATE, Risk Ratio, Odds Ratio (all estimated from the same debiased distribution).
+
+### Resource Links
+
+**Paper:** Chen, H., Liu, Y., & Malenica, I. (2026). arXiv:2603.08945v1. [📄 Read the Full Paper](/papers-hosted/kernel-debiased-estimation.pdf){target="_blank"}
+
+**Related implementations:**
+
+- `tmle3` R package (TMLE framework): [github.com/tlverse/tmle3](https://github.com/tlverse/tmle3){target="_blank"}
+- `sl3` R package (Super Learner): [github.com/tlverse/sl3](https://github.com/tlverse/sl3){target="_blank"}
+- Original KDPE paper (Cho et al.): referenced as [9] in the paper
+- HAL-MLE implementation: `hal9001` R package
+
+**Further reading:**
+
+- van der Laan, M. J. & Rose, S. (2011). *Targeted Learning: Causal Inference for Observational and Experimental Data.* Springer.
+- Luo, Y. & van der Laan, M. J. (2024). One-step TMLE based on universal least favorable submodels.
+- Cho, J. et al. (2024). Kernel debiased plug-in estimation.
+
+---
+
+## References
+
+Chen, H., Liu, Y., & Malenica, I. (2026). Kernel Debiased Plug-in Estimation Based on the Universal Least Favorable Submodel. *arXiv:2603.08945v1*. [📄 Read the Full Paper](/papers-hosted/kernel-debiased-estimation.pdf){target="_blank"}
+
+van der Laan, M. J., & Rubin, D. (2006). Targeted Maximum Likelihood Learning. *The International Journal of Biostatistics*, 2(1).
+
+Cho, J., Matsushita, R., & Tran-Dinh, Q. (2024). Kernel Debiased Plug-in Estimation: Simultaneous, Automated Debiasing without Influence Functions for Many Target Parameters. *arXiv preprint*.
+
+Luo, Y., & van der Laan, M. J. (2024). One-Step Targeted Maximum Likelihood Estimation Based on Universal Least Favorable One-Dimensional Submodels.
+
+Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey, W., & Robins, J. (2018). Double/Debiased Machine Learning for Treatment and Structural Parameters. *The Econometrics Journal*, 21(1), C1–C68.

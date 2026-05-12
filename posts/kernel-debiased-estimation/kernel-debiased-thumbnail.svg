@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+  <rect width="800" height="450" fill="#FA8072"/>
+
+  <!-- Title -->
+  <text x="400" y="38" text-anchor="middle" font-family="system-ui, sans-serif" font-size="19" font-weight="bold" fill="#1a1a1a">Kernel Debiased Plug-in Estimation</text>
+  <text x="400" y="58" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#0d7c5f" font-weight="600">via Universal Least Favorable Submodel (ULFS-KDPE)</text>
+
+  <!-- Flow diagram: 3 boxes -->
+  <rect x="30" y="80" width="220" height="85" rx="10" fill="#ffffff" stroke="#0d7c5f" stroke-width="1.5"/>
+  <text x="140" y="102" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="bold" fill="#0d7c5f">EMBED</text>
+  <text x="140" y="120" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">Map debiasing problem</text>
+  <text x="140" y="133" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">into Gaussian RKHS</text>
+  <text x="140" y="155" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" fill="#0d7c5f">K(o,o')</text>
+
+  <!-- Arrow -->
+  <line x1="255" y1="122" x2="285" y2="122" stroke="#0d7c5f" stroke-width="2"/>
+  <polygon points="285,118 295,122 285,126" fill="#0d7c5f"/>
+
+  <rect x="300" y="80" width="220" height="85" rx="10" fill="#ffffff" stroke="#6d5acd" stroke-width="1.5"/>
+  <text x="410" y="102" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="bold" fill="#6d5acd">FLOW</text>
+  <text x="410" y="120" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">Kernel natural gradient</text>
+  <text x="410" y="133" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">along ULFS path</text>
+  <text x="410" y="155" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#6d5acd">d/dt log p = D(p)</text>
+
+  <!-- Arrow -->
+  <line x1="525" y1="122" x2="555" y2="122" stroke="#6d5acd" stroke-width="2"/>
+  <polygon points="555,118 565,122 555,126" fill="#6d5acd"/>
+
+  <rect x="570" y="80" width="200" height="85" rx="10" fill="#ffffff" stroke="#d4563a" stroke-width="1.5"/>
+  <text x="670" y="102" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="bold" fill="#d4563a">PLUG IN</text>
+  <text x="670" y="120" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">Evaluate ANY parameter</text>
+  <text x="670" y="133" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">at debiased distribution</text>
+  <text x="670" y="155" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#d4563a">ATE, RR, OR...</text>
+
+  <!-- Key innovation box -->
+  <rect x="30" y="185" width="740" height="50" rx="8" fill="#ffffff" stroke="#0d7c5f" stroke-width="1.5"/>
+  <text x="50" y="207" font-family="system-ui, sans-serif" font-size="10" font-weight="bold" fill="#0d7c5f">Key Innovation</text>
+  <text x="50" y="225" font-family="system-ui, sans-serif" font-size="10" fill="#4a4a4a">No influence function derivation needed. One debiased distribution serves all pathwise differentiable parameters simultaneously.</text>
+
+  <!-- Results table -->
+  <rect x="30" y="250" width="740" height="155" rx="10" fill="#ffffff" stroke="#e5e5e5" stroke-width="1"/>
+  <text x="400" y="272" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" fill="#1a1a1a">RMSE Comparison (DGP2: Positivity Violations)</text>
+
+  <!-- Table headers -->
+  <text x="80" y="295" font-family="system-ui, sans-serif" font-size="9" font-weight="600" fill="#8a8a8a">Method</text>
+  <text x="250" y="295" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" font-weight="600" fill="#8a8a8a">ATE</text>
+  <text x="400" y="295" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" font-weight="600" fill="#8a8a8a">Risk Ratio</text>
+  <text x="560" y="295" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" font-weight="600" fill="#8a8a8a">Odds Ratio</text>
+
+  <line x1="50" y1="300" x2="750" y2="300" stroke="#e5e5e5" stroke-width="1"/>
+
+  <!-- ULFS-KDPE row -->
+  <text x="80" y="318" font-family="system-ui, sans-serif" font-size="10" font-weight="700" fill="#0d7c5f">ULFS-KDPE</text>
+  <text x="250" y="318" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#0d7c5f">0.078</text>
+  <text x="400" y="318" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#0d7c5f">0.278</text>
+  <text x="560" y="318" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#0d7c5f">0.955</text>
+
+  <!-- KDPE row -->
+  <text x="80" y="338" font-family="system-ui, sans-serif" font-size="10" fill="#4a4a4a">KDPE</text>
+  <text x="250" y="338" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#4a4a4a">0.075</text>
+  <text x="400" y="338" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#4a4a4a">0.278</text>
+  <text x="560" y="338" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#4a4a4a">0.978</text>
+
+  <!-- TMLE row -->
+  <text x="80" y="358" font-family="system-ui, sans-serif" font-size="10" fill="#4a4a4a">TMLE</text>
+  <text x="250" y="358" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#d4563a">0.120</text>
+  <text x="400" y="358" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#d4563a">0.468</text>
+  <text x="560" y="358" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#d4563a">1.767</text>
+
+  <!-- Convergence stat -->
+  <text x="680" y="320" font-family="system-ui, sans-serif" font-size="20" font-weight="bold" fill="#0d7c5f">500</text>
+  <text x="680" y="338" font-family="system-ui, sans-serif" font-size="9" fill="#4a4a4a">/500 converged</text>
+  <text x="680" y="358" font-family="system-ui, sans-serif" font-size="9" fill="#8a8a8a">vs 343 for KDPE</text>
+
+  <!-- Footer -->
+  <text x="400" y="435" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#8a8a8a">Chen, Liu, Malenica (Mar 2026) · arXiv:2603.08945v1 · UNC Chapel Hill</text>
+</svg>
