@@ -269,7 +269,8 @@ div.quarto-post:has(a[href*="non-manipulable-causes"]),
 div.quarto-post:has(a[href*="hypothesis-generation-llms"]),
 div.quarto-post:has(a[href*="explainability-agentic-ai"]),
 div.quarto-post:has(a[href*="star-agents-data-optimization"]),
-div.quarto-post:has(a[href*="agentic-ai-alzheimers"]) {
+div.quarto-post:has(a[href*="agentic-ai-alzheimers"]),
+div.quarto-post:has(a[href*="perturbed-dml"]) {
   background: #FA8072 !important;
 }
 

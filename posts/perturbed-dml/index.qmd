@@ -1,0 +1,344 @@
+---
+title: "Perturbed Double Machine Learning: Valid Inference When Your Nuisance Estimators Are Too Slow"
+date: "2026-03-05"
+categories: [Causal Inference, Machine Learning, Semiparametric Statistics]
+description: "Standard double machine learning requires nuisance estimators that converge at n^{-1/4} or faster for valid confidence intervals. Zheng, Bonvini, and Guo show how to get honest coverage even when that rate is unattainable --- by injecting calibrated noise, re-estimating many times, and keeping only the perturbations that behave well."
+image: perturbed-dml-thumbnail.svg
+---
+
+> 📄 **[Read the Full Paper](/papers-hosted/perturbed-dml.pdf){target="_blank"}**
+
+## The Gist
+
+Double/Debiased Machine Learning (DML) is the workhorse for estimating causal parameters when you have high-dimensional confounders. It works beautifully --- *if* your nuisance estimators (the ML models estimating propensity scores, outcome regressions, etc.) converge fast enough. The magic number is **n^{-1/4}**: if your nuisance estimates hit that convergence rate, cross-fitting plus Neyman orthogonality gives you root-n normal inference and valid Wald confidence intervals.
+
+The problem: **that rate is often unattainable.** In high-dimensional sparse models with many relevant covariates, Lasso converges at rate s·log(p)/n, where s is the sparsity level. If s grows with n --- even modestly --- you blow past the n^{-1/2} product rate, and standard DML confidence intervals undercover. The authors show a concrete example where Wald intervals from DML achieve only **71.4% coverage** at nominal 95%.
+
+**Perturbed DML** fixes this with a three-step procedure:
+
+1. **Perturb**: inject random Gaussian noise into the nuisance estimation M times (default M = 500), producing M different nuisance estimates and M corresponding DML point estimates + Wald intervals.
+2. **Filter**: throw out perturbations whose point estimates deviate too far from the original (unperturbed) DML estimate. Keep roughly the top 5% (threshold π* = 0.95).
+3. **Union**: take the union of all retained confidence intervals as your final CI.
+
+The key insight: among M random perturbations, **at least one noise draw approximately cancels the true estimation error** in the nuisance, producing a nuisance estimate close to the oracle truth. That perturbation's CI will have valid coverage, and since the union includes it, the final CI covers too.
+
+Result: **96.4% coverage** in the same setting where standard DML got 71.4%, with CIs only about 17% longer than oracle Wald intervals.
+
+---
+
+## Why It Matters Now
+
+This matters because **the gap between DML theory and DML practice is real and consequential.**
+
+DML has become the default approach for causal inference in tech, economics, and policy evaluation. The `DoubleML` package in R and Python, EconML from Microsoft, and CausalML from Uber all implement it. But practitioners routinely use these tools in settings where the theoretical guarantees don't hold --- high-dimensional genomics data, complex treatment effect heterogeneity, or flexible ML models whose convergence rates are unknown.
+
+The standard advice is "use cross-fitting and hope your ML is good enough." Perturbed DML replaces hope with a procedure: you can now **construct valid confidence intervals without knowing or verifying the convergence rate of your nuisance estimators.** That's a fundamental shift from "assume regularity" to "achieve validity regardless."
+
+It also matters for reproducibility. If your causal estimate comes with a confidence interval that's only valid under unverifiable assumptions about Lasso convergence, your error bars are a fiction. Perturbed DML makes the error bars honest.
+
+---
+
+## How the Algorithm Works
+
+The full procedure (Algorithm 1 from the paper) has eleven steps:
+
+```
+Algorithm: Perturbed DML
+
+Input: Data (X_i, Y_i, D_i), i = 1,...,n
+       Number of perturbations M
+       Filtering threshold π*
+       Significance levels α (target), α₀ (perturbation CIs)
+
+1. Split data into K folds for cross-fitting
+2. For each fold k:
+   a. Estimate nuisance parameters η̂₋ₖ on the held-out folds
+   b. Compute the influence function ψ(η̂₋ₖ) on fold k
+3. Compute the original DML estimate β̂ = (1/n) Σ ψᵢ(η̂)
+4. For m = 1, ..., M:
+   a. Draw perturbation noise ξₘ
+   b. Add ξₘ to the nuisance estimation (perturb the loss)
+   c. Re-estimate nuisance parameters η̂ₘ with perturbed loss
+   d. Compute perturbed DML estimate β̂ₘ
+   e. Compute Wald CI_m at level (1 - α₀)
+5. Filter: keep perturbations where |β̂ₘ - β̂| is small
+   (keep the bottom (1-π*) fraction → ~M(1-π*) intervals)
+6. Output: CI = ∪ of all retained CI_m
+```
+
+The perturbation mechanism differs by estimator:
+
+| **Nuisance Estimator** | **Perturbation Method** |
+|---|---|
+| Lasso | Add Gaussian noise to the penalty term (λ perturbation) |
+| GAMs (mgcv) | Perturb the smoothing parameter via random scaling |
+| XGBoost / general ML | Add noise to the cross-fitted residuals directly |
+
+---
+
+## Core Results
+
+The paper establishes three main theoretical guarantees:
+
+### 1. Valid Coverage Without Fast Convergence
+
+Standard DML requires the nuisance bias term T_n to vanish --- specifically, √n · T_n → 0. This fails when nuisance estimators are slow. Perturbed DML achieves valid coverage **even when T_n doesn't vanish**, because the filtering step retains at least one perturbation where the perturbed nuisance is close enough to the truth.
+
+**Theorem (informal):** Under mild conditions, the perturbed DML confidence interval achieves coverage ≥ 1 - α - o(1), even when standard DML Wald intervals undercover.
+
+### 2. Minimax Optimal Length
+
+The CI isn't just valid --- it's tight. The length scales as:
+
+$$
+\text{CI length} \approx \frac{1}{\sqrt{n}} + \frac{s \log p}{n}
+$$
+
+The first term is the parametric rate (unavoidable). The second is the cost of not knowing the nuisance --- and it matches the **minimax lower bound**. You can't do better without additional assumptions.
+
+### 3. Practical Interval Width
+
+In simulations, the perturbed DML CI is only **~17% longer** than the (infeasible) oracle Wald interval at M = 500. As M grows to 10^4, the ratio barely changes. Compare this to the **bias-aware CI** (CI_B), which is also valid but grows **80x longer** as the problem gets harder.
+
+| **Method** | **Coverage (s=100)** | **Relative CI Length** |
+|---|---|---|
+| Oracle Wald | 95.0% | 1.00x |
+| Standard DML Wald | 71.4% | 0.95x (too short!) |
+| Bias-aware CI_B | 95.8% | ~80x |
+| **Perturbed DML** | **96.4%** | **~1.17x** |
+
+---
+
+## The Perturbation Mechanism: Why It Works
+
+The core idea is a stochastic search argument. Consider the nuisance parameter η₀ (the true value). The standard DML estimator uses η̂, which has some error η̂ - η₀. Now add a random perturbation ξ:
+
+$$
+\hat{\eta}_m = \hat{\eta}(\text{data}, \xi_m)
+$$
+
+For at least one of the M draws, ξ_m approximately cancels the estimation error, so η̂_m ≈ η₀. That perturbation's Wald CI is approximately the oracle CI → valid coverage.
+
+The filtering step is what makes this practical. Without filtering, you'd take a union of M intervals and get something enormous. The filter uses the original DML estimate β̂ as an anchor: perturbations whose β̂_m is far from β̂ are likely bad (the perturbation made things worse, not better), so you throw them out. The threshold π* = 0.95 keeps roughly 5% of perturbations.
+
+**Why not just pick the "best" perturbation?** Because you don't know which one is best --- you don't know η₀. The union-then-filter approach avoids the selection problem entirely.
+
+---
+
+## The Lineage
+
+Perturbed DML sits at the intersection of several research threads:
+
+- **Chernozhukov et al. (2018)**: The original DML paper establishing cross-fitting + Neyman orthogonality for semiparametric inference. The foundation that perturbed DML builds on.
+- **Stability-based inference (Meinshausen et al., 2010)**: The idea of perturbing estimation and using stability of results for inference. Perturbed DML borrows the "perturb many times, aggregate" philosophy.
+- **Sample splitting and cross-fitting**: Standard tools for avoiding Donsker conditions. Perturbed DML uses K-fold cross-fitting inside each perturbation.
+- **Honest confidence intervals (Armstrong & Kolesár, 2018, 2021)**: CI_B (the bias-aware interval) achieves valid coverage under slow convergence but at the cost of extreme width. Perturbed DML is a direct competitor --- same coverage, much shorter.
+- **Debiased/double ML extensions**: Work by Chernozhukov, Newey, and others on relaxing conditions for DML validity.
+- **Influence function theory (Hájek, van der Vaart)**: The semiparametric efficiency theory underpinning DML --- influence functions, efficient scores, and the connection between orthogonality and bias reduction.
+
+---
+
+## Rubber-Ducking the Jargon
+
+**Double Machine Learning (DML)**: A procedure for estimating causal parameters using ML for nuisance estimation. "Double" because you (1) estimate nuisance parameters with ML, then (2) use the residuals in a debiased/orthogonal estimating equation. Cross-fitting avoids overfitting bias.
+
+**Nuisance parameter**: A quantity you need to estimate to get at the parameter you actually care about, but don't care about in its own right. In causal inference: propensity scores, conditional means, conditional variances. The "nuisance" is that if you estimate it badly, it corrupts your causal estimate.
+
+**n^{-1/4} rate**: The critical convergence speed for nuisance estimators in DML. If η̂ converges to η₀ at rate n^{-1/4} or faster, then the product of two nuisance errors vanishes at rate n^{-1/2}, giving you root-n inference. Slower than n^{-1/4} → the product doesn't vanish → Wald CIs undercover.
+
+**Neyman orthogonality**: A property of the estimating equation (influence function) that makes the causal estimate *locally insensitive* to small errors in nuisance estimation. It's what lets DML work with ML estimators that have slower convergence than parametric models.
+
+**Influence function**: The first-order functional derivative of a statistical functional. In DML, it's the score equation whose sample average gives you the point estimate. Its variance determines the asymptotic variance of the estimator.
+
+**Cross-fitting**: Split data into K folds. Estimate nuisances on K-1 folds, evaluate the estimating equation on the held-out fold. Rotate and average. Prevents the nuisance estimator from "seeing" the data it's evaluated on.
+
+**Projection parameter β**: When the partially linear model Y = Dβ + g(X) + ε might be misspecified, β is defined as the *projection* --- the best linear approximation of the relationship between D and Y after removing the effect of X. It's well-defined even if the true model isn't linear in D.
+
+**Perturbation**: Adding controlled random noise to the estimation procedure. In Lasso, this means perturbing the penalty; in general ML, it means adding noise to residuals or the loss function.
+
+**Filtering threshold (π\*)**: The fraction of perturbations discarded. At π* = 0.95, you keep the 5% of perturbations closest to the original estimate. Higher π* → fewer retained → shorter CI but need larger M.
+
+---
+
+## What to Watch Out For
+
+**The computational cost is real.** M = 500 perturbations means re-estimating your nuisance model 500 times. With Lasso, this is cheap (seconds). With XGBoost or deep learning, it could be expensive. The authors don't address GPU-heavy models.
+
+**The filtering threshold π\* matters.** Too aggressive (π* close to 1) and you keep almost nothing, needing enormous M. Too lenient (π* close to 0) and you keep bad perturbations, inflating the CI. The default π* = 0.95 works well in simulations, but there's no automatic tuning procedure.
+
+**It doesn't fix point estimation.** Perturbed DML improves *confidence intervals*, not the point estimate. Your β̂ is still the original DML estimate. If the nuisance is badly estimated, the point estimate is still biased --- you just get wider (honest) intervals that account for it.
+
+**The theory assumes sparsity or smoothness.** The Lasso results require the true model to be sparse. The general ML results (Section 4) require the perturbation to be "rich enough" to span the nuisance estimation error. If your ML model is fundamentally misspecified (not just slow), perturbation won't save you.
+
+**Union of intervals can be conservative.** The CI is a union of retained intervals, so it can only be wider than any individual one. In practice, the excess width is small (~17%), but in edge cases with very heterogeneous perturbations, it could balloon.
+
+**Real-data example is limited.** The gun ownership → homicide application (Section 8) uses a single observational dataset with n = 3,900 and p = 195 controls. It's illustrative, not definitive.
+
+---
+
+## So What?
+
+**If you use DML in practice (DoubleML, EconML, CausalML):** You should worry about whether your nuisance estimators converge fast enough. If you're not sure --- and you probably aren't --- perturbed DML gives you honest CIs with minimal overhead. Wrap your existing pipeline in a perturbation loop.
+
+**If you work in high-dimensional causal inference:** This paper directly addresses the most common failure mode of DML. The fact that it achieves minimax optimal CI length while maintaining coverage is a strong theoretical result. It's not just a patch --- it's optimal.
+
+**If you're a methods developer:** The perturbation-and-filter paradigm is general. The authors apply it to Lasso, GAMs, and XGBoost, but the framework extends to any nuisance estimator. There's room for follow-up work on neural network nuisances, heterogeneous treatment effects, and dynamic settings.
+
+**If you review or referee applied papers using DML:** Ask whether the n^{-1/4} condition plausibly holds. If the authors are using Lasso with s >> √n or flexible ML without convergence guarantees, their CIs may undercover. Perturbed DML is a constructive solution to recommend.
+
+---
+
+## Simulation Highlights
+
+The paper includes extensive simulations (Section 7) comparing methods across varying sparsity levels:
+
+```{mermaid}
+%%| fig-cap: "Coverage rates across methods as sparsity increases"
+%%| fig-width: 8
+
+graph LR
+    A[Low Sparsity<br/>s = 10] --> B{All methods<br/>~95% coverage}
+    C[Medium Sparsity<br/>s = 50] --> D{DML Wald drops<br/>to ~85%}
+    E[High Sparsity<br/>s = 100] --> F{DML Wald: 71%<br/>Perturbed: 96%}
+
+    style A fill:#f0ebe4,stroke:#0d7c5f,color:#1a1a1a
+    style C fill:#f0ebe4,stroke:#0d7c5f,color:#1a1a1a
+    style E fill:#f0ebe4,stroke:#0d7c5f,color:#1a1a1a
+    style B fill:#ffffff,stroke:#0d7c5f,color:#1a1a1a
+    style D fill:#ffffff,stroke:#d4563a,color:#1a1a1a
+    style F fill:#ffffff,stroke:#d4563a,color:#1a1a1a
+```
+
+Key simulation findings:
+
+| **Setting** | **DML Wald Coverage** | **Perturbed DML Coverage** | **CI Length Ratio** |
+|---|---|---|---|
+| s = 10, n = 500 | 94.8% | 96.2% | 1.08x |
+| s = 50, n = 500 | 85.2% | 95.8% | 1.12x |
+| s = 100, n = 500 | 71.4% | 96.4% | 1.17x |
+| GAM nuisance | 89.6% | 95.4% | 1.14x |
+| XGBoost nuisance | 87.2% | 94.8% | 1.19x |
+
+The pattern is clear: as the problem gets harder (higher sparsity, more complex nuisances), standard DML breaks down while perturbed DML maintains coverage.
+
+---
+
+## Reproduction & Implementation
+
+**GitHub repository:** [github.com/makaylazheng/DML-nonregular-inference](https://github.com/makaylazheng/DML-nonregular-inference){target="_blank"}
+
+The authors provide R code for all simulations and the real-data analysis. Here's a minimal implementation sketch for the Lasso case:
+
+```r
+library(glmnet)
+
+perturbed_dml <- function(Y, D, X, M = 500, pi_star = 0.95,
+                          alpha = 0.05, alpha0 = alpha / 10) {
+  n <- length(Y)
+  p <- ncol(X)
+
+  # Step 1: Standard DML estimate (cross-fitted)
+  dml_result <- standard_dml(Y, D, X)  # Your DML implementation
+  beta_hat <- dml_result$estimate
+  se_hat <- dml_result$se
+
+  # Step 2: Perturb M times
+  beta_perturbed <- numeric(M)
+  ci_lower <- numeric(M)
+  ci_upper <- numeric(M)
+
+  for (m in 1:M) {
+    # Perturb the Lasso penalty
+    xi <- rnorm(p)  # Random perturbation
+
+    # Re-estimate nuisance with perturbed penalty
+    perturbed_result <- dml_with_perturbation(Y, D, X, xi)
+    beta_perturbed[m] <- perturbed_result$estimate
+    se_m <- perturbed_result$se
+
+    # Wald CI at level (1 - alpha0)
+    z <- qnorm(1 - alpha0 / 2)
+    ci_lower[m] <- beta_perturbed[m] - z * se_m
+    ci_upper[m] <- beta_perturbed[m] + z * se_m
+  }
+
+  # Step 3: Filter
+  deviations <- abs(beta_perturbed - beta_hat)
+  threshold <- quantile(deviations, 1 - pi_star)
+  keep <- deviations <= threshold
+
+  # Step 4: Union of retained CIs
+  final_lower <- min(ci_lower[keep])
+  final_upper <- max(ci_upper[keep])
+
+  list(
+    estimate = beta_hat,
+    ci = c(final_lower, final_upper),
+    n_retained = sum(keep),
+    n_perturbations = M
+  )
+}
+```
+
+**Python equivalent** using the `DoubleML` package:
+
+```python
+import numpy as np
+from doubleml import DoubleMLPLR
+from sklearn.linear_model import Lasso
+
+def perturbed_dml(dml_data, M=500, pi_star=0.95,
+                  alpha=0.05, alpha0=None):
+    """Perturbed DML wrapper around DoubleML."""
+    if alpha0 is None:
+        alpha0 = alpha / 10
+
+    # Standard DML estimate
+    dml = DoubleMLPLR(dml_data, ml_l=Lasso(), ml_m=Lasso())
+    dml.fit()
+    beta_hat = dml.coef[0]
+
+    # Perturb M times
+    estimates = np.zeros(M)
+    ci_bounds = np.zeros((M, 2))
+
+    for m in range(M):
+        # Perturb by adding noise to cross-fitted residuals
+        noise = np.random.normal(0, 1, size=len(dml_data.y))
+        # Re-fit with perturbed residuals
+        dml_m = fit_perturbed(dml_data, noise)
+        estimates[m] = dml_m.coef[0]
+        ci_bounds[m] = dml_m.confint(level=1-alpha0).values[0]
+
+    # Filter: keep perturbations close to original
+    deviations = np.abs(estimates - beta_hat)
+    threshold = np.quantile(deviations, 1 - pi_star)
+    keep = deviations <= threshold
+
+    # Union of retained CIs
+    final_ci = [ci_bounds[keep, 0].min(), ci_bounds[keep, 1].max()]
+
+    return {
+        'estimate': beta_hat,
+        'ci': final_ci,
+        'n_retained': keep.sum(),
+    }
+```
+
+**Real-data replication:** The gun ownership analysis uses county-level panel data (195 US counties, 1980--1999, n = 3,900) with p = 195 control variables. The treatment is gun ownership rate (proxied by firearm suicide rate), and the outcome is log homicide rate.
+
+**Dependencies:** R packages `glmnet`, `mgcv`, `xgboost`; Python packages `doubleml`, `scikit-learn`, `xgboost`.
+
+---
+
+## References
+
+Zheng, M., Bonvini, M., & Guo, Z. (2026). Perturbed Double Machine Learning: Nonstandard Inference Beyond the Parametric Length. *arXiv:2511.01222v2*. [📄 Read the Full Paper](/papers-hosted/perturbed-dml.pdf){target="_blank"}
+
+Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey, W., & Robins, J. (2018). Double/Debiased Machine Learning for Treatment and Structural Parameters. *The Econometrics Journal*, 21(1), C1--C68.
+
+Armstrong, T. B., & Kolesár, M. (2021). Finite-Sample Optimal Estimation and Inference on Average Treatment Effects Under Unconfoundedness. *Econometrica*, 89(3), 1141--1177.
+
+Meinshausen, N., Meier, L., & Bühlmann, P. (2009). p-Values for High-Dimensional Regression. *Journal of the American Statistical Association*, 104(488), 1671--1681.
+
+Bach, P., Chernozhukov, V., Kurz, M. S., & Spindler, M. (2022). DoubleML -- An Object-Oriented Implementation of Double Machine Learning in Python. *Journal of Machine Learning Research*, 23(53), 1--6.
