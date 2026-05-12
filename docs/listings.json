@@ -2,6 +2,7 @@
   {
     "listing": "/blog.html",
     "items": [
+      "/posts/kernel-debiased-estimation/index.html",
       "/posts/perturbed-dml/index.html",
       "/posts/multi-agent-patterns/index.html",
       "/posts/agentic-ai-alzheimers/index.html",
